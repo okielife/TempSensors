@@ -28,8 +28,7 @@ while True:
     # if commit interval is passed:
     #  create new html content file
     #  update using github api
-    file_content = f"""
----
+    file_content = f"""---
 sensor_id: {sensor_id}
 location: {sensor_location}
 fridge_temperature: {fridge_temp}
@@ -37,7 +36,7 @@ freezer_temperature: {freezer_temp}
 ---
 {{}}
     """
-    current = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    current = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
     file_name = f"{current}_{sensor_location}_{sensor_id}.html"
     file_path = f"_posts/{sensor_id}/{file_name}"
     url = f"https://api.github.com/repos/okielife/TempSensors/contents/{file_path}"
