@@ -28,6 +28,6 @@ for post in all_posts_list:
         check_call(['git', 'rm', post])
         num_to_delete += 1
 if num_to_delete > 0:
-    print(f"{num_to_delete} file(s) staged for deletion, next `git commit -m MSG` and `git push origin gh-pages`")
+    print(f"{num_to_delete} file(s) staged for deletion, next `git commit -m MSG` and `git push origin main`")
 else:
     print("No files were staged for deletion, nothing to do")
