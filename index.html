@@ -3,44 +3,52 @@ title: Temperature Sensor Dashboard
 ---
 
 <head>
-    <style>
-        /* tell the SVG path to be a thin blue line without any area fill */
-        path {
-            stroke: steelblue;
-            stroke-width: 1;
-            fill: none;
-        }
-
-        body {
-            font-family: "Ubuntu";
-        }
-    </style>
+    <title>Temperature Sensor Dashboard</title>
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu:400,700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
           integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
 </head>
 
-<body>
+<body class="container-fluid" style="font-family: Ubuntu,serif">
+
+{% assign categories = "" | split: '/'%}
+{% for page in site.posts %}
+{% assign full_path_parts = page.path | split:'/' %}
+{% assign this_page_cat = full_path_parts[1] | strip %}
+{% assign categories = categories | push: this_page_cat %}
+{% endfor %}
+{% assign categories = categories | uniq %}
+
 <h1>Temperature Sensor Data</h1>
+<p>These tables capture the most recent temperature readings for each known sensor</p>
+{% for category in categories %}
+{% assign reading_count = 0 %}
+<h2>{{ category }}</h2>
 <table class="table table-striped">
     <thead>
     <tr>
-        <th>Sensor ID</th>
-        <th>Sensor Location</th>
+        <th>Measurement Time</th>
         <th>Fridge Temperature</th>
         <th>Freezer Temperature</th>
     </tr>
     </thead>
     <tbody>
     {% for post in site.posts %}
-    <tr>
-        <td>{{ post.sensor_id }}</td>
-        <td>{{ post.location }}</td>
+    {% if post.sensor_id != category %}
+      {% continue %}
+    {% endif %}
+    {% assign reading_count = reading_count | plus: 1 %}
+    {% if reading_count <= 5 %}
+      <tr>
+        <td>{{ post.measurement_time }}</td>
         <td>{{ post.fridge_temperature }}</td>
         <td>{{ post.freezer_temperature }}</td>
-    </tr>
+      </tr>
+    {% endif %}
     {% endfor %}
     </tbody>
 </table>
+{% endfor %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"
         integrity="sha384-+sLIOodYLS7CIrQpBjl+C7nPvqq+FbNUBDunl/OZv93DB7Ln/533i8e/mZXLi/P+"
