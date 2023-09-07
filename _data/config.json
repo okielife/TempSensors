@@ -6,7 +6,7 @@
   "sensors": [
     {
       "id": "Emerald_Garage_Sensor_1",
-      "maximum_fridge_temp": 3,
+      "maximum_fridge_temp": 26,
       "maximum_freezer_temp": -10,
       "sensor_location": "Emerald"
     },

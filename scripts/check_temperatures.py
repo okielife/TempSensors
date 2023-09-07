@@ -19,7 +19,7 @@ all_posts = posts_folder.glob('**/*.html')
 all_posts_list = reversed(sorted(all_posts))  # should put the most recent first
 sensors_handled_already = set()
 failures = []
-sensors_checked = set()
+sensors_passing = set()
 sensors_ignored = set()
 for post in all_posts_list:
     sensor_id_from_post_file = post.parts[-2]  # should be the sensor ID subdirectory
@@ -32,7 +32,6 @@ for post in all_posts_list:
         continue
 
     # if we've made it this far, mark down that we checked this one
-    sensors_checked.add(sensor_id_from_post_file)
     sensors_handled_already.add(sensor_id_from_post_file)
 
     # get our main settings for this sensor from config.json
@@ -51,26 +50,33 @@ for post in all_posts_list:
         tokens = line.strip().split(':')
         yaml_dict[tokens[0].strip()] = tokens[1].strip()
     sensor_id = yaml_dict.get('sensor_id', '-InvalidOrMissingSensorID')
-    fridge_temp = yaml_dict.get('fridge_temp', None)
-    freezer_temp = yaml_dict.get('freezer_temp', None)
-    if fridge_temp:
+    fridge_temp = yaml_dict.get('fridge_temperature', None)
+    freezer_temp = yaml_dict.get('freezer_temperature', None)
+    if fridge_temp and fridge_temp != 'None':
         float_fridge_temp = float(fridge_temp)
         if float_fridge_temp > max_fridge_temp:
             failures.append(
                 f"Fridge HIGH; ID: {sensor_id}; Location: {location}; MaxTemp: {max_fridge_temp}; Temp: {fridge_temp}"
             )
-    if freezer_temp:
+        else:
+            sensors_passing.add(f"Fridge GOOD! ID: {sensor_id}; MaxTemp: {max_fridge_temp}; Temp: {fridge_temp}")
+
+    if freezer_temp and freezer_temp != 'None':
         float_freezer_temp = float(freezer_temp)
         if float_freezer_temp > max_freezer_temp:
             failures.append(
                 f"Freeze HIGH; ID: {sensor_id}; Location: {location}; MaxTemp: {max_freezer_temp}; Temp: {freezer_temp}"
             )
+        else:
+            sensors_passing.add(f"Freezer GOOD! ID: {sensor_id}; MaxTemp: {max_freezer_temp}; Temp: {freezer_temp}")
 if failures:
     failure_string = ''.join(['\n - ' + f for f in failures])
     print(f"At least one measurement failed!\nFailures listed here:{failure_string}")
+checked_string = ''.join(['\n - ' + s for s in sensors_passing])
+ignored_string = ''.join(['\n - ' + s for s in sensors_ignored])
+print(f"Sensors Passing:{checked_string}\nSensors Ignored:{ignored_string}")
+
+if failures:
     exit(1)
 else:
-    checked_string = ''.join(['\n - ' + s for s in sensors_checked])
-    ignored_string = ''.join(['\n - ' + s for s in sensors_ignored])
-    print(f"Temperature Measurements Passing!\nSensors Checked:{checked_string}\nSensors Ignored:{ignored_string}")
     exit(0)
