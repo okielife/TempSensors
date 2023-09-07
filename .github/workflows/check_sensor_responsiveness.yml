@@ -8,4 +8,4 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Check Sensors Each Day
-        run: python scripts/check_sensors.py
+        run: python scripts/check_sensor_responsiveness.py

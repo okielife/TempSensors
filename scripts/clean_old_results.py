@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from subprocess import check_call
 
-max_age_days = 1
+max_age_days = 7
 
 current_time = datetime.now()
 cutoff_date = current_time - timedelta(days=max_age_days)

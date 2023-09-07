@@ -11,7 +11,7 @@ title: Temperature Sensor Dashboard
 
 <body class="container-fluid" style="font-family: Ubuntu,serif">
 
-{% assign sensor_ids = "" | split: '/'%}
+{% assign sensor_ids = "" | split: '/' %}
 {% for page in site.posts %}
 {% assign full_path_parts = page.path | split:'/' %}
 {% assign this_sensor_id = full_path_parts[1] | strip %}
@@ -19,30 +19,37 @@ title: Temperature Sensor Dashboard
 {% endfor %}
 {% assign sensor_ids = sensor_ids | uniq %}
 
-<h1>Temperature Sensor Data</h1>
-<p>These tables capture the most recent temperature readings for each known sensor</p>
-{% for sensor_id in sensor_ids %}
+{% assign page_locations = site.data.config.locations %}
+{% assign page_active_sensors = "" | split: '/' %}
+{% for page_location in page_locations %}
+  {% assign active_sensors_at_location = site.data.config.sensors | where_exp:"s","s.sensor_location == page_location" %}
+  {% for active_sensor_at_location in active_sensors_at_location %}
+    {% assign page_active_sensors = page_active_sensors | push: active_sensor_at_location %}
+  {% endfor %}
+{% endfor %}
+
+{% include nav_bar.html %}
+
+{% for sensor in page_active_sensors %}
 {% assign reading_count = 0 %}
-<h2>{{ sensor_id }}</h2>
+<h2>{{ sensor.sensor_location }} : {{sensor.id }}</h2>
 <table class="table table-striped">
     <thead>
     <tr>
         <th>Measurement Time</th>
-        <th>Sensor Location</th>
         <th>Fridge Temperature</th>
         <th>Freezer Temperature</th>
     </tr>
     </thead>
     <tbody>
     {% for post in site.posts %}
-    {% if post.sensor_id != sensor_id %}
+    {% if post.sensor_id != sensor.id %}
       {% continue %}
     {% endif %}
     {% assign reading_count = reading_count | plus: 1 %}
     {% if reading_count <= 5 %}
       <tr>
         <td>{{ post.measurement_time }}</td>
-        <td>{{ post.location }}</td>
         <td>{{ post.fridge_temperature }}</td>
         <td>{{ post.freezer_temperature }}</td>
       </tr>

@@ -1,31 +1,49 @@
 # this file will scan the _posts folder and look for the most recent N results for each sensor folder
 # it will compare the temperatures to the max temps and fail if any of them are out of range
 
+from json import loads
 from pathlib import Path
 from sys import exit
 
-sensor_ids_to_ignore = [
-    'some_old_sensor_id'
-]
 
 this_file_path = Path(__file__).resolve()
 repo_root = this_file_path.parent.parent
+
+config_file = repo_root / '_data' / 'config.json'
+config = loads(config_file.read_text())
+active_sensors = config['sensors']
+active_sensor_ids = [s['id'] for s in active_sensors]
+
 posts_folder = repo_root / '_posts'
 all_posts = posts_folder.glob('**/*.html')
 all_posts_list = reversed(sorted(all_posts))  # should put the most recent first
 sensors_handled_already = set()
 failures = []
-sensors_checked = []
-sensors_ignored = []
+sensors_checked = set()
+sensors_ignored = set()
 for post in all_posts_list:
-    sensor_id = post.parts[-2]  # should be the sensor ID subdirectory
-    if sensor_id in sensor_ids_to_ignore:
-        sensors_ignored.append(sensor_id)
+    sensor_id_from_post_file = post.parts[-2]  # should be the sensor ID subdirectory
+    # skip if this sensor is not part of the active list
+    if sensor_id_from_post_file not in active_sensor_ids:
+        sensors_ignored.add(sensor_id_from_post_file)
         continue
-    if sensor_id in sensors_handled_already:
+    # skip if we've already checked this sensor ID
+    if sensor_id_from_post_file in sensors_handled_already:
         continue
-    sensors_checked.append(sensor_id)
-    sensors_handled_already.add(sensor_id)
+
+    # if we've made it this far, mark down that we checked this one
+    sensors_checked.add(sensor_id_from_post_file)
+    sensors_handled_already.add(sensor_id_from_post_file)
+
+    # get our main settings for this sensor from config.json
+    this_sensor = [s for s in active_sensors if s['id'] == sensor_id_from_post_file][0]  # must be there
+    location = this_sensor['sensor_location']
+    max_fridge_temp = this_sensor.get('maximum_fridge_temp', '3')
+    max_fridge_temp = float(max_fridge_temp)
+    max_freezer_temp = this_sensor.get('maximum_freezer_temp', '-10')
+    max_freezer_temp = float(max_freezer_temp)
+
+    # then get the measurements from the post file itself
     yaml_content = post.read_text().split('---')[1].strip()
     yaml_lines = yaml_content.split('\n')
     yaml_dict = dict()
@@ -33,13 +51,8 @@ for post in all_posts_list:
         tokens = line.strip().split(':')
         yaml_dict[tokens[0].strip()] = tokens[1].strip()
     sensor_id = yaml_dict.get('sensor_id', '-InvalidOrMissingSensorID')
-    location = yaml_dict.get('location', 'InvalidOrMissingSensorLocation')
     fridge_temp = yaml_dict.get('fridge_temp', None)
-    max_fridge_temp = yaml_dict.get('maximum_fridge_temp', '3')
-    max_fridge_temp = float(max_fridge_temp)
     freezer_temp = yaml_dict.get('freezer_temp', None)
-    max_freezer_temp = yaml_dict.get('maximum_freezer_temp', '-10')
-    max_freezer_temp = float(max_freezer_temp)
     if fridge_temp:
         float_fridge_temp = float(fridge_temp)
         if float_fridge_temp > max_fridge_temp:
