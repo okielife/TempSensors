@@ -1,4 +1,4 @@
 # Temperature Sensor Operations
 
 This repo stores a gh-pages project that renders temperature sensor data.
-The repo also stores the code to run on a Pico inside the code/ subdirectory.
+The repo also contains scripts/ to clean old results and run tests on the results.
