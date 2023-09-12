@@ -37,8 +37,7 @@ title: Temperature Sensor Dashboard
     <thead>
     <tr>
         <th>Measurement Time</th>
-        <th>Fridge Temperature</th>
-        <th>Freezer Temperature</th>
+        <th>Temperature</th>
     </tr>
     </thead>
     <tbody>
@@ -50,8 +49,7 @@ title: Temperature Sensor Dashboard
     {% if reading_count <= 5 %}
       <tr>
         <td>{{ post.measurement_time }}</td>
-        <td>{{ post.fridge_temperature }}</td>
-        <td>{{ post.freezer_temperature }}</td>
+        <td>{{ post.temperature }}</td>
       </tr>
     {% endif %}
     {% endfor %}
