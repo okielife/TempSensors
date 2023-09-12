@@ -37,8 +37,8 @@ for post in all_posts_list:
     # get our main settings for this sensor from config.json
     this_sensor = [s for s in active_sensors if s['id'] == sensor_id_from_post_file][0]  # must be there
     location = this_sensor['sensor_location']
-    max_temp = this_sensor.get('maximum_fridge_temp', '3')
-    max_temp = float(max_fridge_temp)
+    max_temp = this_sensor.get('maximum_temp', '3')
+    max_temp = float(max_temp)
     
     # then get the measurements from the post file itself
     yaml_content = post.read_text().split('---')[1].strip()
