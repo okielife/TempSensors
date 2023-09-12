@@ -37,11 +37,9 @@ for post in all_posts_list:
     # get our main settings for this sensor from config.json
     this_sensor = [s for s in active_sensors if s['id'] == sensor_id_from_post_file][0]  # must be there
     location = this_sensor['sensor_location']
-    max_fridge_temp = this_sensor.get('maximum_fridge_temp', '3')
-    max_fridge_temp = float(max_fridge_temp)
-    max_freezer_temp = this_sensor.get('maximum_freezer_temp', '-10')
-    max_freezer_temp = float(max_freezer_temp)
-
+    max_temp = this_sensor.get('maximum_fridge_temp', '3')
+    max_temp = float(max_fridge_temp)
+    
     # then get the measurements from the post file itself
     yaml_content = post.read_text().split('---')[1].strip()
     yaml_lines = yaml_content.split('\n')
@@ -50,25 +48,16 @@ for post in all_posts_list:
         tokens = line.strip().split(':')
         yaml_dict[tokens[0].strip()] = tokens[1].strip()
     sensor_id = yaml_dict.get('sensor_id', '-InvalidOrMissingSensorID')
-    fridge_temp = yaml_dict.get('fridge_temperature', None)
-    freezer_temp = yaml_dict.get('freezer_temperature', None)
-    if fridge_temp and fridge_temp != 'None':
-        float_fridge_temp = float(fridge_temp)
-        if float_fridge_temp > max_fridge_temp:
+    temp = yaml_dict.get('temperature', None)
+    if temp != 'None':
+        float_temp = float(temp)
+        if float_temp > max_temp:
             failures.append(
-                f"Fridge HIGH; ID: {sensor_id}; Location: {location}; MaxTemp: {max_fridge_temp}; Temp: {fridge_temp}"
+                f"Temperature HIGH; ID: {sensor_id}; Location: {location}; MaxTemp: {max_temp}; Temp: {temp}"
             )
         else:
-            sensors_passing.add(f"Fridge GOOD! ID: {sensor_id}; MaxTemp: {max_fridge_temp}; Temp: {fridge_temp}")
+            sensors_passing.add(f"Temperature GOOD! ID: {sensor_id}; MaxTemp: {max_temp}; Temp: {temp}")
 
-    if freezer_temp and freezer_temp != 'None':
-        float_freezer_temp = float(freezer_temp)
-        if float_freezer_temp > max_freezer_temp:
-            failures.append(
-                f"Freeze HIGH; ID: {sensor_id}; Location: {location}; MaxTemp: {max_freezer_temp}; Temp: {freezer_temp}"
-            )
-        else:
-            sensors_passing.add(f"Freezer GOOD! ID: {sensor_id}; MaxTemp: {max_freezer_temp}; Temp: {freezer_temp}")
 if failures:
     failure_string = ''.join(['\n - ' + f for f in failures])
     print(f"At least one measurement failed!\nFailures listed here:{failure_string}")
