@@ -16,7 +16,7 @@
       "maximum_freezer_temp": -10,
       "sensor_location": "Pantry"
     }
-  ]
+  ],
   "unused": [
     {
       "id": "Pantry_Sensor_A1",
