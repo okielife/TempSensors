@@ -5,22 +5,29 @@
   "sensors": [
     {
       "id": "Food_Pantry_1",
-      "maximum_fridge_temp": 3,
-      "maximum_freezer_temp": -10,
+      "maximum_temp": 3,
+      "sensor_location": "Pantry"
+    },
+    {
+      "id": "Food_Pantry_Unit_03_Fridge",
+      "maximum_temp": 3,
+      "sensor_location": "Pantry"
+    },
+    {
+      "id": "Food_Pantry_Unit_03_Freezer",
+      "maximum_temp": -10,
       "sensor_location": "Pantry"
     }
   ],
   "unused": [
     {
       "id": "Emerald_Garage_Sensor_1",
-      "maximum_fridge_temp": 26,
-      "maximum_freezer_temp": -10,
+      "maximum_temp": 26,
       "sensor_location": "Emerald"
     },
     {
       "id": "Pantry_Sensor_A1",
       "maximum_fridge_temp": 3,
-      "maximum_freezer_temp": -10,
       "sensor_location": "Pantry"
     }
   ]
