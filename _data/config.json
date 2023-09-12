@@ -11,6 +11,14 @@
       "sensor_location": "Emerald"
     },
     {
+      "id": "Food_Pantry_1",
+      "maximum_fridge_temp": 3,
+      "maximum_freezer_temp": -10,
+      "sensor_location": "Pantry"
+    }
+  ]
+  "unused": [
+    {
       "id": "Pantry_Sensor_A1",
       "maximum_fridge_temp": 3,
       "maximum_freezer_temp": -10,
