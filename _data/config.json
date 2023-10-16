@@ -6,14 +6,16 @@
   "sensors": [
     {
       "id": "Emerald_Garage_Fridge",
-      "maximum_temp": 26,
+      "maximum_temp": 5,
       "sensor_location": "Emerald"
     },
     {
       "id": "Emerald_Garage_Freezer",
-      "maximum_temp": 26,
+      "maximum_temp": -10,
       "sensor_location": "Emerald"
-    },
+    }
+  ],
+  "extra_sensor_info": [
     {
       "id": "Pantry_A1_Fridge",
       "maximum_temp": -10,
