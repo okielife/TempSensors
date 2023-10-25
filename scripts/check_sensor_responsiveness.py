@@ -19,6 +19,7 @@ config_file = repo_root / '_data' / 'config.json'
 config = loads(config_file.read_text())
 active_sensors = config['sensors']
 active_sensor_ids = [s['id'] for s in active_sensors]
+active_sensors_checked = {x: False for x in active_sensor_ids}
 
 posts_folder = repo_root / '_posts'
 all_posts = posts_folder.glob('**/*.html')
@@ -49,11 +50,18 @@ for post in all_posts_list:
     # if we've made it this far, mark down that we checked this one
     sensors_checked.add(f"ID: {sensor_id_from_post_file}; Most Recent Update {time_string} UTC")
     sensors_handled_already.add(sensor_id_from_post_file)
+    active_sensors_checked[sensor_id_from_post_file] = True
 
     if measurement_time < cutoff_date:
         failures.append(
             f"Sensor Unresponsive; ID: {sensor_id_from_post_file}; Most Recent Update {time_string} UTC"
         )
+
+completely_missing_sensor_failures = [
+    f"{sensor_id} data missing - typo?" for sensor_id in active_sensors_checked if not active_sensors_checked[sensor_id]
+]
+failures.extend(completely_missing_sensor_failures)
+
 if failures:
     failure_string = ''.join(['\n - ' + f for f in failures])
     print(f"At least one active sensor it not responding!\nFailures listed here:{failure_string}")

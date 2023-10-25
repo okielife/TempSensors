@@ -16,12 +16,12 @@
     },
     {
       "id": "Emerald_Kitchen_Freezer",
-      "maximum_temp": 25,
+      "maximum_temp": -10,
       "sensor_location": "Emerald"
     },
     {
       "id": "Emerald_Kitchen_Fridge",
-      "maximum_temp": 25,
+      "maximum_temp": 5,
       "sensor_location": "Emerald"
     }
   ],
