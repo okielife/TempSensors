@@ -6,9 +6,11 @@ from json import loads
 from pathlib import Path
 from sys import exit
 
-max_allowed_delay_days = 1
+# we are now reporting temperature measurement time in Central Time - no DST adjustment
+# use 18 hours as a reasonable amount of hours from UTC to report an unresponsive sensor
+max_allowed_delay_hours = 18
 current_time = datetime.utcnow()
-cutoff_date = current_time - timedelta(days=max_allowed_delay_days)
+cutoff_date = current_time - timedelta(hours=max_allowed_delay_hours)
 print(f"Checking responsiveness\n - Current time: {current_time}\n - Cutoff time: {cutoff_date}")
 this_file_path = Path(__file__).resolve()
 repo_root = this_file_path.parent.parent
