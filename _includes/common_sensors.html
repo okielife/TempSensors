@@ -34,10 +34,17 @@
       {% continue %}
     {% endif %}
     {% assign reading_count = reading_count | plus: 1 %}
+    {% assign caution_temp = post.temperature | plus: 2 %}
     {% if reading_count <= 5 %}
       <tr>
         <td>{{ post.measurement_time }}</td>
-        <td>{{ post.temperature }}</td>
+        {% if post.temperature <= sensor.maximum_temp %}
+        <td style="background-color:#78c1a3">{{ post.temperature }}</td>
+        {% elsif post.temperature < caution_temp %}
+        <td style="background-color:#ffdbc2">{{ post.temperature }}</td>
+        {% else %}
+        <td style="background-color:#f38989">{{ post.temperature }}</td>
+        {% endif %}
       </tr>
     {% endif %}
     {% endfor %}
