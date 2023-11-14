@@ -19,22 +19,6 @@
 {% endfor %}
 
 <div class="card">
-  <div class="card-body">
-    <h2 class="card-title">Temperature Measurement Information</h2>
-    <p class="card-text">
-        This is the dashboard for our temperature sensors.
-        This dashboard is built each time a commit is made <a href="https://github.com/okielife/TempSensors">on our repository</a> by one of our sensors.
-        This page shows the 5 most recent temperature measurements for each sensor in this location.
-        Use the menu above to select which locations to show.
-        Timestamps are in Central Standard Time, that is to say there is no adjustment for daylight savings.
-        If the measurement occurred during Daylight Savings (Summer...), then it will read one hour off.
-    </p>
-  </div>
-</div>
-
-<hr>
-
-<div class="card">
     <div class="card-body">
         <h2 class="card-title">Filter Sensors by Location(s)</h2>
         <div class="list-group" style="font-size:2em">
@@ -65,7 +49,8 @@
     {% endif %}
     {% assign reading_count = reading_count | plus: 1 %}
     {% assign caution_temp = post.temperature | plus: 2 %}
-    {% assign temp_fahrenheit = post.temperature | times: 9 | divided_by: 5 | plus: 32 %}
+    {% assign temp_celsius = post.temperature | round: 1 %}
+    {% assign temp_fahrenheit = post.temperature | times: 9 | divided_by: 5 | plus: 32 | round: 1 %}
     {% assign time_parts = post.measurement_time | split: "-" %}
     {% if reading_count <= 5 %}
       <tr style="text-align: center;">
@@ -73,13 +58,13 @@
         <td>{{ time_parts[3] }}:{{ time_parts[4] }}:{{ time_parts[5] }}</td>
         {% if post.temperature <= sensor.maximum_temp %}
         <td style="background-color:#78c1a3">{{ temp_fahrenheit }} &degF</td>
-        <td style="background-color:#78c1a3">{{ post.temperature }} &degC</td>
+        <td style="background-color:#78c1a3">{{ temp_celsius }} &degC</td>
         {% elsif post.temperature < caution_temp %}
         <td style="background-color:#ffdbc2">{{ temp_fahrenheit }} &degF</td>
-        <td style="background-color:#ffdbc2">{{ post.temperature }} &degC</td>
+        <td style="background-color:#ffdbc2">{{ temp_celsius }} &degC</td>
         {% else %}
         <td style="background-color:#f38989">{{ temp_fahrenheit }} &degF</td>
-        <td style="background-color:#f38989">{{ post.temperature }} &degC</td>
+        <td style="background-color:#f38989">{{ temp_celsius }} &degC</td>
         {% endif %}
       </tr>
     {% endif %}
@@ -87,3 +72,19 @@
     </tbody>
 </table>
 {% endfor %}
+
+<hr>
+
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Temperature Measurement Information</h2>
+    <p class="card-text">
+        This is the dashboard for our temperature sensors.
+        This dashboard is built each time a commit is made <a href="https://github.com/okielife/TempSensors">on our repository</a> by one of our sensors.
+        This page shows the 5 most recent temperature measurements for each sensor in this location.
+        Use the menu above to select which locations to show.
+        Timestamps are in Central Standard Time, that is to say there is no adjustment for daylight savings.
+        If the measurement occurred during Daylight Savings (Summer...), then it will read one hour off.
+    </p>
+  </div>
+</div>
