@@ -33,7 +33,7 @@
 
 {% for sensor in page_active_sensors %}
 {% assign reading_count = 0 %}
-<h2 style="font-size:3em;text-align:center;"><b>{{sensor.id }}</b></h2>
+<h2 style="font-size:3em;text-align:center;"><b>{{ sensor.nice_name }}</b></h2>
 <table class="table table-striped table-bordered" style="font-size:2.5em; margin-bottom: 35px">
     <thead>
     <tr>
