@@ -1,3 +1,5 @@
+name: Scheduled Sensor Responsiveness Check
+
 on:
   schedule:
     - cron: '0 14 * * *'  # should be 2pm UTC which is morning central time
