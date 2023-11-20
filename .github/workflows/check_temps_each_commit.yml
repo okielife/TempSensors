@@ -1,4 +1,4 @@
-name: Run Tests
+name: Check Temperature Sensor Just Committed
 
 on: [push]
 
