@@ -18,7 +18,9 @@ config_file = repo_root / '_data' / 'config.json'
 config = loads(config_file.read_text())
 
 try:
-    git_response = check_output(['git', 'diff-tree', '--no-commit-id', '--name-only', argv[1], '-r'])
+    git_response = check_output(
+        ['git', 'diff-tree', '--no-commit-id', '--name-only', argv[1], '-r'], cwd=str(repo_root)
+    )
 except CalledProcessError as cpe:
     print("Could not run Git command to mine out files, aborting")
     exit(2)
