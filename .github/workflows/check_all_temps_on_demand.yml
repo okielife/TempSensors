@@ -2,10 +2,6 @@ name: Check All Temperatures On Demand
 
 on: workflow_dispatch
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
   check_temperatures:
     runs-on: ubuntu-22.04
@@ -13,21 +9,4 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8  # v2
       - name: Check Temperatures
         run: python scripts/check_all_temperatures.py
-      - name: Send mail
-        if: failure()
-        uses: dawidd6/action-send-mail@v2
-        with:
-          # mail server settings
-          server_address: smtp.gmail.com
-          server_port: 465
-          # user credentials
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          # email subject
-          subject: ${{ github.job }} job of ${{ github.repository }} has ${{ job.status }}
-          # email body as text
-          body: ${{ github.job }} job in worflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}
-          # comma-separated string, send email to
-          to: ${{ secrets.EMAIL_ADDRESS }}
-          # from email name
-          from: ${{ secrets.EMAIL_FROM_NAME }}
+        shell: bash

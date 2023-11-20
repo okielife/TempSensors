@@ -18,6 +18,10 @@ config_file = repo_root / '_data' / 'config.json'
 config = loads(config_file.read_text())
 
 try:
+    initial_git_commit = check_output(
+        ['git', 'diff-tree', argv[1], '-r'], cwd=str(repo_root)
+    )
+    print(initial_git_commit)
     git_response = check_output(
         ['git', 'diff-tree', '--no-commit-id', '--name-only', argv[1], '-r'], cwd=str(repo_root)
     )

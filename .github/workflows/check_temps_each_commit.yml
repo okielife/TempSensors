@@ -2,10 +2,6 @@ name: Check Temperature Sensor Just Committed
 
 on: [push]
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
   check_temperatures:
     runs-on: ubuntu-22.04
@@ -13,6 +9,7 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8  # v2
       - name: Check Temperatures
         run: python scripts/check_updated_temperature.py ${{ github.sha }}
+        shell: bash
       - name: Send mail
         if: failure()
         uses: dawidd6/action-send-mail@v2
@@ -26,7 +23,7 @@ jobs:
           # email subject
           subject: ${{ github.job }} job of ${{ github.repository }} has ${{ job.status }}
           # email body as text
-          body: ${{ github.job }} job in worflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}
+          body: ${{ github.job }} job in workflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}
           # comma-separated string, send email to
           to: ${{ secrets.EMAIL_ADDRESS }}
           # from email name
