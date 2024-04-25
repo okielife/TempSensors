@@ -19,13 +19,13 @@
     {
       "id": "Pantry_South_Room_Top_Bottom_Freezer",
       "nice_name": "Pantry South Room Freezer",
-      "maximum_temp": -5,
+      "maximum_temp": 20,
       "sensor_location": "Pantry"
     },
     {
       "id": "Pantry_South_Room_Top_Bottom_Fridge",
       "nice_name": "Pantry South Room Fridge",
-      "maximum_temp": 15,
+      "maximum_temp": 20,
       "sensor_location": "Pantry"
     }
   ],
