@@ -13,6 +13,7 @@ if len(argv) != 2:
 
 this_file_path = Path(__file__).resolve()
 repo_root = this_file_path.parent.parent
+posts_dir = repo_root / '_posts'
 
 config_file = repo_root / '_data' / 'config.json'
 config = loads(config_file.read_text())
@@ -33,53 +34,54 @@ git_response_string = git_response.decode('utf-8')
 files_changed = git_response_string.split('\n')
 interesting_files = [repo_root / f for f in files_changed if f.startswith('_posts/') and f.endswith('.html')]
 
+updated_sensors = set()
+for i in interesting_files:
+    sensor_name = i.parts[-2]
+    updated_sensors.add(sensor_name)
+
 active_sensors = config['sensors']
 active_sensor_ids = [s['id'] for s in active_sensors]
 
-sensors_handled_already = set()
 failures = []
 sensors_passing = set()
 sensors_ignored = set()
-for post in interesting_files:
-    sensor_id_from_post_file = post.parts[-2]  # should be the sensor ID subdirectory
+for sensor in updated_sensors:
     # skip if this sensor is not part of the active list
-    if sensor_id_from_post_file not in active_sensor_ids:
-        sensors_ignored.add(sensor_id_from_post_file)
+    if sensor not in active_sensor_ids:
+        sensors_ignored.add(sensor)
         continue
-    # skip if we've already checked this sensor ID
-    if sensor_id_from_post_file in sensors_handled_already:
-        continue
-
-    # if we've made it this far, mark down that we checked this one
-    sensors_handled_already.add(sensor_id_from_post_file)
 
     # get our main settings for this sensor from config.json
-    this_sensor = [s for s in active_sensors if s['id'] == sensor_id_from_post_file][0]  # must be there
+    this_sensor = [s for s in active_sensors if s['id'] == sensor][0]  # must be there
     location = this_sensor['sensor_location']
     max_temp = this_sensor.get('maximum_temp', '3')
     max_temp = float(max_temp)
 
-    # then get the measurements from the post file itself
-    yaml_content = post.read_text().split('---')[1].strip()
-    yaml_lines = yaml_content.split('\n')
-    yaml_dict = dict()
-    for line in yaml_lines:
-        tokens = line.strip().split(':')
-        yaml_dict[tokens[0].strip()] = tokens[1].strip()
-    sensor_id = yaml_dict.get('sensor_id', '-InvalidOrMissingSensorID')
-    temp = yaml_dict.get('temperature', None)
-    if temp and temp != 'None':
-        float_temp = float(temp)
-        if float_temp > max_temp:
-            failures.append(
-                f"Temperature HIGH; ID: {sensor_id}; Location: {location}; MaxTemp: {max_temp}; Temp: {temp}"
-            )
-        else:
-            sensors_passing.add(f"Temperature GOOD! ID: {sensor_id}; MaxTemp: {max_temp}; Temp: {temp}")
+    # check the recent several for out of range, only fail if they all fail
+    # TODO: Change this to check the entire last ... hour ... or so, not a fixed number of them
+    #       That way if sample intervals vary, this will still handle the right amount of time
+    this_sensor_post_dir = posts_dir / sensor
+    sorted_posts = sorted(this_sensor_post_dir.glob('*.html'))
+    temperature_history = []
+    max_num_to_check = 12
+    for p in sorted_posts[-max_num_to_check:]:  # take up to the last 3
+        yaml_content = p.read_text().split('---')[1].strip()
+        yaml_lines = yaml_content.split('\n')
+        for line in yaml_lines:
+            tokens = line.strip().split(':')
+            if tokens[0].strip() == 'temperature':
+                temp = tokens[1].strip()
+                float_temp = float(temp)
+                temperature_history.append(float_temp)
+    hist = temperature_history
+    if all([x > max_temp for x in temperature_history]):
+        failures.append(f"Temp HIGH; ID: {sensor}; Location: {location}; MaxTemp: {max_temp}; Temp History: {hist}")
+    else:
+        sensors_passing.add(f"Temp GOOD! ID: {sensor}; MaxTemp: {max_temp}; Temp History: {hist}")
 
 if failures:
     failure_string = ''.join(['\n - ' + f for f in failures])
-    print(f"At least one measurement failed!\nFailures listed here:{failure_string}")
+    print(f"At least one measurement failed!\nSensors Failing:{failure_string}")
 checked_string = ''.join(['\n - ' + s for s in sensors_passing])
 ignored_string = ''.join(['\n - ' + s for s in sensors_ignored])
 print(f"Sensors Passing:{checked_string}\nSensors Ignored:{ignored_string}")
