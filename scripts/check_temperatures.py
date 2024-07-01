@@ -25,7 +25,7 @@ else:  # get it from the files changed in this git commit SHA
         initial_git_commit = check_output(
             ['git', 'diff-tree', argv[1], '-r'], cwd=str(repo_root)
         )
-        print(initial_git_commit)
+        # print(initial_git_commit)
         git_response = check_output(
             ['git', 'diff-tree', '--no-commit-id', '--name-only', argv[1], '-r'], cwd=str(repo_root)
         )
@@ -96,17 +96,17 @@ for sensor in sensor_ids_to_check:
             f"Temp GOOD! ID: {sensor}; Location: {location}; MaxTemp: {max_temp}; Temp History: {temp_history}"
         )
 
-print("\n ******** SUMMARY RESULTS ********")
 if failed:
     failure_string = ''.join(['\n - ' + f for f in failed])
 else:
     failure_string = '*NONE FAILING*'
 checked_string = ''.join(['\n - ' + s for s in passed])
 ignored_string = ''.join(['\n - ' + s for s in ignored])
+print("\n ******** SUMMARY RESULTS ********")
 print(f"Sensors Passing:{checked_string}\nSensors Ignored:{ignored_string}\nSensors Failing:{failure_string}")
 
 if failed:
-    print("At least one sensor failed")
+    print("\n **** At least one sensor failed, exiting with code 1")
     exit(1)
 else:
     exit(0)
