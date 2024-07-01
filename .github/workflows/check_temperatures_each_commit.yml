@@ -1,6 +1,6 @@
-name: Check All Temperatures On Demand
+name: Check Temperature Sensor Just Committed
 
-on: workflow_dispatch
+on: [push]
 
 jobs:
   check_temperatures:
@@ -10,5 +10,5 @@ jobs:
         with:
           fetch-depth: 1
       - name: Check Temperatures
-        run: python scripts/check_temperatures.py all
+        run: python scripts/check_temperatures.py ${{ github.sha }}
         shell: bash
