@@ -22,13 +22,14 @@ if argv[1] == 'all':
     sensor_ids_to_check = set([x['id'] for x in config['sensors']])
 else:  # get it from the files changed in this git commit SHA
     try:
-        initial_git_commit = check_output(
-            ['git', 'diff-tree', argv[1], '-r'], cwd=str(repo_root)
-        )
+        # initial_git_commit = check_output(
+        #     ['git', 'diff-tree', argv[1], '-r'], cwd=str(repo_root)
+        # )
         # print(initial_git_commit)
         git_response = check_output(
             ['git', 'diff-tree', '--no-commit-id', '--name-only', argv[1], '-r'], cwd=str(repo_root)
         )
+        print(git_response)
     except CalledProcessError as cpe:
         print("Could not run Git command to mine out files, aborting")
         exit(2)
