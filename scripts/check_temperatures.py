@@ -44,9 +44,13 @@ else:  # get it from the files changed in this git commit SHA
 active_sensors = config['sensors']
 active_sensor_ids = [s['id'] for s in active_sensors]
 
+two_hours_ago = datetime.now() - timedelta(hours=2)
+print(f"Going to check any temperature sensor values from after this time stamp: {two_hours_ago}")
+
 failed = []
 passed = []
 ignored = []
+
 for sensor in sensor_ids_to_check:
     print(f"Processing sensor with ID: {sensor}")
     # skip if this sensor is not part of the active list
@@ -69,21 +73,24 @@ for sensor in sensor_ids_to_check:
     ordered_posts = sorted_posts[::-1]
     temp_history = []
     # figure out how long ago 2 hours was, if there are any valid temps in the last 2 hours, lets say it's fine
-    two_hours_ago = datetime.now() - timedelta(hours=2)
     for p in ordered_posts:
         file_name = p.name
         time_stamp = file_name.split('_')[0]
         post_time = datetime.strptime(time_stamp, '%Y-%m-%d-%H-%M-%S')
-        if post_time < two_hours_ago:
+        if post_time >= two_hours_ago:
+            yaml_lines = yaml_content = p.read_text().split('\n')
+            temp = '*unknown_temperature*'
+            for line in yaml_lines:
+                tokens = line.strip().split(':')
+                if tokens[0].strip() == 'temperature':
+                    temp = tokens[1].strip()
+                    float_temp = float(temp)
+                    temp_history.append(float_temp)
+                    break
+            print(f" Found a recent sensor value to test with timestamp: {post_time} and value {temp}")
+        else:
             print(" Reached time stamp older than 2 hours ago, stopping scanning this sensor")
             break
-        yaml_lines = yaml_content = p.read_text().split('\n')
-        for line in yaml_lines:
-            tokens = line.strip().split(':')
-            if tokens[0].strip() == 'temperature':
-                temp = tokens[1].strip()
-                float_temp = float(temp)
-                temp_history.append(float_temp)
     if not temp_history:
         failed.append(
             f"EMPTY TEMP HISTORY - weird; ID: {sensor}; Location: {location}; MaxTemp: {max_temp}"
