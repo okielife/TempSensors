@@ -7,6 +7,8 @@ from pathlib import Path
 from subprocess import check_output, CalledProcessError
 from sys import argv, exit
 
+from pytz import timezone, utc
+
 
 if len(argv) < 2:
     print("Must pass in the latest SHA for this file to find the last update")
@@ -44,8 +46,12 @@ else:  # get it from the files changed in this git commit SHA
 active_sensors = config['sensors']
 active_sensor_ids = [s['id'] for s in active_sensors]
 
-two_hours_ago = datetime.now() - timedelta(hours=2)
-print(f"Going to check any temperature sensor values from after this time stamp: {two_hours_ago}")
+time_zone_cst = timezone('America/Chicago')
+utc_time_now = datetime.now(utc)
+central_standard_time_now = utc_time_now.astimezone(time_zone_cst)
+two_hours_ago_in_cst = central_standard_time_now - timedelta(hours=2)
+
+print(f"Going to check any temperature sensor values from after this time stamp: {two_hours_ago_in_cst}")
 
 failed = []
 passed = []
@@ -76,8 +82,9 @@ for sensor in sensor_ids_to_check:
     for p in ordered_posts:
         file_name = p.name
         time_stamp = file_name.split('_')[0]
-        post_time = datetime.strptime(time_stamp, '%Y-%m-%d-%H-%M-%S')
-        if post_time >= two_hours_ago:
+        time_zone_naive_post_time = datetime.strptime(time_stamp, '%Y-%m-%d-%H-%M-%S')
+        cst_aware_post_time = time_zone_cst.localize(time_zone_naive_post_time)
+        if cst_aware_post_time >= two_hours_ago_in_cst:
             yaml_lines = yaml_content = p.read_text().split('\n')
             temp = '*unknown_temperature*'
             for line in yaml_lines:
@@ -87,7 +94,7 @@ for sensor in sensor_ids_to_check:
                     float_temp = float(temp)
                     temp_history.append(float_temp)
                     break
-            print(f" Found a recent sensor value to test with timestamp: {post_time} and value {temp}")
+            print(f" Found a recent sensor value to test with timestamp: {time_zone_naive_post_time} and value {temp}")
         else:
             print(" Reached time stamp older than 2 hours ago, stopping scanning this sensor")
             break

@@ -7,8 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2  # v4
-#        with:
-#          fetch-depth: 1
+      - name: Pip Install
+        run: pip install -r requirements.txt
+        shell: bash
       - name: Check Temperatures
         run: python scripts/check_temperatures.py all ${{ github.sha }}
         shell: bash
