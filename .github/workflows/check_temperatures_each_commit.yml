@@ -11,5 +11,5 @@ jobs:
         run: pip install -r requirements.txt
         shell: bash
       - name: Check Temperatures
-        run: python scripts/check_temperatures.py all ${{ github.sha }}
+        run: python scripts/check_temperatures.py ${{ github.sha }}
         shell: bash
