@@ -10,5 +10,5 @@ jobs:
         with:
           fetch-depth: 1
       - name: Check Temperatures
-        run: python scripts/check_temperatures.py ${{ github.sha }}
+        run: python scripts/check_temperatures.py all ${{ github.sha }}
         shell: bash
