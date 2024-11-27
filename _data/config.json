@@ -73,8 +73,8 @@
       "sensor_location": "Pantry"
     },
     {
-      "id": "Pantry_Garage_Something",
-      "nice_name": "Pantry Garage Something",
+      "id": "Pantry_Garage_Freezer",
+      "nice_name": "Pantry Garage Freezer",
       "maximum_temp": -10,
       "sensor_location": "Pantry"
     },
