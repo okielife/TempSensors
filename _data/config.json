@@ -15,6 +15,12 @@
       "nice_name": "Emerald Garage Freezer",
       "maximum_temp": -10,
       "sensor_location": "Emerald"
+    },
+    {
+      "id": "Pantry_Garage_Freezer",
+      "nice_name": "Pantry Garage Freezer",
+      "maximum_temp": 25,
+      "sensor_location": "Pantry"
     }
   ],
   "extra_sensor_info": [
@@ -69,12 +75,6 @@
     {
       "id": "Pantry_West_Standing_Freezer",
       "nice_name": "Pantry West Standing Freezer",
-      "maximum_temp": -10,
-      "sensor_location": "Pantry"
-    },
-    {
-      "id": "Pantry_Garage_Freezer",
-      "nice_name": "Pantry Garage Freezer",
       "maximum_temp": -10,
       "sensor_location": "Pantry"
     },
