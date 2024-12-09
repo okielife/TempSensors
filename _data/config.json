@@ -19,7 +19,7 @@
     {
       "id": "Pantry_Garage_Freezer",
       "nice_name": "Pantry Garage Freezer",
-      "maximum_temp": 25,
+      "maximum_temp": -10,
       "sensor_location": "Pantry"
     }
   ],
