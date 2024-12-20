@@ -21,6 +21,24 @@
       "nice_name": "Pantry Garage Freezer",
       "maximum_temp": -10,
       "sensor_location": "Pantry"
+    },
+    {
+      "id": "Pantry_Dining_Deep_Freezer",
+      "nice_name": "Pantry Dining Room Chest Freezer",
+      "maximum_temp": 25,
+      "sensor_location": "Pantry"
+    },
+    {
+      "id": "Pantry_Standing_Freezer_East",
+      "nice_name": "Pantry Dining Room East Standing Freezer",
+      "maximum_temp": 25,
+      "sensor_location": "Pantry"
+    },
+    {
+      "id": "Pantry_Standing_Freezer_West",
+      "nice_name": "Pantry Dining Room West Standing Freezer",
+      "maximum_temp": 25,
+      "sensor_location": "Pantry"
     }
   ],
   "extra_sensor_info": [
@@ -34,24 +52,6 @@
       "id": "Pantry_South_Room_Top_Bottom_Fridge",
       "nice_name": "Pantry South Room Fridge",
       "maximum_temp": 20,
-      "sensor_location": "Pantry"
-    },
-    {
-      "id": "Pantry_Dining_Deep_Freezer",
-      "nice_name": "Pantry Dining Room Chest Freezer",
-      "maximum_temp": -10,
-      "sensor_location": "Pantry"
-    },
-    {
-      "id": "Pantry_Standing_Freezer_East",
-      "nice_name": "Pantry Dining Room East Standing Freezer",
-      "maximum_temp": -10,
-      "sensor_location": "Pantry"
-    },
-    {
-      "id": "Pantry_Standing_Freezer_West",
-      "nice_name": "Pantry Dining Room West Standing Freezer",
-      "maximum_temp": -10,
       "sensor_location": "Pantry"
     },
     {
