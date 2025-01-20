@@ -25,13 +25,13 @@
     {
       "id": "Pantry_Standing_Freezer_East",
       "nice_name": "Pantry Dining Room East Standing Freezer",
-      "maximum_temp": -5,
+      "maximum_temp": -10,
       "sensor_location": "Pantry"
     },
     {
       "id": "Pantry_Standing_Freezer_West",
       "nice_name": "Pantry Dining Room West Standing Freezer",
-      "maximum_temp": -5,
+      "maximum_temp": -10,
       "sensor_location": "Pantry"
     }
   ],
