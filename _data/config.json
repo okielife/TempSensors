@@ -5,14 +5,6 @@
   ],
   "sensors": [
     {
-      "id": "Pantry_Garage_Freezer",
-      "nice_name": "Pantry Garage Freezer",
-      "maximum_temp": -10,
-      "sensor_location": "Pantry"
-    }
-  ],
-  "extra_sensor_info": [
-    {
       "id": "Emerald_Garage_Fridge",
       "nice_name": "Emerald Garage Fridge",
       "maximum_temp": 6.0,
@@ -24,6 +16,14 @@
       "maximum_temp": -10,
       "sensor_location": "Emerald"
     },
+    {
+      "id": "Pantry_Garage_Freezer",
+      "nice_name": "Pantry Garage Freezer",
+      "maximum_temp": -10,
+      "sensor_location": "Pantry"
+    }
+  ],
+  "extra_sensor_info": [
     {
       "id": "Pantry_Standing_Freezer_East",
       "nice_name": "Pantry Dining Room East Standing Freezer",
