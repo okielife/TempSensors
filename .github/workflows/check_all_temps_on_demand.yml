@@ -1,6 +1,9 @@
-name: Check All Temperatures On Demand
+name: Check All Temperatures
 
-on: workflow_dispatch
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
 
 jobs:
   check_temperatures:
