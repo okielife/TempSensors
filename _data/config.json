@@ -91,12 +91,12 @@
       "sensor_location": "Pantry"
     },
     {
-      "id": "Emerald_Kitchen_Frzr",
+      "id": "Emerald_Kit_Freeze",
       "maximum_temp": -10,
       "sensor_location": "Emerald"
     },
     {
-      "id": "Emerald_Kitchen_Frig",
+      "id": "Emerald_Kit_Fridge",
       "maximum_temp": 5,
       "sensor_location": "Emerald"
     }
