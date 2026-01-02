@@ -4,9 +4,9 @@
 
 {% assign sensor_ids = "" | split: '/' %}
 {% for page in site.posts %}
-{% assign full_path_parts = page.path | split:'/' %}
-{% assign this_sensor_id = full_path_parts[1] | strip %}
-{% assign sensor_ids = sensor_ids | push: this_sensor_id %}
+  {% assign full_path_parts = page.path | split:'/' %}
+  {% assign this_sensor_id = full_path_parts[1] | strip %}
+  {% assign sensor_ids = sensor_ids | push: this_sensor_id %}
 {% endfor %}
 {% assign sensor_ids = sensor_ids | uniq %}
 
@@ -19,58 +19,58 @@
 {% endfor %}
 
 <div class="card">
-    <div class="card-body">
-        <h2 class="card-title">Filter Sensors by Location(s)</h2>
-        <div class="list-group" style="font-size:2em">
-            <a href="{{ '/' | relative_url }}" class="list-group-item list-group-item-action">Home/All</a>
-            <a href="{{ 'emerald' | relative_url }}" class="list-group-item list-group-item-action">Emerald</a>
-            <a href="{{ 'pantry' | relative_url }}" class="list-group-item list-group-item-action">Pantry</a>
-        </div>
+  <div class="card-body">
+    <h2 class="card-title">Filter Sensors by Location(s)</h2>
+    <div class="list-group" style="font-size:2em">
+      <a href="{{ '/' | relative_url }}" class="list-group-item list-group-item-action">Home/All</a>
+      <a href="{{ 'emerald' | relative_url }}" class="list-group-item list-group-item-action">Emerald</a>
+      <a href="{{ 'pantry' | relative_url }}" class="list-group-item list-group-item-action">Pantry</a>
     </div>
+  </div>
 </div>
 
 <hr>
 
 {% for sensor in page_active_sensors %}
-{% assign reading_count = 0 %}
-<h2 style="font-size:3em;text-align:center;"><b>{{ sensor.nice_name }}</b></h2>
-<table class="table table-striped table-bordered" style="font-size:2.5em; margin-bottom: 35px">
+  {% assign sensor_posts = site.posts | where: "sensor_id", sensor.id | slice: 0, 5 %}
+
+  <h2 style="font-size:3em;text-align:center;"><b>{{ sensor.nice_name }}</b></h2>
+
+  <table class="table table-striped table-bordered" style="font-size:2.5em; margin-bottom: 35px">
     <thead>
-    <tr>
+      <tr>
         <th style="text-align: center;">Date</th>
-        <th style="text-align:center;">Time (CST)</th>
+        <th style="text-align:center;">Time (Local)</th>
         <th colspan="2" style="text-align:center;">Temperature</th>
-    </tr>
+      </tr>
     </thead>
     <tbody>
-    {% for post in site.posts %}
-    {% if post.sensor_id != sensor.id %}
-      {% continue %}
-    {% endif %}
-    {% assign reading_count = reading_count | plus: 1 %}
-    {% assign caution_temp = post.temperature | plus: 2 %}
-    {% assign temp_celsius = post.temperature | round: 1 %}
-    {% assign temp_fahrenheit = post.temperature | times: 9 | divided_by: 5 | plus: 32 | round: 1 %}
-    {% assign time_parts = post.measurement_time | split: "-" %}
-    {% if reading_count <= 5 %}
-      <tr style="text-align: center;">
-        <td>{{ time_parts[0] }}-{{ time_parts[1] }}-{{ time_parts[2] }}</td>
-        <td>{{ time_parts[3] }}:{{ time_parts[4] }}:{{ time_parts[5] }}</td>
-        {% if post.temperature <= sensor.maximum_temp %}
-        <td style="background-color:#78c1a3">{{ temp_fahrenheit }} &degF</td>
-        <td style="background-color:#78c1a3">{{ temp_celsius }} &degC</td>
-        {% elsif post.temperature < caution_temp %}
-        <td style="background-color:#ffdbc2">{{ temp_fahrenheit }} &degF</td>
-        <td style="background-color:#ffdbc2">{{ temp_celsius }} &degC</td>
-        {% else %}
-        <td style="background-color:#f38989">{{ temp_fahrenheit }} &degF</td>
-        <td style="background-color:#f38989">{{ temp_celsius }} &degC</td>
-        {% endif %}
-      </tr>
-    {% endif %}
-    {% endfor %}
+      {% for post in sensor_posts %}
+        {% assign caution_temp = post.temperature | plus: 2 %}
+        {% assign temp_celsius = post.temperature | round: 1 %}
+        {% assign temp_fahrenheit = post.temperature | times: 9 | divided_by: 5 | plus: 32 | round: 1 %}
+
+        <tr style="text-align: center;">
+          <td>
+            <span class="ts-date" data-ts="{{ post.measurement_time }}"></span>
+          </td>
+          <td>
+            <span class="ts-time" data-ts="{{ post.measurement_time }}"></span>
+          </td>
+          {% if post.temperature <= sensor.maximum_temp %}
+            <td style="background-color:#78c1a3">{{ temp_fahrenheit }} &degF</td>
+            <td style="background-color:#78c1a3">{{ temp_celsius }} &degC</td>
+          {% elsif post.temperature < caution_temp %}
+            <td style="background-color:#ffdbc2">{{ temp_fahrenheit }} &degF</td>
+            <td style="background-color:#ffdbc2">{{ temp_celsius }} &degC</td>
+          {% else %}
+            <td style="background-color:#f38989">{{ temp_fahrenheit }} &degF</td>
+            <td style="background-color:#f38989">{{ temp_celsius }} &degC</td>
+          {% endif %}
+        </tr>
+      {% endfor %}
     </tbody>
-</table>
+  </table>
 {% endfor %}
 
 <hr>
@@ -79,12 +79,34 @@
   <div class="card-body">
     <h2 class="card-title">Temperature Measurement Information</h2>
     <p class="card-text">
-        This is the dashboard for our temperature sensors.
-        This dashboard is built each time a commit is made <a href="https://github.com/okielife/TempSensors">on our repository</a> by one of our sensors.
-        This page shows the 5 most recent temperature measurements for each sensor in this location.
-        Use the menu above to select which locations to show.
-        Timestamps are in Central Standard Time, that is to say there is no adjustment for daylight savings.
-        If the measurement occurred during Daylight Savings (Summer...), then it will read one hour off.
+      This is the dashboard for our temperature sensors.
+      This dashboard is built each time a commit is made <a href="https://github.com/okielife/TempSensors">on our repository</a> by one of our sensors.
+      This page shows the 5 most recent temperature measurements for each sensor in this location.
+      Use the menu above to select which locations to show.
+      Timestamps are in Central Standard Time, that is to say there is no adjustment for daylight savings.
+      If the measurement occurred during Daylight Savings (Summer...), then it will read one hour off.
     </p>
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+  const parse = raw => {
+    const p = raw.split("-");
+    return new Date(Date.UTC(
+      p[0], p[1] - 1, p[2],
+      p[3], p[4], p[5]
+    ));
+  };
+
+  document.querySelectorAll(".ts-date").forEach(el => {
+    const d = parse(el.dataset.ts);
+    el.textContent = d.toLocaleDateString();
+  });
+
+  document.querySelectorAll(".ts-time").forEach(el => {
+    const d = parse(el.dataset.ts);
+    el.textContent = d.toLocaleTimeString();
+  });
+});
+</script>
