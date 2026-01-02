@@ -1,7 +1,5 @@
 <!--Make sure to set page_locations before including this, using either site.data.config.locations, or a manual array-->
 
-<!--TODO: Add coloring to the table based on max_temp-->
-
 {% assign sensor_ids = "" | split: '/' %}
 {% for page in site.posts %}
   {% assign full_path_parts = page.path | split:'/' %}
@@ -83,8 +81,6 @@
       This dashboard is built each time a commit is made <a href="https://github.com/okielife/TempSensors">on our repository</a> by one of our sensors.
       This page shows the 5 most recent temperature measurements for each sensor in this location.
       Use the menu above to select which locations to show.
-      Timestamps are in Central Standard Time, that is to say there is no adjustment for daylight savings.
-      If the measurement occurred during Daylight Savings (Summer...), then it will read one hour off.
     </p>
   </div>
 </div>
