@@ -18,11 +18,13 @@
     },
     {
       "id": "Emerald_Kit_Freeze",
+      "nice_name": "Emerald Kitchen Freezer",
       "maximum_temp": -10,
       "sensor_location": "Emerald"
     },
     {
       "id": "Emerald_Kit_Fridge",
+      "nice_name": "Emerald Kitchen Fridge",
       "maximum_temp": 5,
       "sensor_location": "Emerald"
     }
