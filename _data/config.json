@@ -15,18 +15,6 @@
       "nice_name": "Emerald Garage Freezer",
       "maximum_temp": -10,
       "sensor_location": "Emerald"
-    },
-    {
-      "id": "Emerald_Kit_Freeze",
-      "nice_name": "Emerald Kitchen Freezer",
-      "maximum_temp": -10,
-      "sensor_location": "Emerald"
-    },
-    {
-      "id": "Emerald_Kit_Fridge",
-      "nice_name": "Emerald Kitchen Fridge",
-      "maximum_temp": 5,
-      "sensor_location": "Emerald"
     }
   ],
   "extra_sensor_info": [
@@ -101,6 +89,18 @@
       "nice_name": "Pantry West Standing Freezer",
       "maximum_temp": -10,
       "sensor_location": "Pantry"
+    },
+    {
+      "id": "Emerald_Kit_Freeze",
+      "nice_name": "Emerald Kitchen Freezer",
+      "maximum_temp": -10,
+      "sensor_location": "Emerald"
+    },
+    {
+      "id": "Emerald_Kit_Fridge",
+      "nice_name": "Emerald Kitchen Fridge",
+      "maximum_temp": 5,
+      "sensor_location": "Emerald"
     }
   ]
 }
