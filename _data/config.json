@@ -15,6 +15,18 @@
       "nice_name": "Emerald Garage Freezer",
       "maximum_temp": -10,
       "sensor_location": "Emerald"
+    },
+    {
+      "id": "P_South_Vert_Freezer",
+      "nice_name": "Pantry South Room Freezer",
+      "maximum_temp": 20,
+      "sensor_location": "Pantry"
+    },
+    {
+      "id": "P_South_Vert_Fridge",
+      "nice_name": "Pantry South Room Fridge",
+      "maximum_temp": 20,
+      "sensor_location": "Pantry"
     }
   ],
   "extra_sensor_info": [
@@ -40,18 +52,6 @@
       "id": "P_Dining_Deep_Freeze",
       "nice_name": "Pantry Dining Room Chest Freezer",
       "maximum_temp": 25,
-      "sensor_location": "Pantry"
-    },
-    {
-      "id": "P_South_Vert_Freezer",
-      "nice_name": "Pantry South Room Freezer",
-      "maximum_temp": 20,
-      "sensor_location": "Pantry"
-    },
-    {
-      "id": "P_South_Vert_Fridge",
-      "nice_name": "Pantry South Room Fridge",
-      "maximum_temp": 20,
       "sensor_location": "Pantry"
     },
     {
