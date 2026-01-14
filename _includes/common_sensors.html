@@ -1,3 +1,5 @@
+<script src='https://cdn.plot.ly/plotly-3.3.0.min.js'></script>
+
 <!--Make sure to set page_locations before including this, using either site.data.config.locations, or a manual array-->
 
 {% assign sensor_ids = "" | split: '/' %}
@@ -16,59 +18,110 @@
   {% endfor %}
 {% endfor %}
 
-<div class="card">
-  <div class="card-body">
-    <h2 class="card-title">Filter Sensors by Location(s)</h2>
-    <div class="list-group" style="font-size:2em">
-      <a href="{{ '/' | relative_url }}" class="list-group-item list-group-item-action">Home/All</a>
-      <a href="{{ 'emerald' | relative_url }}" class="list-group-item list-group-item-action">Emerald</a>
-      <a href="{{ 'pantry' | relative_url }}" class="list-group-item list-group-item-action">Pantry</a>
-    </div>
-  </div>
-</div>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#">Navbar</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
 
-<hr>
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="{{ '/' | relative_url }}">All Locations</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ 'emerald' | relative_url }}">Emerald</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ 'pantry' | relative_url }}">Pantry</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
 
 {% for sensor in page_active_sensors %}
-  {% assign sensor_posts = site.posts | where: "sensor_id", sensor.id | slice: 0, 5 %}
+  {% assign full_sensor_history = site.posts | where: "sensor_id", sensor.id | slice: 0, 100 | reverse %}
+  {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.id | slice: 0, 5 %}
 
-  <h2 style="font-size:3em;text-align:center;"><b>{{ sensor.nice_name }}</b></h2>
-
-  <table class="table table-striped table-bordered" style="font-size:2.5em; margin-bottom: 35px">
-    <thead>
-      <tr>
-        <th style="text-align: center;">Date</th>
-        <th style="text-align:center;">Time (Local)</th>
-        <th colspan="2" style="text-align:center;">Temperature</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for post in sensor_posts %}
-        {% assign caution_temp = post.temperature | plus: 2 %}
-        {% assign temp_celsius = post.temperature | round: 1 %}
+  <div class="container-fluid">
+    <div class="row g-3">
+      <div class="col-12 col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="card-title">{{ sensor.nice_name }}</h2>
+            <div class="table-responsive">
+              <table class="table table-striped table-bordered">
+                <thead>
+                  <tr>
+                    <th style="text-align: center;">Date</th>
+                    <th style="text-align: center;">Time</th>
+                    <th style="text-align: center;">Temp</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for post in recent_sensor_posts %}
+                    {% assign caution_temp = sensor.maximum_temp | plus: 2 %}
+                    {% assign temp_celsius = post.temperature | round: 1 %}
+                    {% assign temp_fahrenheit = post.temperature | times: 9 | divided_by: 5 | plus: 32 | round: 1 %}
+                    <tr style="text-align: center;">
+                      <td>
+                        <span class="ts-date" data-ts="{{ post.measurement_time }}"></span>
+                      </td>
+                      <td>
+                        <span class="ts-time" data-ts="{{ post.measurement_time }}"></span>
+                      </td>
+                      {% if post.temperature <= sensor.maximum_temp %}
+                        <td class="temperature" style="background-color:#004e2f">{{ temp_fahrenheit }} &degF</td>
+                      {% elsif post.temperature < caution_temp %}
+                        <td style="background-color:#7c701f">{{ temp_fahrenheit }} &degF</td>
+                      {% else %}
+                        <td style="background-color:#7a0000">{{ temp_fahrenheit }} &degF</td>
+                      {% endif %}
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% assign temp_list = "" %}
+      {% assign time_list = "" %}
+      {% for post in full_sensor_history %}
         {% assign temp_fahrenheit = post.temperature | times: 9 | divided_by: 5 | plus: 32 | round: 1 %}
-
-        <tr style="text-align: center;">
-          <td>
-            <span class="ts-date" data-ts="{{ post.measurement_time }}"></span>
-          </td>
-          <td>
-            <span class="ts-time" data-ts="{{ post.measurement_time }}"></span>
-          </td>
-          {% if post.temperature <= sensor.maximum_temp %}
-            <td style="background-color:#78c1a3">{{ temp_fahrenheit }} &degF</td>
-            <td style="background-color:#78c1a3">{{ temp_celsius }} &degC</td>
-          {% elsif post.temperature < caution_temp %}
-            <td style="background-color:#ffdbc2">{{ temp_fahrenheit }} &degF</td>
-            <td style="background-color:#ffdbc2">{{ temp_celsius }} &degC</td>
-          {% else %}
-            <td style="background-color:#f38989">{{ temp_fahrenheit }} &degF</td>
-            <td style="background-color:#f38989">{{ temp_celsius }} &degC</td>
-          {% endif %}
-        </tr>
+        {% assign temp_list = temp_list | append: temp_fahrenheit | append: "," %}
+        {% assign parts = post.measurement_time | split: "-" %}
+        {% assign nice_time_stamp = '"' | append: parts[0] | append: "-" | append: parts[1] | append: "-" | append: parts[2] | append: " " | append: parts[3] | append: ":" | append: parts[4] | append: ":" | append: parts[5] | append: '"' %}
+        {% assign time_list = time_list | append: nice_time_stamp | append: "," %}
       {% endfor %}
-    </tbody>
-  </table>
+      <div class="col-12 col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <div id="plot {{ sensor.id }}" style="height: 300px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+        // Render the plot
+        Plotly.newPlot(
+          'plot {{ sensor.id }}',
+          [
+            {
+                x: [{{ time_list }}].map(ts => new Date(ts)),
+                y: [{{ temp_list }}],
+                mode: 'lines+markers',
+                type: 'scatter'
+            }
+          ],
+          {
+            yaxis: {title: {text: 'Temperature &degF'}}
+          },
+          { responsive: true }
+        );
+    </script>
 {% endfor %}
 
 <hr>
@@ -87,22 +140,22 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-  const parse = raw => {
-    const p = raw.split("-");
-    return new Date(Date.UTC(
-      p[0], p[1] - 1, p[2],
-      p[3], p[4], p[5]
-    ));
-  };
+    const parse = raw => {
+      const p = raw.split("-");
+      return new Date(Date.UTC(
+              p[0], p[1] - 1, p[2],
+              p[3], p[4], p[5]
+      ));
+    }
 
-  document.querySelectorAll(".ts-date").forEach(el => {
-    const d = parse(el.dataset.ts);
-    el.textContent = d.toLocaleDateString();
-  });
+    document.querySelectorAll(".ts-date").forEach(el => {
+      const d = parse(el.dataset.ts);
+      el.textContent = d.toLocaleDateString();
+    });
 
-  document.querySelectorAll(".ts-time").forEach(el => {
-    const d = parse(el.dataset.ts);
-    el.textContent = d.toLocaleTimeString();
-  });
-});
+    document.querySelectorAll(".ts-time").forEach(el => {
+      const d = parse(el.dataset.ts);
+      el.textContent = d.toLocaleTimeString();
+    });
+  })
 </script>
