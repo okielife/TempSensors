@@ -19,39 +19,39 @@
 {% endfor %}
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" href="#">Navbar</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-
+  <a class="navbar-brand" href="#">Temperature Sensor Dashboard</a>
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
         <a class="nav-link" href="{{ '/' | relative_url }}">All Locations</a>
       </li>
-      <li class="nav-item">
+      <li class="nav-item active">
         <a class="nav-link" href="{{ 'emerald' | relative_url }}">Emerald</a>
       </li>
-      <li class="nav-item">
+      <li class="nav-item active">
         <a class="nav-link" href="{{ 'pantry' | relative_url }}">Pantry</a>
       </li>
     </ul>
   </div>
 </nav>
 
-
 {% for sensor in page_active_sensors %}
   {% assign full_sensor_history = site.posts | where: "sensor_id", sensor.id | slice: 0, 100 | reverse %}
   {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.id | slice: 0, 5 %}
+  {% assign caution_temp = sensor.maximum_temp | plus: 2 %}
+  {% assign max_temp_f = sensor.maximum_temp | times: 9 | divided_by: 5 | plus: 32 %}
 
   <div class="container-fluid">
     <div class="row g-3">
-      <div class="col-12 col-md-6">
-        <div class="card h-100">
+      <div class="col-12">
+        <div class="card h-100 card border-1 border-secondary shadow-sm">
+          <h2 class="card-header d-flex justify-content-center align-items-center">{{ sensor.nice_name }}</h2>
           <div class="card-body">
-            <h2 class="card-title">{{ sensor.nice_name }}</h2>
-            <div class="table-responsive">
-              <table class="table table-striped table-bordered">
+            <div class="row g-3 align-items-stretch">
+              <div class="col-12 col-md-6 d-flex">
+                <div class="w-100">
+                  <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
                 <thead>
                   <tr>
                     <th style="text-align: center;">Date</th>
@@ -61,7 +61,6 @@
                 </thead>
                 <tbody>
                   {% for post in recent_sensor_posts %}
-                    {% assign caution_temp = sensor.maximum_temp | plus: 2 %}
                     {% assign temp_celsius = post.temperature | round: 1 %}
                     {% assign temp_fahrenheit = post.temperature | times: 9 | divided_by: 5 | plus: 32 | round: 1 %}
                     <tr style="text-align: center;">
@@ -82,46 +81,72 @@
                   {% endfor %}
                 </tbody>
               </table>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 d-flex">
+                {% assign temp_list = "" %}
+                {% assign time_list = "" %}
+                {% for post in full_sensor_history %}
+                  {% assign temp_fahrenheit = post.temperature | times: 9 | divided_by: 5 | plus: 32 | round: 1 %}
+                  {% assign temp_list = temp_list | append: temp_fahrenheit | append: "," %}
+                  {% assign parts = post.measurement_time | split: "-" %}
+                  {% assign nice_time_stamp = '"' | append: parts[0] | append: "-" | append: parts[1] | append: "-" | append: parts[2] | append: " " | append: parts[3] | append: ":" | append: parts[4] | append: ":" | append: parts[5] | append: '"' %}
+                  {% assign time_list = time_list | append: nice_time_stamp | append: "," %}
+                {% endfor %}
+                <div id="plot {{ sensor.id }}" class="w-100 flex-fill" style="width:100%;height:100%;"></div>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
-      {% assign temp_list = "" %}
-      {% assign time_list = "" %}
-      {% for post in full_sensor_history %}
-        {% assign temp_fahrenheit = post.temperature | times: 9 | divided_by: 5 | plus: 32 | round: 1 %}
-        {% assign temp_list = temp_list | append: temp_fahrenheit | append: "," %}
-        {% assign parts = post.measurement_time | split: "-" %}
-        {% assign nice_time_stamp = '"' | append: parts[0] | append: "-" | append: parts[1] | append: "-" | append: parts[2] | append: " " | append: parts[3] | append: ":" | append: parts[4] | append: ":" | append: parts[5] | append: '"' %}
-        {% assign time_list = time_list | append: nice_time_stamp | append: "," %}
-      {% endfor %}
-      <div class="col-12 col-md-6">
-        <div class="card h-100">
-          <div class="card-body">
-            <div id="plot {{ sensor.id }}" style="height: 300px;"></div>
           </div>
         </div>
       </div>
     </div>
   </div>
+  <hr>
   <script>
-        // Render the plot
-        Plotly.newPlot(
-          'plot {{ sensor.id }}',
-          [
-            {
-                x: [{{ time_list }}].map(ts => new Date(ts)),
-                y: [{{ temp_list }}],
-                mode: 'lines+markers',
-                type: 'scatter'
-            }
-          ],
+    Plotly.newPlot(
+      'plot {{ sensor.id }}',
+      [
+        {
+            x: [{{ time_list }}].map(ts => new Date(ts)),
+            y: [{{ temp_list }}],
+            mode: 'lines+markers',
+            type: 'scatter',
+            line: {color: 'rgb(50, 50, 50)'},
+            name: "Sensed Temperature"
+        }
+      ],
+      {
+        showlegend: true,
+        yaxis: {title: {text: 'Temperature \u00B0F'}},
+        shapes: [
           {
-            yaxis: {title: {text: 'Temperature &degF'}}
+            type: 'line',
+            xref: 'paper',
+            x0: 0,
+            y0: 32.0,
+            x1: 1,
+            y1: 32.0,
+            line:{color: 'rgb(0, 0, 150)', width: 2, dash: 'dot'},
+            name: "Freezing Line",
+            showlegend: true
           },
-          { responsive: true }
-        );
-    </script>
+          {
+            type: 'line',
+            xref: 'paper',
+            x0: 0,
+            y0: {{ max_temp_f }},
+            x1: 1,
+            y1: {{ max_temp_f }},
+            line:{color: 'rgb(150, 0, 0)', width: 2, dash: 'dot'},
+            name: "Sensor Max Temp",
+            showlegend: true
+          }
+        ]
+      },
+      { responsive: true }
+    );
+  </script>
 {% endfor %}
 
 <hr>
@@ -142,17 +167,12 @@
   document.addEventListener("DOMContentLoaded", () => {
     const parse = raw => {
       const p = raw.split("-");
-      return new Date(Date.UTC(
-              p[0], p[1] - 1, p[2],
-              p[3], p[4], p[5]
-      ));
+      return new Date(Date.UTC(p[0], p[1] - 1, p[2],p[3], p[4], p[5]));
     }
-
     document.querySelectorAll(".ts-date").forEach(el => {
       const d = parse(el.dataset.ts);
       el.textContent = d.toLocaleDateString();
     });
-
     document.querySelectorAll(".ts-time").forEach(el => {
       const d = parse(el.dataset.ts);
       el.textContent = d.toLocaleTimeString();
