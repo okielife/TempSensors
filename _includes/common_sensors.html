@@ -72,11 +72,11 @@
                         <span class="ts-time" data-ts="{{ post.measurement_time }}"></span>
                       </td>
                       {% if post.temperature <= sensor.maximum_temp %}
-                        <td class="temperature" style="background-color:#004e2f">{{ temp_fahrenheit }} &degF</td>
+                        <td class="temperature" style="background-color:#78c1a3">{{ temp_fahrenheit }} &degF</td>
                       {% elsif post.temperature < caution_temp %}
-                        <td style="background-color:#7c701f">{{ temp_fahrenheit }} &degF</td>
+                        <td style="background-color:#ffdbc2">{{ temp_fahrenheit }} &degF</td>
                       {% else %}
-                        <td style="background-color:#7a0000">{{ temp_fahrenheit }} &degF</td>
+                        <td style="background-color:#f38989">{{ temp_fahrenheit }} &degF</td>
                       {% endif %}
                     </tr>
                   {% endfor %}
