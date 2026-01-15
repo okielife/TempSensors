@@ -47,7 +47,7 @@
           <h2 class="card-header d-flex justify-content-center align-items-center">{{ sensor.nice_name }}</h2>
           <div class="card-body">
             <div class="row g-3 align-items-stretch">
-              <div class="col-12 col-md-5 d-flex">
+              <div class="col-12 col-md-6 col-lg-4 d-flex">
                 <div class="w-100">
                   <div class="table-responsive">
                     <table class="table table-striped table-bordered" style="font-size: 1.5rem;">
@@ -78,7 +78,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-12 col-md-7 d-flex">
+              <div class="col-12 col-md-6 col-lg-8 d-flex">
                 {% assign temp_list = "" %}
                 {% assign time_list = "" %}
                 {% for post in full_sensor_history %}
