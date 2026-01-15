@@ -18,21 +18,32 @@
   {% endfor %}
 {% endfor %}
 
-<nav class="navbar navbar-expand navbar-light bg-light" style="font-size: 1.5rem;">
-  <a class="navbar-brand" href="#">Temperature Sensor Dashboard</a>
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="{{ '/' | relative_url }}">All Locations</a>
+<nav class="navbar navbar-light bg-light px-3" style="font-size: 1.5rem;">
+    <ul class="navbar-nav flex-row me-auto">
+      <li class="nav-item px-3">
+        <a class="nav-link active" href="{{ '/' | relative_url }}">All Locations</a>
       </li>
-      <li class="nav-item active">
-        <a class="nav-link" href="{{ 'emerald' | relative_url }}">Emerald</a>
+      <li class="nav-item px-3">
+        <a class="nav-link active" href="{{ 'emerald' | relative_url }}">Emerald</a>
       </li>
-      <li class="nav-item active">
-        <a class="nav-link" href="{{ 'pantry' | relative_url }}">Pantry</a>
+      <li class="nav-item px-3">
+        <a class="nav-link active" href="{{ 'pantry' | relative_url }}">Pantry</a>
+      </li>
+    </ul>
+    <ul class="navbar-nav flex-row">
+      <li class="nav-item">
+        <a class="nav-link active" href="https://github.com/okielife/TempSensors">GitHub</a>
       </li>
     </ul>
 </nav>
 
+<header class="container py-4 mb-4">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="display-5 fw-bold text-center">Temperature Sensor Dashboard</h1>
+    </div>
+  </div>
+</header>
 
 {% for sensor in page_active_sensors %}
   {% assign full_sensor_history = site.posts | where: "sensor_id", sensor.id | slice: 0, 100 | reverse %}
@@ -150,20 +161,6 @@
     );
   </script>
 {% endfor %}
-
-<hr>
-
-<div class="card">
-  <div class="card-body">
-    <h2 class="card-title">Temperature Measurement Information</h2>
-    <p class="card-text">
-      This is the dashboard for our temperature sensors.
-      This dashboard is built each time a commit is made <a href="https://github.com/okielife/TempSensors">on our repository</a> by one of our sensors.
-      This page shows the 5 most recent temperature measurements for each sensor in this location.
-      Use the menu above to select which locations to show.
-    </p>
-  </div>
-</div>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
