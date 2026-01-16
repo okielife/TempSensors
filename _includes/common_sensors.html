@@ -49,7 +49,6 @@
   {% assign full_sensor_history = site.posts | where: "sensor_id", sensor.id | slice: 0, 100 | reverse %}
   {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.id | slice: 0, 5 %}
   {% assign caution_temp = sensor.maximum_temp | plus: 2 %}
-  {% assign max_temp_f = sensor.maximum_temp | times: 9 | divided_by: 5 | plus: 32 %}
 
   <div class="container-fluid">
     <div class="row g-3">
@@ -144,9 +143,9 @@
             type: 'line',
             xref: 'paper',
             x0: 0,
-            y0: {{ max_temp_f }},
+            y0: {{ sensor.maximum_temp }},
             x1: 1,
-            y1: {{ max_temp_f }},
+            y1: {{ sensor.maximum_temp }},
             line:{color: 'rgb(150, 0, 0)', width: 3, dash: 'dot'},
             name: "Sensor Max Temp",
           }

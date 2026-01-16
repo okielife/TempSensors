@@ -7,27 +7,39 @@
     "03": {
       "short_name": "Em Garage Fridge",
       "nice_name": "Emerald Garage Fridge",
-      "maximum_temp": 6.0,
+      "maximum_temp": 40,
       "sensor_location": "Emerald"
     },
     "13": {
       "short_name": "Em Garage Freezer",
       "nice_name": "Emerald Garage Freezer",
-      "maximum_temp": -10.0,
+      "maximum_temp": 13,
       "sensor_location": "Emerald"
+    },
+    "01": {
+      "short_name": "P_Dining_East_Frig",
+      "nice_name": "Pantry Dining Room East Fridge",
+      "maximum_temp": 40,
+      "sensor_location": "Pantry"
+    },
+    "02": {
+      "short_name": "P_Dining_East_Frzr",
+      "nice_name": "Pantry Dining Room East Freezer",
+      "maximum_temp": 13,
+      "sensor_location": "Pantry"
     }
   },
   "unused_sensors": {
     "some number 1": {
       "short_name": "P_South_Vert_Frz",
       "nice_name": "Pantry South Room Freezer",
-      "maximum_temp": -10,
+      "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     "some number 2": {
       "short_name": "P_South_Vert_Fridge",
       "nice_name": "Pantry South Room Fridge",
-      "maximum_temp": 6.0,
+      "maximum_temp": 40,
       "sensor_location": "Pantry"
     }
   },
@@ -59,73 +71,68 @@
     {
       "short_name": "P_Dining_East_Freeze",
       "nice_name": "Pantry Dining Room East Standing Freezer",
-      "maximum_temp": -10,
+      "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     {
       "short_name": "P_Dining_West_Freeze",
       "nice_name": "Pantry Dining Room West Standing Freezer",
-      "maximum_temp": 6.0,
+      "maximum_temp": 40,
       "sensor_location": "Pantry"
     },
-    {
-      "short_name": "P_Dining_Deep_Freeze",
-      "nice_name": "Pantry Dining Room Chest Freezer",
-      "maximum_temp": -10,
-      "sensor_location": "Pantry"
-    },
+
     {
       "short_name": "P_Garage_Freezer",
       "nice_name": "Pantry Garage Freezer",
-      "maximum_temp": -10,
+      "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     {
       "short_name": "P_South_Deep_Freeze",
       "nice_name": "Pantry South Chest Freezer",
-      "maximum_temp": -10,
+      "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     {
       "short_name": "P_Entry_West_Fridge",
       "nice_name": "Pantry Entry West Unit Fridge",
-      "maximum_temp": 5,
+      "maximum_temp": 40,
       "sensor_location": "Pantry"
     },
     {
       "short_name": "P_Entry_West_Freezer",
       "nice_name": "Pantry Entry West Unit Freezer",
-      "maximum_temp": -10,
+      "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     {
       "short_name": "P_Entry_East_Fridge",
       "nice_name": "Pantry Entry East Unit Fridge",
-      "maximum_temp": 5,
+      "maximum_temp": 40,
       "sensor_location": "Pantry"
     },
     {
       "short_name": "P_Entry_East_Freezer",
       "nice_name": "Pantry Entry East Unit Freezer",
-      "maximum_temp": -10,
+      "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     {
       "short_name": "P_West_Vert_Freezer",
       "nice_name": "Pantry West Standing Freezer",
-      "maximum_temp": -10,
+      "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     {
       "short_name": "Emerald_Kit_Freeze",
       "nice_name": "Emerald Kitchen Freezer",
-      "maximum_temp": -10,
+      "maximum_temp": 13,
       "sensor_location": "Emerald"
     },
     {
       "short_name": "Emerald_Kit_Fridge",
       "nice_name": "Emerald Kitchen Fridge",
-      "maximum_temp": 5,
+      "maximum_temp": 40,
       "sensor_location": "Emerald"
     }
   ]
