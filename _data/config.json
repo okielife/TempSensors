@@ -4,6 +4,7 @@
     "Emerald"
   ],
   "sensors": {
+    "readme1": "This is a list of all active sensors, keyed by the label on the wire",
     "01": {
       "hex": "2887bb81e3813ccd",
       "short_name": "P_Dining_East_Frig",
@@ -73,67 +74,77 @@
   },
   "extra_sensor_info": [
     {
+      "hex": "",
       "short_name": "P_Dining_East_Freeze",
       "nice_name": "Pantry Dining Room East Standing Freezer",
       "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     {
+      "hex": "",
       "short_name": "P_Dining_West_Freeze",
       "nice_name": "Pantry Dining Room West Standing Freezer",
       "maximum_temp": 42,
       "sensor_location": "Pantry"
     },
-
     {
+      "hex": "",
       "short_name": "P_Garage_Freezer",
       "nice_name": "Pantry Garage Freezer",
       "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     {
+      "hex": "",
       "short_name": "P_South_Deep_Freeze",
       "nice_name": "Pantry South Chest Freezer",
       "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     {
+      "hex": "",
       "short_name": "P_Entry_West_Fridge",
       "nice_name": "Pantry Entry West Unit Fridge",
       "maximum_temp": 42,
       "sensor_location": "Pantry"
     },
     {
+      "hex": "",
       "short_name": "P_Entry_West_Freezer",
       "nice_name": "Pantry Entry West Unit Freezer",
       "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     {
+      "hex": "",
       "short_name": "P_Entry_East_Fridge",
       "nice_name": "Pantry Entry East Unit Fridge",
       "maximum_temp": 42,
       "sensor_location": "Pantry"
     },
     {
+      "hex": "",
       "short_name": "P_Entry_East_Freezer",
       "nice_name": "Pantry Entry East Unit Freezer",
       "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     {
+      "hex": "",
       "short_name": "P_West_Vert_Freezer",
       "nice_name": "Pantry West Standing Freezer",
       "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     {
+      "hex": "",
       "short_name": "Emerald_Kit_Freeze",
       "nice_name": "Emerald Kitchen Freezer",
       "maximum_temp": 13,
       "sensor_location": "Emerald"
     },
     {
+      "hex": "",
       "short_name": "Emerald_Kit_Fridge",
       "nice_name": "Emerald Kitchen Fridge",
       "maximum_temp": 42,
