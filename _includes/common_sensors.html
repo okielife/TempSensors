@@ -2,39 +2,32 @@
 
 <!--Make sure to set page_locations before including this, using either site.data.config.locations, or a manual array-->
 
-{% assign sensor_ids = "" | split: '/' %}
-{% for page in site.posts %}
-  {% assign full_path_parts = page.path | split:'/' %}
-  {% assign this_sensor_id = full_path_parts[1] | strip %}
-  {% assign sensor_ids = sensor_ids | push: this_sensor_id %}
-{% endfor %}
-{% assign sensor_ids = sensor_ids | uniq %}
-
+{% assign sensor_ids_with_data = site.posts | map: "sensor_id" | uniq %}
 {% assign page_active_sensors = "" | split: '/' %}
-{% for page_location in page_locations %}
-  {% assign active_sensors_at_location = site.data.config.sensors | where_exp:"s","s.sensor_location == page_location" %}
-  {% for active_sensor_at_location in active_sensors_at_location %}
-    {% assign page_active_sensors = page_active_sensors | push: active_sensor_at_location %}
-  {% endfor %}
+{% for s in site.data.config.sensors %}
+  {% assign sensor = s[1] %}
+  {% if page_locations contains sensor.sensor_location %}
+    {% assign page_active_sensors = page_active_sensors | push: sensor %}
+  {% endif %}
 {% endfor %}
 
 <nav class="navbar navbar-light bg-light px-3" style="font-size: 1.5rem;">
-    <ul class="navbar-nav flex-row me-auto">
-      <li class="nav-item px-3">
-        <a class="nav-link active" href="{{ '/' | relative_url }}">All Locations</a>
-      </li>
-      <li class="nav-item px-3">
-        <a class="nav-link active" href="{{ 'emerald' | relative_url }}">Emerald</a>
-      </li>
-      <li class="nav-item px-3">
-        <a class="nav-link active" href="{{ 'pantry' | relative_url }}">Pantry</a>
-      </li>
-    </ul>
-    <ul class="navbar-nav flex-row">
-      <li class="nav-item">
-        <a class="nav-link active" href="https://github.com/okielife/TempSensors">GitHub</a>
-      </li>
-    </ul>
+  <ul class="navbar-nav flex-row me-auto">
+    <li class="nav-item px-3">
+      <a class="nav-link active" href="{{ '/' | relative_url }}">All Locations</a>
+    </li>
+    <li class="nav-item px-3">
+      <a class="nav-link active" href="{{ 'emerald' | relative_url }}">Emerald</a>
+    </li>
+    <li class="nav-item px-3">
+      <a class="nav-link active" href="{{ 'pantry' | relative_url }}">Pantry</a>
+    </li>
+  </ul>
+  <ul class="navbar-nav flex-row">
+    <li class="nav-item">
+      <a class="nav-link active" href="https://github.com/okielife/TempSensors">GitHub</a>
+    </li>
+  </ul>
 </nav>
 
 <header class="container py-4 mb-4">
@@ -46,8 +39,8 @@
 </header>
 
 {% for sensor in page_active_sensors %}
-  {% assign full_sensor_history = site.posts | where: "sensor_id", sensor.id | slice: 0, 100 | reverse %}
-  {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.id | slice: 0, 5 %}
+  {% assign full_sensor_history = site.posts | where: "sensor_id", sensor.hex | slice: 0, 100 | reverse %}
+  {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.hex | slice: 0, 5 %}
   {% assign caution_temp = sensor.maximum_temp | plus: 2 %}
 
   <div class="container-fluid">
@@ -68,8 +61,7 @@
                       </thead>
                       <tbody>
                         {% for post in recent_sensor_posts %}
-                          {% assign temp_celsius = post.temperature | round: 1 %}
-                          {% assign temp_fahrenheit = post.temperature | times: 9 | divided_by: 5 | plus: 32 | round: 1 %}
+                          {% assign temp_fahrenheit = post.temperature | round: 1 %}
                           <tr style="text-align: center">
                             <td>
                               <span class="ts-timestamp" data-ts="{{ post.measurement_time }}"></span>
@@ -92,13 +84,13 @@
                 {% assign temp_list = "" %}
                 {% assign time_list = "" %}
                 {% for post in full_sensor_history %}
-                  {% assign temp_fahrenheit = post.temperature | times: 9 | divided_by: 5 | plus: 32 | round: 1 %}
+                  {% assign temp_fahrenheit = post.temperature | round: 4 %}
                   {% assign temp_list = temp_list | append: temp_fahrenheit | append: "," %}
                   {% assign parts = post.measurement_time | split: "-" %}
                   {% assign nice_time_stamp = '"' | append: parts[0] | append: "-" | append: parts[1] | append: "-" | append: parts[2] | append: " " | append: parts[3] | append: ":" | append: parts[4] | append: ":" | append: parts[5] | append: '"' %}
                   {% assign time_list = time_list | append: nice_time_stamp | append: "," %}
                 {% endfor %}
-                <div id="plot {{ sensor.id }}" class="w-100 flex-fill" style="width:100%;height:100%;min-height:300px;"></div>
+                <div id="plot {{ sensor.hex }}" class="w-100 flex-fill" style="width:100%;height:100%;min-height:300px;"></div>
               </div>
             </div>
           </div>
@@ -109,7 +101,7 @@
   <hr>
   <script>
     Plotly.newPlot(
-      'plot {{ sensor.id }}',
+      'plot {{ sensor.hex }}',
       [ // data
         {
             x: [{{ time_list }}].map(ts => new Date(ts)),
