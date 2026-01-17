@@ -1,3 +1,0 @@
-markdown: kramdown
-exclude: [.idea, vendor]
-future: true
