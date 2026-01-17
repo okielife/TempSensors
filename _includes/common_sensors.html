@@ -41,7 +41,6 @@
 {% assign page_active_sensors = page_active_sensors | sort: "sensor_location" %}
 {% for sensor in page_active_sensors %}
   {% assign full_sensor_history = site.posts | where: "sensor_id", sensor.hex | slice: 0, 100 | reverse %}
-
   {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.hex | slice: 0, 5 %}
   {% assign caution_temp = sensor.maximum_temp | plus: 2 %}
 
