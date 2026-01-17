@@ -3,11 +3,14 @@ name: Scheduled Sensor Responsiveness Check
 on:
   schedule:
     - cron: '0 14 * * *'  # should be 2pm UTC which is morning central time
+  workflow_dispatch:
 
 jobs:
   check_sensors:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - name: Check Sensors Each Day
         run: python scripts/check_sensor_responsiveness.py

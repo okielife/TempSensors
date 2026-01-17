@@ -6,10 +6,11 @@ from json import loads
 from pathlib import Path
 from sys import exit
 
+
 RED = '\033[91m'
 GREEN = '\033[92m'
 YELLOW = '\033[93m'
-ENDC = '\033[0m' # Reset color to default
+ENDC = '\033[0m'
 
 # we are now reporting temperature measurement time in UTC
 # use 18 hours as a reasonable amount of hours to report an unresponsive sensor
@@ -70,12 +71,13 @@ for sensor_id in active_sensors_checked:
     if not active_sensors_checked[sensor_id]:
         failures.append(f"{sensor_id} data missing - typo?")
 
+failure_string = ''.join([f"\n{RED} - {f}{ENDC}" for f in failures])
+checked_string = ''.join([f"\n - {s}" for s in sensors_checked])
+ignored_string = ''.join([f"{YELLOW}\n - {s}{ENDC}" for s in sensors_ignored])
+
 if failures:
-    failure_string = ''.join([f"\n{RED} - {f} {ENDC}" for f in failures])
-    print(f"At least one active sensor it not responding!\nFailures listed here:{failure_string}")
+    failure_string = ''.join([f"\n{RED} - {f}{ENDC}" for f in failures])
+    print(f"At least one active sensor it not responding!\nFailures listed here:{failure_string}\nSensors Checked:{checked_string}\nSensors Ignored:{ignored_string}\nSensors Ignored:{sensors_ignored}")
     exit(1)
 else:
-    checked_string = ''.join([f"\n - {s}" for s in sensors_checked])
-    ignored_string = ''.join([f"{YELLOW}\n - {s}{ENDC}" for s in sensors_ignored])
     print(f"{GREEN}Sensors Responding!{ENDC}\nSensors Checked:{checked_string}\nSensors Ignored:{ignored_string}")
-    exit(0)

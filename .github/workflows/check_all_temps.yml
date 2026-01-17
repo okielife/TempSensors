@@ -1,0 +1,16 @@
+name: Check All Temperatures
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  check_temperatures:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Check Temperatures
+        run: python scripts/check_all_temperatures.py
