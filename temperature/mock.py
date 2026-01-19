@@ -384,3 +384,38 @@ class TFT:
         self._photo = ImageTk.PhotoImage(self.image)
         self.canvas.itemconfig(self._image_id, image=self._photo)
         self.root.update()
+
+
+class TFTNull:  # used for CI
+    def __init__(self):
+        pass
+
+    def initr(self):
+        pass
+
+    def rgb(self, _):
+        pass
+
+    def fill(self, color):
+        pass
+
+    def circle(self, point, radius, color):
+        pass
+
+    def text(self, point, text, color, font, size=1, nowrap=True):
+        pass
+
+    def rect(self, p1, p2, color):
+        pass
+
+    def fillrect(self, point, size, color):
+        pass
+
+    def hline(self, point, length, color):
+        pass
+
+    def vline(self, point, length, color):
+        pass
+
+    def show(self):
+        pass
