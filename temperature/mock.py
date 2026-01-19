@@ -387,7 +387,8 @@ class TFT:
 
 
 class TFTNull:  # used for CI
-    def __init__(self):
+    # noinspection PyUnusedLocal
+    def __init__(self, spi=None, aDC=None, aReset=None, aCS=None, ScreenSize=(128, 160)):
         pass
 
     def initr(self):
