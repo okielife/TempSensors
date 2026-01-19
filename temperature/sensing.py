@@ -1,25 +1,38 @@
+# these imports are fine whether we are running on regular Python or MicroPython
 from binascii import b2a_base64
-from ds18x20 import DS18X20
-# noinspection PyPackageRequirements
-from machine import Pin, SPI, RTC, WDT
-# noinspection PyPackageRequirements
-from network import WLAN, STA_IF
-# noinspection PyPackageRequirements
-from onewire import OneWire
 from socket import getaddrinfo, socket, AF_INET, SOCK_DGRAM
 from struct import unpack
-from time import sleep, sleep_ms, ticks_ms, ticks_diff, localtime
-# noinspection PyPackageRequirements
-from urequests import get, put
-# noinspection PyPackageRequirements
-from ujson import load as load_json
 
-from st7735 import TFT, FONT, TFTColor
+# the other imports need to either be mocked or found from the nested temperature package when running locally
+try:
+    from ds18x20 import DS18X20
+    # noinspection PyPackageRequirements
+    from machine import Pin, SPI, RTC, WDT
+    # noinspection PyPackageRequirements
+    from network import WLAN, STA_IF
+    # noinspection PyPackageRequirements
+    from onewire import OneWire
+    from time import sleep, sleep_ms, ticks_ms, ticks_diff, localtime
+    # noinspection PyPackageRequirements
+    from urequests import get, put
+    # noinspection PyPackageRequirements
+    from ujson import load as load_json
+    from st7735 import TFT, FONT, TFTColor
+    from config import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
+except ImportError:
+    from temperature.mock import DS18X20  # ds18x20
+    from temperature.mock import Pin, SPI, RTC, WDT  # machine
+    from temperature.mock import WLAN, STA_IF  # network
+    from temperature.mock import OneWire  # onewire
+    from temperature.mock import sleep, sleep_ms, ticks_ms, ticks_diff, localtime  # time
+    from temperature.mock import get, put  # urequests
+    from temperature.mock import load as load_json  # ujson
+    from temperature.mock import TFT, FONT, TFTColor
+    from temperature.config import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
 
-from config import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
 
 __version__ = 3
-__revision__ = 5
+__revision__ = 6
 
 __diagram__ = """
   Looking from "above"
@@ -62,7 +75,7 @@ class Sensor:
         self.active = False
 
 
-class SensorBox(TFT):
+class SensorBox:
     WIDTH = 128
     HEIGHT = 160
     PIN_DC = 16
@@ -102,12 +115,13 @@ class SensorBox(TFT):
         try:
             spi = SPI(0, baudrate=20_000_000, polarity=0, phase=0, sck=Pin(self.PIN_SCI_SCK),
                       mosi=Pin(self.PIN_SDA_MOSI))
-            TFT.__init__(self, spi, aDC=self.PIN_DC, aReset=self.PIN_RESET, aCS=self.PIN_CS,
-                         ScreenSize=(self.WIDTH, self.HEIGHT))
-            self.initr()
+            self.tft = TFT(
+                spi, aDC=self.PIN_DC, aReset=self.PIN_RESET, aCS=self.PIN_CS, ScreenSize=(self.WIDTH, self.HEIGHT)
+            )
+            self.tft.initr()
             Pin(self.PIN_LED, Pin.OUT).on()
-            self.rgb(False)
-            self.fill(TFT.BLACK)
+            self.tft.rgb(False)
+            self.tft.fill(TFT.BLACK)
         except Exception as e:
             print(f"Could not initialize display: {e}")
             while True:  # just hang here forever, we can't go on without a screen
@@ -122,19 +136,15 @@ class SensorBox(TFT):
         # set up the sensors now
         ow = OneWire(Pin(28))
         self.ds = DS18X20(ow)
-        scanned_roms = self.ds.scan()
+        scanned_roms = {rom.hex(): rom for rom in self.ds.scan()}
         self.wdt.feed()
-        roms_by_hex = {rom.hex(): rom for rom in scanned_roms}
-        self.sensors = []
-        for label, search_hex in CONNECTED_SENSORS:
-            rom = roms_by_hex.get(search_hex)
-            if rom is None:
-                self.show_fatal_error(
-                    f"Could not initialize sensor with label \"{label}\"; check connections; will restart in 30 seconds")
-                while True:  # just hang here forever, we don't want to continue without the sensors
-                    sleep(2)
-                    self.wdt.feed()
-            self.sensors.append(Sensor(rom, label))
+        missing = [label for label, hex_id in CONNECTED_SENSORS if hex_id not in scanned_roms]
+        if missing:
+            self.show_fatal_error(f"Could not initialize sensor(s): {', '.join(missing)}; check connections")
+            while True:  # just hang here forever, we don't want to continue without the sensors
+                sleep(2)
+                self.wdt.feed()
+        self.sensors = [Sensor(scanned_roms[hex_id], label) for label, hex_id in CONNECTED_SENSORS]
         self.display_text((0, post_y_sensors), "Sensors: OK", TFT.WHITE, 2)
         self.wdt.feed()
 
@@ -143,6 +153,8 @@ class SensorBox(TFT):
         self.wlan.active(True)
         self.ip = ""
         self.ssid = ""
+        if not self.wlan.isconnected():
+            self.try_to_connect_to_wifi()
         if self.wlan.isconnected():
             self.ip, _, _, _ = self.wlan.ifconfig()
             self.ssid = self.wlan.config('ssid')
@@ -163,9 +175,11 @@ class SensorBox(TFT):
                 self.show_fatal_error("Could not retrieve sensor config data from GitHub, will continue to boot in 5 seconds and retry later.")
                 sleep(5)
         else:
-            self.display_text((0, post_y_wifi), "Wi-Fi:  ERR", TFT.RED, 2)
-            self.display_text((0, post_y_date), "COULD NOT ", TFT.RED, 2)
-            self.display_text((0, post_y_config), "CONNECT", TFT.RED, 2)
+            self.display_text((0, post_y_wifi), "Wi-Fi:  NOT", TFT.YELLOW, 2)
+            self.display_text((0, post_y_clock), "READY, CHECK", TFT.YELLOW, 2)
+            self.display_text((0, post_y_date), "NETWORK", TFT.YELLOW, 2)
+            self.display_text((0, post_y_config), "WILL RETRY", TFT.YELLOW, 2)
+            sleep(2)
         self.wdt.feed()
 
         self.display_text((0, post_y_booting), "BOOTING UP!", TFT.WHITE, 2)
@@ -218,33 +232,33 @@ class SensorBox(TFT):
 
     # noinspection PyTypeHints
     def display_text(self, point: tuple[int, int], text: str, color: TFTColor, size: int):
-        self.text(point, text, color, FONT, size, nowrap=True)
+        self.tft.text(point, text, color, FONT, size, nowrap=True)
 
     def display_dev_mode_warning(self):
         print("GP22 jumper is connected; device is in developer mode")
-        self.fill(TFT.BLACK)
+        self.tft.fill(TFT.BLACK)
         self.display_text((7, 5), "*DEV MODE*", TFT.YELLOW, 2)
         self.display_text((7, 25), "GP22 jumper active", TFT.YELLOW, 1)
         self.display_text((7, 35), "In developer mode", TFT.YELLOW, 1)
-        self.rect((15, 60), (50, 90), TFT.WHITE)
-        self.fillrect((30, 50), (20, 20), TFT.GRAY)
-        self.fillrect((27, 95), (26, 26), TFT.WHITE)
+        self.tft.rect((15, 60), (50, 90), TFT.WHITE)
+        self.tft.fillrect((30, 50), (20, 20), TFT.GRAY)
+        self.tft.fillrect((27, 95), (26, 26), TFT.WHITE)
         pins_to_print = ["GP27", "GP26", "RUN", "GP22", "GND", "GP21", "GP20", "GP19"]
         y = 65
         for pin in pins_to_print:
             self.display_text((70, y), pin, TFT.YELLOW, 1)
             y += 10
-        self.hline((92, 88), 15, TFT.YELLOW)
-        self.vline((107, 88), 11, TFT.YELLOW)
-        self.hline((97, 98), 10, TFT.YELLOW)
+        self.tft.hline((92, 88), 15, TFT.YELLOW)
+        self.tft.vline((107, 88), 11, TFT.YELLOW)
+        self.tft.hline((97, 98), 10, TFT.YELLOW)
 
     def regular_update(self):
-        self.fill(TFT.BLACK)
+        self.tft.fill(TFT.BLACK)
         # SENSOR INFORMATION
-        self.hline((0, 5), 24, TFT.GRAY)
-        self.hline((0, 10), 24, TFT.GRAY)
-        self.hline((106, 5), 24, TFT.GRAY)
-        self.hline((106, 10), 24, TFT.GRAY)
+        self.tft.hline((0, 5), 24, TFT.GRAY)
+        self.tft.hline((0, 10), 24, TFT.GRAY)
+        self.tft.hline((106, 5), 24, TFT.GRAY)
+        self.tft.hline((106, 10), 24, TFT.GRAY)
         self.display_text((27, 0), "Sensors", TFT.WHITE, 2)
         # Need to alert here on the screen if the sensor data is bad
         y = 17
@@ -258,15 +272,15 @@ class SensorBox(TFT):
                 temp_string = f"{sensor.temperature_f:.2f} F"
                 self.display_text((27, y), temp_string, TFT.WHITE, 2)
                 if len(temp_string) == 6 or len(temp_string) == 7:  # draw the degree symbol if it's like "X.YY F" or "XX.YY F"
-                    self.circle((89, y+3), 3, TFT.WHITE)
+                    self.tft.circle((89, y+3), 3, TFT.WHITE)
             else:
                 self.display_text((27, y), f"NULL", TFT.YELLOW, 1)
             y += 17
         # WI-FI INFORMATION
-        self.hline((0, 79), 40, TFT.GRAY)
-        self.hline((0, 84), 40, TFT.GRAY)
-        self.hline((88, 79), 40, TFT.GRAY)
-        self.hline((88, 84), 40, TFT.GRAY)
+        self.tft.hline((0, 79), 40, TFT.GRAY)
+        self.tft.hline((0, 84), 40, TFT.GRAY)
+        self.tft.hline((88, 79), 40, TFT.GRAY)
+        self.tft.hline((88, 84), 40, TFT.GRAY)
         self.display_text((44, 74), "WiFi", TFT.WHITE, 2)
         if self.wlan.isconnected():
             self.display_text((0, 90), f"Connected!", TFT.GREEN, 1)
@@ -275,10 +289,10 @@ class SensorBox(TFT):
         else:
             self.display_text((0, 90), "****DISCONNECTED****", TFT.RED, 1)
         # UPDATE INFORMATION
-        self.hline((0, 128), 24, TFT.GRAY)
-        self.hline((0, 133), 24, TFT.GRAY)
-        self.hline((106, 128), 24, TFT.GRAY)
-        self.hline((106, 133), 24, TFT.GRAY)
+        self.tft.hline((0, 128), 24, TFT.GRAY)
+        self.tft.hline((0, 133), 24, TFT.GRAY)
+        self.tft.hline((106, 128), 24, TFT.GRAY)
+        self.tft.hline((106, 133), 24, TFT.GRAY)
         self.display_text((27, 123), "Updates", TFT.WHITE, 2)
         if self.last_temp_stamp:
             temp_time_text = "Read: {:02d}:{:02d}:{:02d} (UTC)".format(self.last_temp_stamp[3], self.last_temp_stamp[4],
@@ -297,7 +311,7 @@ class SensorBox(TFT):
             self.display_text((0, 150), "Push: NEVER", TFT.YELLOW, 1)
 
     def show_fatal_error(self, error: Exception | str):
-        self.fill(TFT.BLACK)
+        self.tft.fill(TFT.BLACK)
         self.display_text((0, 5), "*EXCEPTION*", TFT.RED, 2)
         y = 25
         msg = str(error)

@@ -1,0 +1,4 @@
+# for any development it's nice to have these stubs
+micropython-rp2-rpi-pico-w-stubs
+# for testing, we are going to use Pillow to render the screen :)
+pillow
