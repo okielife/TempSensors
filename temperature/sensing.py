@@ -28,7 +28,7 @@ except ImportError:
     from temperature.mock import get, put  # urequests
     from temperature.mock import load as load_json  # ujson
     from temperature.mock import TFT, FONT, TFTColor
-    from temperature.config import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
+    from temperature.config_template import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
 
 
 __version__ = 3
