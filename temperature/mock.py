@@ -387,6 +387,14 @@ class TFT:
 
 
 class TFTNull:  # used for CI
+    BLACK = 0
+    WHITE = 0
+    RED = 0
+    GREEN = 0
+    BLUE = 0
+    YELLOW = 0
+    GRAY = 0
+
     # noinspection PyUnusedLocal
     def __init__(self, spi=None, aDC=None, aReset=None, aCS=None, ScreenSize=(128, 160)):
         pass
