@@ -20,5 +20,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Setup upterm session
+        uses: owenthereal/action-upterm@v1
+
       - name: Run tests
         run: python3 -m unittest discover -s temperature/tests
