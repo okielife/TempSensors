@@ -25,27 +25,32 @@ class Pin:
     def __str__(self) -> str:
         return f"{self.pin_id} {self.value_on}"
 
+
 class SPI:
     # noinspection PyUnusedLocal
     def __init__(self, _id: int, baudrate: int, polarity: int, phase: int, sck: Pin, mosi: Pin):
         pass
 
+
 class RTC:
-    #noinspection PyUnusedLocal
+    # noinspection PyUnusedLocal
     def datetime(self, timestamp: tuple[int, int, int, int, int, int, int, int]):
         year, month, day, weekday, hours, minutes, seconds, sub_seconds = timestamp
         print(f"RTC clock set to: {year}-{month}-{day} {hours}:{minutes}:{seconds}")
+
 
 class WDT:
     # noinspection PyUnusedLocal
     def __init__(self, timeout: int):
         pass
 
+
 ###### onewire
 class OneWire:
     # noinspection PyUnusedLocal
     def __init__(self, pin: Pin):
         print(f"OneWire class instantiated on pin {pin}")
+
 
 ###### ds18x20
 class DS18X20:
@@ -66,8 +71,11 @@ class DS18X20:
         print(f"Reading temperature as {t} Celsius")
         return t
 
+
 ###### network
 STA_IF = 0
+
+
 class WLAN:
     # noinspection PyUnusedLocal
     def __init__(self, station: int):
@@ -107,18 +115,22 @@ class WLAN:
             self.pw = pw
             self.ip = '127.0.0.1'
 
+
 ###### time
 clock = None
+
 
 # noinspection PyUnusedLocal
 def sleep(seconds: int):
     from time import sleep as s
     s(seconds)
 
+
 # noinspection PyUnusedLocal
 def sleep_ms(milliseconds: int):
     from time import sleep as s
     s(milliseconds / 1000)
+
 
 def ticks_ms():
     from time import time
@@ -127,13 +139,16 @@ def ticks_ms():
         clock = time() * 1000
     return int(time() * 1000 - clock)
 
+
 # noinspection PyUnusedLocal
 def ticks_diff(end_time: int, start_time: int) -> int:
     return end_time - start_time
 
+
 # noinspection PyUnusedLocal
 def localtime(time_stamp: int = -1) -> tuple[int, int, int, int, int, int, int]:
     return 2025, 1, 19, 10, 55, 29, 1
+
 
 ###### urequests
 class Response:
@@ -144,36 +159,41 @@ class Response:
     def close(self) -> None:
         pass
 
+
 # noinspection PyUnusedLocal
 def get(url: str):
     return Response()
+
 
 # noinspection PyUnusedLocal
 def put(_: str, headers: dict, json: dict):
     return Response()
 
+
 ###### ujson
 def load(_) -> dict:
     return {
-      "sensors": {
-        "03": {
-          "hex": "2893645b000000b4",
-          "short_name": "Em Garage Fridge",
+        "sensors": {
+            "03": {
+                "hex": "2893645b000000b4",
+                "short_name": "Em Garage Fridge",
+            },
+            "13": {
+                "hex": "28a70f46d438683a",
+                "short_name": "Em Garage Freezer",
+            }
         },
-        "13": {
-          "hex": "28a70f46d438683a",
-          "short_name": "Em Garage Freezer",
-        }
-      },
-      "rom_hex_to_cable_number": {
-        "2893645b000000b4": "03",
-        "28a70f46d438683a": "13"
-      },
+        "rom_hex_to_cable_number": {
+            "2893645b000000b4": "03",
+            "28a70f46d438683a": "13"
+        },
     }
+
 
 # st7735r
 class TFTColor:
     pass
+
 
 FONT = {"Width": 5, "Height": 8, "Start": 0, "End": 254, "Data": bytearray(
     [0x00, 0x00, 0x00, 0x00, 0x00, 0x3E, 0x5B, 0x4F, 0x5B, 0x3E, 0x3E, 0x6B, 0x4F, 0x6B, 0x3E, 0x1C, 0x3E, 0x7C, 0x3E,
@@ -243,18 +263,20 @@ FONT = {"Width": 5, "Height": 8, "Start": 0, "End": 254, "Data": bytearray(
      0x00, 0xFF, 0x01, 0x03, 0xE0, 0x80, 0xFF, 0x00, 0x00, 0x08, 0x08, 0x6B, 0x6B, 0x08, 0x36, 0x12, 0x36, 0x24, 0x36,
      0x06, 0x0F, 0x09, 0x0F, 0x06, 0x00, 0x00, 0x18, 0x18, 0x00, 0x00, 0x00, 0x10, 0x10, 0x00, 0x30, 0x40, 0xFF, 0x01,
      0x01, 0x00, 0x1F, 0x01, 0x01, 0x1E, 0x00, 0x19, 0x1D, 0x17, 0x12, 0x00, 0x3C, 0x3C, 0x3C, 0x3C])}
-import tkinter as tk
-from PIL import Image, ImageDraw, ImageTk
+import tkinter as tk  # noqa: E402
+from PIL import Image, ImageDraw, ImageTk  # noqa: E402
+
 
 class TFT:
-    BLACK   = (0, 0, 0)
-    WHITE   = (255, 255, 255)
-    RED     = (255, 0, 0)
-    GREEN   = (0, 255, 0)
-    BLUE    = (0, 0, 255)
-    YELLOW  = (255, 255, 0)
-    GRAY    = (128, 128, 128)
+    BLACK = (0, 0, 0)
+    WHITE = (255, 255, 255)
+    RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
+    BLUE = (0, 0, 255)
+    YELLOW = (255, 255, 0)
+    GRAY = (128, 128, 128)
 
+    # noinspection PyUnusedLocal
     def __init__(self, spi=None, aDC=None, aReset=None, aCS=None, ScreenSize=(128, 160)):
         self.closed = False
         self.width, self.height = ScreenSize

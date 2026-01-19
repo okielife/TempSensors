@@ -4,6 +4,7 @@ from time import sleep
 from machine import Pin, reset
 from sensing import SensorBox
 
+
 def main():
     dev_pin = 22  # when developing, jump pin GP22 over to GND
     dev_pin = Pin(dev_pin, Pin.IN, Pin.PULL_UP)

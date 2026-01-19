@@ -36,7 +36,7 @@ __revision__ = 6
 
 __diagram__ = """
   Looking from "above"
-                ┏━━━━┓USB CONNECTION          
+                ┏━━━━┓USB CONNECTION
           ┌─────┃    ┃─────┐
  GP0  | 01│     ┗━━━━┛     │40 | VBUS
  GP1  | 02│                │39 | VSYS
@@ -60,6 +60,7 @@ __diagram__ = """
  GP15 | 20│                │21 | GP16  - SCREEN A0/DC
           └────────────────┘
 """
+
 
 class DummyWatchdog:
     def feed(self):
@@ -172,7 +173,10 @@ class SensorBox:
                 self.display_text((0, post_y_config), "Config:  OK", TFT.WHITE, 2)
             else:
                 self.display_text((0, post_y_config), "Config: ERR", TFT.RED, 2)
-                self.show_fatal_error("Could not retrieve sensor config data from GitHub, will continue to boot in 5 seconds and retry later.")
+                self.show_fatal_error(
+                    "Could not retrieve sensor config data from GitHub, "
+                    "will continue to boot in 5 seconds and retry later."
+                )
                 sleep(5)
         else:
             self.display_text((0, post_y_wifi), "Wi-Fi:  NOT", TFT.YELLOW, 2)
@@ -204,7 +208,8 @@ class SensorBox:
                         self.wdt.feed()
                     if not self.retrieved_sensor_info:
                         self.try_to_get_sensor_details()
-                    # we don't necessarily need the sensor extra info to push to GitHub, so no need to check if self.retrieved_sensor_info
+                    # we don't necessarily need the sensor extra info to push to GitHub,
+                    # so no need to check if self.retrieved_sensor_info
                     reached_push_time = ticks_diff(ticks_ms(), self.last_push_ms) > github_push_interval_ms
                     if self.time_synced and (first_time or reached_push_time):
                         all_successful = self.push_to_github()
@@ -271,10 +276,11 @@ class SensorBox:
             if sensor.temperature_f:
                 temp_string = f"{sensor.temperature_f:.2f} F"
                 self.display_text((27, y), temp_string, TFT.WHITE, 2)
-                if len(temp_string) == 6 or len(temp_string) == 7:  # draw the degree symbol if it's like "X.YY F" or "XX.YY F"
-                    self.tft.circle((89, y+3), 3, TFT.WHITE)
+                if len(temp_string) == 6 or len(temp_string) == 7:
+                    # draw the degree symbol if it's like "X.YY F" or "XX.YY F"
+                    self.tft.circle((89, y + 3), 3, TFT.WHITE)
             else:
-                self.display_text((27, y), f"NULL", TFT.YELLOW, 1)
+                self.display_text((27, y), "NULL", TFT.YELLOW, 1)
             y += 17
         # WI-FI INFORMATION
         self.tft.hline((0, 79), 40, TFT.GRAY)
@@ -283,7 +289,7 @@ class SensorBox:
         self.tft.hline((88, 84), 40, TFT.GRAY)
         self.display_text((44, 74), "WiFi", TFT.WHITE, 2)
         if self.wlan.isconnected():
-            self.display_text((0, 90), f"Connected!", TFT.GREEN, 1)
+            self.display_text((0, 90), "Connected!", TFT.GREEN, 1)
             self.display_text((0, 100), f"SSID: {self.ssid}", TFT.WHITE, 1)
             self.display_text((0, 110), f"IP: {self.ip}", TFT.WHITE, 1)
         else:
@@ -368,7 +374,8 @@ class SensorBox:
             s.close()
 
     def try_to_get_sensor_details(self):
-        url = 'https://raw.githubusercontent.com/okielife/TempSensors/refs/heads/gh-pages/_data/config.json' # TODO: Make this versioned/tagged
+        # TODO: Make this versioned/tagged
+        url = 'https://raw.githubusercontent.com/okielife/TempSensors/refs/heads/gh-pages/_data/config.json'
         # noinspection PyBroadException
         try:
             response = get(url)
@@ -391,7 +398,8 @@ class SensorBox:
             pass  # just allow it to continue, sensors will be unnamed for now
 
     def push_to_github(self) -> bool:
-        # we will return true if all were successful, but if any fail, it's fine, the unresponsive sensor check will alert us
+        # we will return true if all were successful, but if any fail, it's fine,
+        # because the unresponsive sensor check will alert us
         all_success = True
         t = localtime()
         current = f"{t[0]}-{t[1]:02d}-{t[2]:02d}-{t[3]:02d}-{t[4]:02d}-{t[5]:02d}"

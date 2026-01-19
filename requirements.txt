@@ -2,3 +2,5 @@
 micropython-rp2-rpi-pico-w-stubs
 # for testing, we are going to use Pillow to render the screen :)
 pillow
+# we can also test with flake8
+flake8
