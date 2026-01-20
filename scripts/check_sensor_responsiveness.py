@@ -72,11 +72,10 @@ for sensor_id in active_sensors_checked:
         failures.append(f"{sensor_id} data missing - typo?")
 
 failure_string = ''.join([f"\n{RED} - {f}{ENDC}" for f in failures])
-checked_string = ''.join([f"\n - {s}" for s in sensors_checked])
-ignored_string = ''.join([f"{YELLOW}\n - {s}{ENDC}" for s in sensors_ignored])
+checked_string = ''.join([f"\n{GREEN} - {s}{ENDC}" for s in sensors_checked])
+ignored_string = ''.join([f"\n{YELLOW} - {s}{ENDC}" for s in sensors_ignored])
 
 if failures:
-    failure_string = ''.join([f"\n{RED} - {f}{ENDC}" for f in failures])
     print(f"At least one active sensor it not responding!\nFailures listed here:{failure_string}\nSensors Checked:{checked_string}\nSensors Ignored:{ignored_string}\nSensors Ignored:{sensors_ignored}")
     exit(1)
 else:
