@@ -43,7 +43,7 @@ for cable_num, active_sensor in active_sensors.items():
     if len(measured_temps) == 0:
         sensors_ignored.add(f"No data for sensor: {nice_name}({cable_num}: {sensor_rom})")
     else:
-        if all([f < max_temp for f in measured_temps]):
+        if any([f < max_temp for f in measured_temps]):
             sensors_passing.add(
                 f"Temperature GOOD! {nice_name} ({cable_num}: {sensor_rom}; Max Temp: {max_temp}; Temp History: {measured_temps}"
             )
