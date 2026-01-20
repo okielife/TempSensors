@@ -59,4 +59,4 @@ if failures:
     print(f"At least one measurement failed!\nFailures listed here:{failure_string}\nSensors Passing:{checked_string}\nSensors Ignored:{ignored_string}")
     exit(1)
 else:
-    print(f"{GREEN}Sensors Passing!{ENDC}\n{checked_string}\nSensors Ignored:{ignored_string}")
+    print(f"{GREEN}Sensors Passing!{ENDC}{checked_string}\nSensors Ignored:{ignored_string}")
