@@ -64,7 +64,7 @@ __diagram__ = """
  GP15 | 20│                │21 | GP16  - SCREEN A0/DC
           └────────────────┘
 
-  Looking at the TFT screen from below, where you can see the SD card slot          
+  Looking at the TFT screen from below, where you can see the SD card slot
    ┌─────────────────────────────────────────────────────────────┐
    │                  ┌─────────────────────────────┐            │ LED-
    │                  │                             │            │ LED+  - PICO GP21
@@ -74,7 +74,7 @@ __diagram__ = """
    │                    │                           │            │ SCK
    │                    │                           │            │ CS    - PICO GP17
    │                    └───────────────────────────┘            │ SCL   - PICO GP18
-   │                                                             │ SDA   - PICO GP19 
+   │                                                             │ SDA   - PICO GP19
    │                                                             │ A0    - PICO GP16
    │                                                             │ RESET - PICO GP20
    │                                                             │ NC
@@ -82,7 +82,7 @@ __diagram__ = """
    │                                                             │ NC
    │                                                             │ VCC   - SPLITTER FROM PICO 3V3
    │                                                             │ GND   - PICO GND
-   └─────────────────────────────────────────────────────────────┘          
+   └─────────────────────────────────────────────────────────────┘
 """
 
 
