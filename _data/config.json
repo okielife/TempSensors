@@ -46,6 +46,13 @@
       "nice_name": "Emerald Garage Freezer",
       "maximum_temp": 13,
       "sensor_location": "Emerald"
+    },
+    "15": {
+      "hex": "282aae80e3e13ca0",
+      "short_name": "P_NorthWest_Freeze",
+      "nice_name": "Pantry Northwest Deep Freezer",
+      "maximum_temp": 13,
+      "sensor_location": "Pantry"
     }
   },
   "rom_hex_to_cable_number": {
