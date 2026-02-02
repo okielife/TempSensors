@@ -66,14 +66,16 @@
     "286c045704c53c29": "18"
   },
   "extra_sensor_info": [
-    "01": {
+    {
+      "wire": "01",
       "hex": "2887bb81e3813ccd",
       "short_name": "P_Dining_East_Frig",
       "nice_name": "Pantry Dining Room East Fridge",
       "maximum_temp": 42,
       "sensor_location": "Pantry"
     },
-    "02": {
+    {
+      "wire": "02",
       "hex": "286ea75e00000061",
       "short_name": "P_Dining_East_Frzr",
       "nice_name": "Pantry Dining Room East Freezer",
