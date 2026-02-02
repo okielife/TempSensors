@@ -5,20 +5,6 @@
   ],
   "sensors": {
     "readme1": "This is a list of all active sensors, keyed by the label on the wire",
-    "01": {
-      "hex": "2887bb81e3813ccd",
-      "short_name": "P_Dining_East_Frig",
-      "nice_name": "Pantry Dining Room East Fridge",
-      "maximum_temp": 42,
-      "sensor_location": "Pantry"
-    },
-    "02": {
-      "hex": "286ea75e00000061",
-      "short_name": "P_Dining_East_Frzr",
-      "nice_name": "Pantry Dining Room East Freezer",
-      "maximum_temp": 13,
-      "sensor_location": "Pantry"
-    },
     "03": {
       "hex": "2893645b000000b4",
       "short_name": "Em Garage Fridge",
@@ -80,6 +66,20 @@
     "286c045704c53c29": "18"
   },
   "extra_sensor_info": [
+    "01": {
+      "hex": "2887bb81e3813ccd",
+      "short_name": "P_Dining_East_Frig",
+      "nice_name": "Pantry Dining Room East Fridge",
+      "maximum_temp": 42,
+      "sensor_location": "Pantry"
+    },
+    "02": {
+      "hex": "286ea75e00000061",
+      "short_name": "P_Dining_East_Frzr",
+      "nice_name": "Pantry Dining Room East Freezer",
+      "maximum_temp": 13,
+      "sensor_location": "Pantry"
+    },
     {
       "hex": "",
       "short_name": "P_Dining_East_Freeze",
