@@ -22,4 +22,5 @@ Forking the Project
 
 If you want to make your own suite of sensors and dashboard.
 Fork the dashboard, maybe I'll make it a template
+You'll need a new bot user, then you'll need your own token, I'll have instructions for tokens here
 Add tokens

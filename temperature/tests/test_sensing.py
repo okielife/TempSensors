@@ -10,3 +10,4 @@ class TestSensing(TestCase):
         self.assertTrue(len(s.sensors) == 2)
         self.assertTrue(s.wlan.isconnected())
         self.assertTrue(s.time_synced)
+        # s.run() this will hang on CI

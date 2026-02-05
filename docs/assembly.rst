@@ -78,7 +78,7 @@ First Steps
 ***********
 
 - Generate a serial number for this box.  Maybe use the same labels as for the wires.  Need to add this to a list of serial numbers :)
-- Generate AND SAVE a new token named after the box serial number (Add instructions!)
+- Generate AND SAVE a new token named after the box serial number (Add instructions!, I think it's just )
 - Print the base and lid
 - Test the screen, breakout board, and pico, checking that the screw holes line up properly
 
@@ -154,7 +154,7 @@ Final Steps
 *****************
 
 - Screw screen to lid using 3 M2.3x5mm screws
-- Snap lid into place and screw together using 2 M2.3x10mm screws
+- Snap lid into place and screw together using 2 M2.3x10mm screws - push in hard at first to break through plastic, then screw in
 - Disable debug switch and plug back in to ensure it's running well after assembly
 - Deploy to wherever you want
 - Once you are satisfied it is working well, make sure to set the sensor to active in the dashboard _data/config.json file

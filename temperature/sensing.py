@@ -11,7 +11,7 @@ try:
     # noinspection PyPackageRequirements
     from network import WLAN, STA_IF
     # noinspection PyPackageRequirements
-    from onewire import OneWire
+    from onewire import OneWire, OneWireError
     from time import sleep, sleep_ms, ticks_ms, ticks_diff, localtime
     # noinspection PyPackageRequirements
     from urequests import get, put
@@ -23,12 +23,13 @@ except ImportError:
     from temperature.mock import DS18X20  # ds18x20
     from temperature.mock import Pin, SPI, RTC, WDT  # machine
     from temperature.mock import WLAN, STA_IF  # network
-    from temperature.mock import OneWire  # onewire
+    from temperature.mock import OneWire, OneWireError  # onewire
     from temperature.mock import sleep, sleep_ms, ticks_ms, ticks_diff, localtime  # time
     from temperature.mock import get, put  # urequests
     from temperature.mock import load as load_json  # ujson
     from os import environ
     if 'CI' in environ:
+        # noinspection PyPep8Naming
         from temperature.mock import TFTNull as TFT, FONT, TFTColor
     else:
         from temperature.mock import TFT, FONT, TFTColor
@@ -371,7 +372,12 @@ class SensorBox:
                 break
 
     def update_temperatures(self):
-        self.ds.convert_temp()
+        if not self.sensors:
+            return
+        try:
+            self.ds.convert_temp()
+        except OneWireError:  # no need to capture the variable, the string seems to be empty
+            raise Exception("Could not convert_temp, check connections carefully!") from None
         sleep_ms(750)  # wait 750ms after calling convert_temp and before sampling temps
         for sensor in self.sensors:
             try:

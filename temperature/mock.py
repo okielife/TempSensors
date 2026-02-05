@@ -51,6 +51,9 @@ class OneWire:
     def __init__(self, pin: Pin):
         print(f"OneWire class instantiated on pin {pin}")
 
+class OneWireError(Exception):
+    pass
+
 
 ###### ds18x20
 class DS18X20:
