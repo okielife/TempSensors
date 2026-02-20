@@ -109,7 +109,7 @@
             y: [{{ temp_list }}],
             mode: 'lines+markers',
             type: 'scatter',
-            line: {color: 'rgb(50, 50, 50)', width: 3},
+            line: {color: 'rgb(50, 50, 50)', width: 4},
             name: "Sensed Temperature"
         }
       ],
@@ -129,7 +129,7 @@
             y0: 32.0,
             x1: 1,
             y1: 32.0,
-            line:{color: 'rgb(0, 0, 150)', width: 3, dash: 'dot'},
+            line:{color: 'rgb(0, 0, 150)', width: 4, dash: 'dot'},
             name: "Freezing Line",
           },
           {
@@ -139,7 +139,7 @@
             y0: {{ sensor.maximum_temp }},
             x1: 1,
             y1: {{ sensor.maximum_temp }},
-            line:{color: 'rgb(150, 0, 0)', width: 3, dash: 'dot'},
+            line:{color: 'rgb(150, 0, 0)', width: 4, dash: 'dot'},
             name: "Sensor Max Temp",
           }
         ]
