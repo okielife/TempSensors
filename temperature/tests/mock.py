@@ -1,3 +1,12 @@
+__print__ = False
+__actually_sleep__ = True
+
+
+def set_actually_sleep(_sleep: bool):
+    global __actually_sleep__
+    __actually_sleep__ = _sleep
+
+
 ###### machine
 class Pin:
     IN = 0
@@ -13,30 +22,41 @@ class Pin:
         return 1 if self.value_on else 0
 
     def on(self) -> None:
-        print(f"Pin #{self.pin_id} on")
+        if __print__:
+            print(f"Pin #{self.pin_id} on")
 
     def off(self) -> None:
-        print(f"Pin #{self.pin_id} off")
+        if __print__:
+            print(f"Pin #{self.pin_id} off")
 
     def toggle(self) -> None:
         self.value_on = not self.value_on
-        print(f"Pin #{self.pin_id} toggled, now {self.value_on}")
+        if __print__:
+            print(f"Pin #{self.pin_id} toggled, now {self.value_on}")
 
     def __str__(self) -> str:
         return f"{self.pin_id} {self.value_on}"
 
 
 class SPI:
+    __throw__ = False
+
     # noinspection PyUnusedLocal
     def __init__(self, _id: int, baudrate: int, polarity: int, phase: int, sck: Pin, mosi: Pin):
-        pass
+        if SPI.__throw__:
+            raise Exception("SPI failed to initialize")
 
 
 class RTC:
-    # noinspection PyUnusedLocal
+    __throw__ = False
+
+    # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def datetime(self, timestamp: tuple[int, int, int, int, int, int, int, int]):
+        if RTC.__throw__:
+            raise Exception()
         year, month, day, weekday, hours, minutes, seconds, sub_seconds = timestamp
-        print(f"RTC clock set to: {year}-{month}-{day} {hours}:{minutes}:{seconds}")
+        if __print__:
+            print(f"RTC clock set to: {year}-{month}-{day} {hours}:{minutes}:{seconds}")
 
 
 class WDT:
@@ -49,7 +69,8 @@ class WDT:
 class OneWire:
     # noinspection PyUnusedLocal
     def __init__(self, pin: Pin):
-        print(f"OneWire class instantiated on pin {pin}")
+        if __print__:
+            print(f"OneWire class instantiated on pin {pin}")
 
 
 class OneWireError(Exception):
@@ -58,11 +79,17 @@ class OneWireError(Exception):
 
 ###### ds18x20
 class DS18X20:
+    __missing_entry__ = False
+    __read_failure__ = False
+
     # noinspection PyUnusedLocal
     def __init__(self, ow: OneWire):
         pass
 
+    # noinspection PyMethodMayBeStatic
     def scan(self) -> list[bytes]:
+        if DS18X20.__missing_entry__:
+            return []
         return [b'(\x93d[\x00\x00\x00\xb4', b'(\xa7\x0fF\xd48h:']
 
     def convert_temp(self) -> None:
@@ -70,9 +97,12 @@ class DS18X20:
 
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def read_temp(self, rom: bytes) -> float:
+        if DS18X20.__read_failure__:
+            raise Exception()
         import random
         t = random.randint(-20, 40)
-        print(f"Reading temperature as {t} Celsius")
+        if __print__:
+            print(f"Reading temperature as {t} Celsius")
         return t
 
 
@@ -81,6 +111,8 @@ STA_IF = 0
 
 
 class WLAN:
+    __connected__ = True
+
     # noinspection PyUnusedLocal
     def __init__(self, station: int):
         self.activated = False
@@ -112,6 +144,8 @@ class WLAN:
         return [(x.encode('utf-8'), b"", 0, 0, 2, 0) for x in self.known_ssids]
 
     def connect(self, ssid: str, pw: str) -> None:
+        if not WLAN.__connected__:
+            return
         # return
         if ssid in self.known_ssids:
             self.connected = True
@@ -126,14 +160,16 @@ clock = None
 
 # noinspection PyUnusedLocal
 def sleep(seconds: int):
-    from time import sleep as s
-    s(seconds)
+    if __actually_sleep__:
+        from time import sleep as s
+        s(seconds)
 
 
 # noinspection PyUnusedLocal
 def sleep_ms(milliseconds: int):
-    from time import sleep as s
-    s(milliseconds / 1000)
+    if __actually_sleep__:
+        from time import sleep as s
+        s(milliseconds / 1000)
 
 
 def ticks_ms():
@@ -156,7 +192,11 @@ def localtime(time_stamp: int = -1) -> tuple[int, int, int, int, int, int, int]:
 
 ###### urequests
 class Response:
+    __throw__ = False
+
     def __init__(self):
+        if Response.__throw__:
+            raise Exception()
         self.status_code = 200
         self.raw = "\b2010"
 
@@ -199,6 +239,7 @@ class TFTColor:
     pass
 
 
+# noinspection DuplicatedCode
 FONT = {"Width": 5, "Height": 8, "Start": 0, "End": 254, "Data": bytearray(
     [0x00, 0x00, 0x00, 0x00, 0x00, 0x3E, 0x5B, 0x4F, 0x5B, 0x3E, 0x3E, 0x6B, 0x4F, 0x6B, 0x3E, 0x1C, 0x3E, 0x7C, 0x3E,
      0x1C, 0x18, 0x3C, 0x7E, 0x3C, 0x18, 0x1C, 0x57, 0x7D, 0x57, 0x1C, 0x1C, 0x5E, 0x7F, 0x5E, 0x1C, 0x00, 0x18, 0x3C,
@@ -267,8 +308,6 @@ FONT = {"Width": 5, "Height": 8, "Start": 0, "End": 254, "Data": bytearray(
      0x00, 0xFF, 0x01, 0x03, 0xE0, 0x80, 0xFF, 0x00, 0x00, 0x08, 0x08, 0x6B, 0x6B, 0x08, 0x36, 0x12, 0x36, 0x24, 0x36,
      0x06, 0x0F, 0x09, 0x0F, 0x06, 0x00, 0x00, 0x18, 0x18, 0x00, 0x00, 0x00, 0x10, 0x10, 0x00, 0x30, 0x40, 0xFF, 0x01,
      0x01, 0x00, 0x1F, 0x01, 0x01, 0x1E, 0x00, 0x19, 0x1D, 0x17, 0x12, 0x00, 0x3C, 0x3C, 0x3C, 0x3C])}
-import tkinter as tk  # noqa: E402
-from PIL import Image, ImageDraw, ImageTk  # noqa: E402
 
 
 class TFT:
@@ -280,10 +319,23 @@ class TFT:
     YELLOW = (255, 255, 0)
     GRAY = (128, 128, 128)
 
-    # noinspection PyUnusedLocal
+    # shared class level data
+    LatestText = ""
+    _show_window = False
+
+    # noinspection PyUnusedLocal,PyPep8Naming
     def __init__(self, spi=None, aDC=None, aReset=None, aCS=None, ScreenSize=(128, 160)):
+        TFT.LatestText = ""
+
+        if not TFT._show_window:
+            return
+
         self.closed = False
         self.width, self.height = ScreenSize
+        self.scale = 2  # 1 = real size, 2 = double, etc.
+
+        import tkinter as tk  # noqa: E402
+        from PIL import Image, ImageDraw, ImageTk  # noqa: E402
 
         self.image = Image.new("RGB", ScreenSize, self.BLACK)
         self.draw = ImageDraw.Draw(self.image)
@@ -291,6 +343,7 @@ class TFT:
         self.root = tk.Tk()
         self.root.title("TFT Emulator")
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
+        self.root.resizable(False, False)
 
         self.canvas = tk.Canvas(
             self.root,
@@ -307,6 +360,8 @@ class TFT:
         self.show()
 
     def _on_close(self):
+        if not TFT._show_window:
+            return
         self.closed = True
         self.root.destroy()
 
@@ -317,16 +372,24 @@ class TFT:
         pass
 
     def fill(self, color):
+        if not TFT._show_window:
+            return
         self.draw.rectangle((0, 0, self.width, self.height), fill=color)
         self.show()
 
     def circle(self, point, radius, color):
+        if not TFT._show_window:
+            return
         x_center, y_center = point
         x_min, x_max = x_center - radius, x_center + radius
         y_min, y_max = y_center - radius, y_center + radius
         self.draw.ellipse((x_min, y_min, x_max, y_max), outline=color)
 
     def text(self, point, text, color, font, size=1, nowrap=True):
+        TFT.LatestText += text
+        if not TFT._show_window:
+            return
+
         x, y = point
         cw = font["Width"]
         ch = font["Height"]
@@ -363,72 +426,51 @@ class TFT:
         self.show()
 
     def rect(self, p1, p2, color):
+        if not TFT._show_window:
+            return
         self.draw.rectangle((p1, p2), outline=color)
         self.show()
 
     def fillrect(self, point, size, color):
+        if not TFT._show_window:
+            return
         x, y = point
         w, h = size
         self.draw.rectangle((x, y, x + w, y + h), fill=color)
         self.show()
 
     def hline(self, point, length, color):
+        if not TFT._show_window:
+            return
         x, y = point
         self.draw.line((x, y, x + length, y), fill=color)
         self.show()
 
     def vline(self, point, length, color):
+        if not TFT._show_window:
+            return
         x, y = point
         self.draw.line((x, y, x, y + length), fill=color)
         self.show()
 
     def show(self):
+        if not TFT._show_window:
+            return
         if self.closed:
             return
-        self._photo = ImageTk.PhotoImage(self.image)
+        from PIL import Image, ImageTk  # noqa: E402
+
+        if self.scale != 1:
+            display_image = self.image.resize(
+                (self.width * self.scale, self.height * self.scale),
+                resample=Image.Resampling.NEAREST
+            )
+        else:
+            display_image = self.image
+        self._photo = ImageTk.PhotoImage(display_image)
+        self.canvas.config(
+            width=self.width * self.scale,
+            height=self.height * self.scale
+        )
         self.canvas.itemconfig(self._image_id, image=self._photo)
         self.root.update()
-
-
-class TFTNull:  # used for CI
-    BLACK = 0
-    WHITE = 0
-    RED = 0
-    GREEN = 0
-    BLUE = 0
-    YELLOW = 0
-    GRAY = 0
-
-    # noinspection PyUnusedLocal
-    def __init__(self, spi=None, aDC=None, aReset=None, aCS=None, ScreenSize=(128, 160)):
-        pass
-
-    def initr(self):
-        pass
-
-    def rgb(self, _):
-        pass
-
-    def fill(self, color):
-        pass
-
-    def circle(self, point, radius, color):
-        pass
-
-    def text(self, point, text, color, font, size=1, nowrap=True):
-        pass
-
-    def rect(self, p1, p2, color):
-        pass
-
-    def fillrect(self, point, size, color):
-        pass
-
-    def hline(self, point, length, color):
-        pass
-
-    def vline(self, point, length, color):
-        pass
-
-    def show(self):
-        pass
