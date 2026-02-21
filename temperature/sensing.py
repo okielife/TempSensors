@@ -20,27 +20,26 @@ try:  # pragma: no cover
     from network import WLAN, STA_IF
     # noinspection PyPackageRequirements
     from onewire import OneWire, OneWireError
-    from time import sleep, sleep_ms, ticks_ms, ticks_diff, localtime
+    from time import ticks_ms, ticks_diff, localtime
     # noinspection PyPackageRequirements
     from urequests import get, put
     # noinspection PyPackageRequirements
     from ujson import load as load_json
-    from st7735 import TFT, FONT, TFTColor
+    from st7735 import FONT
     from config import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
 except ImportError:
     from temperature.tests.mock import DS18X20  # ds18x20
     from temperature.tests.mock import Pin, SPI, RTC, WDT  # machine
     from temperature.tests.mock import WLAN, STA_IF  # network
     from temperature.tests.mock import OneWire, OneWireError  # onewire
-    from temperature.tests.mock import sleep, sleep_ms, ticks_ms, ticks_diff, localtime  # time
+    from temperature.tests.mock import ticks_ms, ticks_diff, localtime  # time
     from temperature.tests.mock import get, put  # urequests
     from temperature.tests.mock import load as load_json  # ujson
-    from temperature.tests.mock import TFT, FONT, TFTColor
+    from temperature.tests.mock import FONT
     from temperature.config_template import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
 
-
 __version__ = 3
-__revision__ = 6
+__revision__ = 7
 
 __diagram__ = """
   Looking at the Pico from "above", so that you can see the WiFi antenna
@@ -90,11 +89,6 @@ __diagram__ = """
 """
 
 
-class DummyWatchdog:
-    def feed(self):
-        pass
-
-
 class Sensor:
     def __init__(self, rom: bytes, label: str):
         self.rom = rom
@@ -102,6 +96,16 @@ class Sensor:
         self.label = label
         self.name = "UNKNOWN_NAME"
         self.active = False
+
+
+class Color:
+    BLACK = (0, 0, 0)
+    WHITE = (255, 255, 255)
+    RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
+    BLUE = (0, 0, 255)
+    YELLOW = (255, 255, 0)
+    GRAY = (128, 128, 128)
 
 
 class SensorBox:
@@ -114,11 +118,19 @@ class SensorBox:
     PIN_RESET = 20
     PIN_LED = 21
 
-    def __init__(self, operating_mode: int = OperatingMode.NormalRun):
+    # noinspection PyPep8Naming
+    def __init__(self, TFTClass: type, operating_mode: int = OperatingMode.NormalRun):
+        # Unfortunately, this SensorBox will be acting different based on the current scenario
+        # I will try to keep that to a minimum to avoid complexity in here. But there will likely
+        # be a few cases that I want to handle different.  For example, I do not want to accumulate
+        # the printed messages when running normally, or we would hit memory issues.  So only
+        # accumulate those when unit testing.
         self.mode = operating_mode
+        self.printed_messages_for_testing = ""
+        self.displayed_messages_for_testing = ""
 
         # set up the watchdog right away as needed
-        self.wdt = WDT(timeout=8000) if operating_mode == OperatingMode.NormalRun else DummyWatchdog()
+        self.wdt = WDT(timeout=8000)
 
         # basic member variables
         self.last_temp_stamp = None
@@ -143,29 +155,26 @@ class SensorBox:
 
         # init the TFT base class to get a terminal first
         try:
-            spi = SPI(0, baudrate=20_000_000, polarity=0, phase=0, sck=Pin(self.PIN_SCI_SCK),
-                      mosi=Pin(self.PIN_SDA_MOSI))
-            if self.mode == OperatingMode.MockWindow:  # pragma: no cover
-                TFT._show_window = True  # only do the tk window in this one condition
-            self.tft = TFT(
+            spi = SPI(0, baudrate=20000000, polarity=0, phase=0, sck=Pin(self.PIN_SCI_SCK), mosi=Pin(self.PIN_SDA_MOSI))
+            self.tft = TFTClass(
                 spi, aDC=self.PIN_DC, aReset=self.PIN_RESET, aCS=self.PIN_CS, ScreenSize=(self.WIDTH, self.HEIGHT)
             )
             self.tft.initr()
             Pin(self.PIN_LED, Pin.OUT).on()
             self.tft.rgb(False)
-            self.tft.fill(TFT.BLACK)
+            self.tft.fill(Color.BLACK)
         except Exception as e:
+            self.print(f"Could not initialize display: {e}")  # pragma: no cover
             if self.mode == OperatingMode.UnitTesting:
                 raise e from None
             # just hang here forever, we can't go on without a screen, obviously not covering this with unit tests
-            print(f"Could not initialize display: {e}")  # pragma: no cover
             while True:  # pragma: no cover
                 self.flash_led(3)
-                sleep(2)
+                self.sleep(2)
                 self.wdt.feed()
-        self.display_text((15, post_y_starting), "STARTING", TFT.GREEN, 2)
-        self.display_text((0, post_y_version), f"Version {__version__}.{__revision__}", TFT.WHITE, 2)
-        self.display_text((0, post_y_screen), "Screen:  OK", TFT.WHITE, 2)
+        self.display_text((15, post_y_starting), "STARTING", Color.GREEN, 2)
+        self.display_text((0, post_y_version), f"Version {__version__}.{__revision__}", Color.WHITE, 2)
+        self.display_text((0, post_y_screen), "Screen:  OK", Color.WHITE, 2)
         self.wdt.feed()
 
         # set up the sensors now
@@ -181,10 +190,10 @@ class SensorBox:
             else:  # pragma: no cover
                 # just hang here forever, we don't want to continue without the sensors
                 while True:
-                    sleep(2)
+                    self.sleep(2)
                     self.wdt.feed()
         self.sensors = [Sensor(scanned_roms[hex_id], label) for label, hex_id in CONNECTED_SENSORS]
-        self.display_text((0, post_y_sensors), "Sensors: OK", TFT.WHITE, 2)
+        self.display_text((0, post_y_sensors), "Sensors: OK", Color.WHITE, 2)
         self.wdt.feed()
 
         # init the Wi-Fi and try to sync the clock
@@ -197,34 +206,34 @@ class SensorBox:
         if self.wlan.isconnected():
             self.ip, _, _, _ = self.wlan.ifconfig()
             self.ssid = self.wlan.config('ssid')
-            self.display_text((0, post_y_wifi), "Wi-Fi:   OK", TFT.WHITE, 2)
+            self.display_text((0, post_y_wifi), "Wi-Fi:   OK", Color.WHITE, 2)
             self.try_to_sync_time()
             if self.time_synced:
                 t = localtime()
-                self.display_text((0, post_y_clock), "Clock:   OK", TFT.WHITE, 2)
-                self.display_text((0, post_y_date), "Date: {:02d}/{:02d}".format(t[1], t[2]), TFT.WHITE, 2)
+                self.display_text((0, post_y_clock), "Clock:   OK", Color.WHITE, 2)
+                self.display_text((0, post_y_date), "Date: {:02d}/{:02d}".format(t[1], t[2]), Color.WHITE, 2)
             else:
                 self.show_fatal_error("CLOCK SYNC ERROR, will continue to boot in 5 seconds and retry sync later.")
-                sleep(5)
+                self.sleep(5)
             self.try_to_get_sensor_details()
             if self.retrieved_sensor_info:
-                self.display_text((0, post_y_config), "Config:  OK", TFT.WHITE, 2)
+                self.display_text((0, post_y_config), "Config:  OK", Color.WHITE, 2)
             else:
-                self.display_text((0, post_y_config), "Config: ERR", TFT.RED, 2)
+                self.display_text((0, post_y_config), "Config: ERR", Color.RED, 2)
                 self.show_fatal_error(
                     "Could not retrieve sensor config data from GitHub, "
                     "will continue to boot in 5 seconds and retry later."
                 )
-                sleep(5)
+                self.sleep(5)
         else:
-            self.display_text((0, post_y_wifi), "Wi-Fi:  NOT", TFT.YELLOW, 2)
-            self.display_text((0, post_y_clock), "READY, CHECK", TFT.YELLOW, 2)
-            self.display_text((0, post_y_date), "NETWORK", TFT.YELLOW, 2)
-            self.display_text((0, post_y_config), "WILL RETRY", TFT.YELLOW, 2)
-            sleep(2)
+            self.display_text((0, post_y_wifi), "Wi-Fi:  NOT", Color.YELLOW, 2)
+            self.display_text((0, post_y_clock), "READY, CHECK", Color.YELLOW, 2)
+            self.display_text((0, post_y_date), "NETWORK", Color.YELLOW, 2)
+            self.display_text((0, post_y_config), "WILL RETRY", Color.YELLOW, 2)
+            self.sleep(2)
         self.wdt.feed()
 
-        self.display_text((0, post_y_booting), "BOOTING UP!", TFT.WHITE, 2)
+        self.display_text((0, post_y_booting), "BOOTING UP!", Color.WHITE, 2)
         self.wdt.feed()
 
     def run(self):
@@ -260,115 +269,125 @@ class SensorBox:
                         self.wdt.feed()
                 self.regular_update()
                 for _ in range(10):  # actual wait loop between sensing temperature
-                    sleep(1)
+                    self.sleep(1)
                     self.wdt.feed()
-                    if self.mode == OperatingMode.MockWindow:
-                        # for mock window, check to see if it is closed to halt the program
-                        self.tft.root.update()
-                        if self.tft.closed:
-                            return
             except KeyboardInterrupt:  # pragma: no cover
-                print("Encountered keyboard interrupt, exiting")
+                self.print("Encountered keyboard interrupt, exiting")
                 return
             except Exception as e:
-                print(e)
+                self.print(str(e))
                 self.show_fatal_error(e)
                 for _ in range(30):
-                    sleep(1)
+                    self.sleep(1)
                     self.wdt.feed()
             first_time = False
             if self.mode == OperatingMode.UnitTesting:
                 break
 
+    def print(self, message: str) -> None:
+        if self.mode == OperatingMode.UnitTesting:
+            self.printed_messages_for_testing += "\n" + message
+        else:  # pragma: no cover
+            print(message)
+
+    def sleep(self, seconds: float) -> None:
+        if self.mode != OperatingMode.UnitTesting:  # pragma: no cover
+            from time import sleep
+            sleep(seconds)
+
+    # TODO: Add blink and infinite_loop functions to handle testing nicely
+
     # noinspection PyTypeHints
-    def display_text(self, point: tuple[int, int], text: str, color: TFTColor, size: int):
+    def display_text(self, point: tuple[int, int], text: str, color: tuple, size: int):
+        if self.mode == OperatingMode.UnitTesting:
+            self.displayed_messages_for_testing += "\n" + text
         self.tft.text(point, text, color, FONT, size, nowrap=True)
 
     def display_dev_mode_warning(self):
-        print("GP22 jumper is connected; device is in developer mode")
-        self.tft.fill(TFT.BLACK)
-        self.display_text((7, 5), "*DEV MODE*", TFT.YELLOW, 2)
-        self.display_text((7, 25), "GP22 jumper active", TFT.YELLOW, 1)
-        self.display_text((7, 35), "In developer mode", TFT.YELLOW, 1)
-        self.tft.rect((15, 60), (50, 90), TFT.WHITE)
-        self.tft.fillrect((30, 50), (20, 20), TFT.GRAY)
-        self.tft.fillrect((27, 95), (26, 26), TFT.WHITE)
+        self.print("GP22 jumper is connected; device is in developer mode")
+        self.tft.fill(Color.BLACK)
+        self.display_text((7, 5), "*DEV MODE*", Color.YELLOW, 2)
+        self.display_text((7, 25), "GP22 jumper active", Color.YELLOW, 1)
+        self.display_text((7, 35), "In developer mode", Color.YELLOW, 1)
+        self.tft.rect((15, 60), (50, 90), Color.WHITE)
+        self.tft.fillrect((30, 50), (20, 20), Color.GRAY)
+        self.tft.fillrect((27, 95), (26, 26), Color.WHITE)
         pins_to_print = ["GP27", "GP26", "RUN", "GP22", "GND", "GP21", "GP20", "GP19"]
         y = 65
         for pin in pins_to_print:
-            self.display_text((70, y), pin, TFT.YELLOW, 1)
+            self.display_text((70, y), pin, Color.YELLOW, 1)
             y += 10
-        self.tft.hline((92, 88), 15, TFT.YELLOW)
-        self.tft.vline((107, 88), 11, TFT.YELLOW)
-        self.tft.hline((97, 98), 10, TFT.YELLOW)
+        self.tft.hline((92, 88), 15, Color.YELLOW)
+        self.tft.vline((107, 88), 11, Color.YELLOW)
+        self.tft.hline((97, 98), 10, Color.YELLOW)
 
     def regular_update(self):
-        self.tft.fill(TFT.BLACK)
+        self.tft.fill(Color.BLACK)
         # SENSOR INFORMATION
-        self.tft.hline((0, 5), 24, TFT.GRAY)
-        self.tft.hline((0, 10), 24, TFT.GRAY)
-        self.tft.hline((106, 5), 24, TFT.GRAY)
-        self.tft.hline((106, 10), 24, TFT.GRAY)
-        self.display_text((27, 0), "Sensors", TFT.WHITE, 2)
+        self.tft.hline((0, 5), 24, Color.GRAY)
+        self.tft.hline((0, 10), 24, Color.GRAY)
+        self.tft.hline((106, 5), 24, Color.GRAY)
+        self.tft.hline((106, 10), 24, Color.GRAY)
+        self.display_text((27, 0), "Sensors", Color.WHITE, 2)
         # Need to alert here on the screen if the sensor data is bad
         y = 17
         for sensor in self.sensors:
             if sensor.active:
-                self.display_text((0, y), f"{sensor.label} {sensor.name}", TFT.WHITE, 1)
+                self.display_text((0, y), f"{sensor.label} {sensor.name}", Color.WHITE, 1)
             else:
-                self.display_text((0, y), f"{sensor.label} {sensor.name}", TFT.YELLOW, 1)
+                self.display_text((0, y), f"{sensor.label} {sensor.name}", Color.YELLOW, 1)
             y += 10
             if sensor.temperature_f:
                 temp_string = f"{sensor.temperature_f:.2f} F"
-                self.display_text((27, y), temp_string, TFT.WHITE, 2)
+                self.display_text((27, y), temp_string, Color.WHITE, 2)
                 if len(temp_string) == 6 or len(temp_string) == 7:
                     # draw the degree symbol if it's like "X.YY F" or "XX.YY F"
-                    self.tft.circle((89, y + 3), 3, TFT.WHITE)
+                    self.tft.circle((89, y + 3), 3, Color.WHITE)
             else:
-                self.display_text((27, y), "NULL", TFT.YELLOW, 1)
+                self.display_text((27, y), "NULL", Color.YELLOW, 1)
             y += 17
         # WI-FI INFORMATION
-        self.tft.hline((0, 79), 40, TFT.GRAY)
-        self.tft.hline((0, 84), 40, TFT.GRAY)
-        self.tft.hline((88, 79), 40, TFT.GRAY)
-        self.tft.hline((88, 84), 40, TFT.GRAY)
-        self.display_text((44, 74), "WiFi", TFT.WHITE, 2)
+        self.tft.hline((0, 79), 40, Color.GRAY)
+        self.tft.hline((0, 84), 40, Color.GRAY)
+        self.tft.hline((88, 79), 40, Color.GRAY)
+        self.tft.hline((88, 84), 40, Color.GRAY)
+        self.display_text((44, 74), "WiFi", Color.WHITE, 2)
         if self.wlan.isconnected():
-            self.display_text((0, 90), "Connected!", TFT.GREEN, 1)
-            self.display_text((0, 100), f"SSID: {self.ssid}", TFT.WHITE, 1)
-            self.display_text((0, 110), f"IP: {self.ip}", TFT.WHITE, 1)
+            self.display_text((0, 90), "Connected!", Color.GREEN, 1)
+            self.display_text((0, 100), f"SSID: {self.ssid}", Color.WHITE, 1)
+            self.display_text((0, 110), f"IP: {self.ip}", Color.WHITE, 1)
         else:
-            self.display_text((0, 90), "****DISCONNECTED****", TFT.RED, 1)
+            self.display_text((0, 90), "****DISCONNECTED****", Color.RED, 1)
         # UPDATE INFORMATION
-        self.tft.hline((0, 128), 24, TFT.GRAY)
-        self.tft.hline((0, 133), 24, TFT.GRAY)
-        self.tft.hline((106, 128), 24, TFT.GRAY)
-        self.tft.hline((106, 133), 24, TFT.GRAY)
-        self.display_text((27, 123), "Updates", TFT.WHITE, 2)
+        self.tft.hline((0, 128), 24, Color.GRAY)
+        self.tft.hline((0, 133), 24, Color.GRAY)
+        self.tft.hline((106, 128), 24, Color.GRAY)
+        self.tft.hline((106, 133), 24, Color.GRAY)
+        self.display_text((27, 123), "Updates", Color.WHITE, 2)
         if self.last_temp_stamp:
             temp_time_text = "Read: {:02d}:{:02d}:{:02d} (UTC)".format(self.last_temp_stamp[3], self.last_temp_stamp[4],
                                                                        self.last_temp_stamp[5])
-            self.display_text((0, 140), temp_time_text, TFT.WHITE, 1)
+            self.display_text((0, 140), temp_time_text, Color.WHITE, 1)
         else:
-            self.display_text((0, 140), "Read: NEVER", TFT.YELLOW, 1)
+            self.display_text((0, 140), "Read: NEVER", Color.YELLOW, 1)
         if self.last_push_had_errors:
-            self.display_text((0, 150), "Last Push Had Errors", TFT.RED, 1)
+            self.display_text((0, 150), "Last Push Had Errors", Color.RED, 1)
         elif self.last_push_stamp:
             github_time_text = "Push: {:02d}:{:02d}:{:02d} (UTC)".format(self.last_push_stamp[3],
                                                                          self.last_push_stamp[4],
                                                                          self.last_push_stamp[5])
-            self.display_text((0, 150), github_time_text, TFT.WHITE, 1)
+            self.display_text((0, 150), github_time_text, Color.WHITE, 1)
         else:
-            self.display_text((0, 150), "Push: NEVER", TFT.YELLOW, 1)
+            self.display_text((0, 150), "Push: NEVER", Color.YELLOW, 1)
 
     def show_fatal_error(self, error: Exception | str):
-        self.tft.fill(TFT.BLACK)
-        self.display_text((0, 5), "*EXCEPTION*", TFT.RED, 2)
+        self.tft.fill(Color.BLACK)
+        self.display_text((0, 5), "*EXCEPTION*", Color.RED, 2)
         y = 25
         msg = str(error)
-        # print(msg)
+        self.print(msg)
         for i in range(0, len(msg), 20):
-            self.display_text((0, y), (msg[i:i + 20]), TFT.RED, 1)
+            self.display_text((0, y), (msg[i:i + 20]), Color.RED, 1)
             y += 10
 
     def try_to_connect_to_wifi(self) -> None:
@@ -384,10 +403,11 @@ class SensorBox:
             while not self.wlan.isconnected():
                 if self.mode == OperatingMode.UnitTesting:  # assuming it is just disabling Wi-Fi
                     break
-                if ticks_diff(ticks_ms(), start) > wifi_connect_timeout_ms:  # pragma: no cover
-                    break
-                sleep_ms(200)  # pragma: no cover
-                self.wdt.feed()  # pragma: no cover
+                else:  # pragma: no cover
+                    if ticks_diff(ticks_ms(), start) > wifi_connect_timeout_ms:
+                        break
+                    self.sleep(0.2)
+                    self.wdt.feed()
             if self.wlan.isconnected():
                 self.ip, _, _, _ = self.wlan.ifconfig()
                 self.ssid = self.wlan.config('ssid')
@@ -400,7 +420,7 @@ class SensorBox:
             self.ds.convert_temp()
         except OneWireError:  # no need to capture the variable, the string seems to be empty
             raise Exception("Could not convert_temp, check connections carefully!") from None
-        sleep_ms(750)  # wait 750ms after calling convert_temp and before sampling temps
+        self.sleep(0.75)  # wait 750ms after calling convert_temp and before sampling temps
         for sensor in self.sensors:
             try:
                 temperature_c = self.ds.read_temp(sensor.rom)
@@ -443,7 +463,7 @@ class SensorBox:
                         sensor.active = False
                 self.retrieved_sensor_info = True
             else:
-                print("HTTP Error while trying to get sensor config:", response.status_code)
+                self.print(f"HTTP Error while trying to get sensor config: {response.status_code}")
             response.close()
         except Exception as e:
             print(e)
@@ -475,22 +495,24 @@ measurement_time: {current}
             try:
                 response = put(url, headers=headers, json=data)
                 if response.status_code not in (200, 201):
-                    print(f"PUT Error: {response.text}")
+                    self.print(f"PUT Error: {response.text}")
                     all_success = False
             except (RuntimeError, OSError) as e:
-                print(f"Could not send request, reason={e}, skipping this report, checks will continue")
+                self.print(f"Could not send request, reason={e}, skipping this report, checks will continue")
                 all_success = False
         return all_success
 
     def flash_led(self, num_times: int) -> None:
         self.led.off()
         for i in range(num_times * 2):
-            sleep(0.2)
+            self.sleep(0.2)
             self.led.toggle()
         self.led.off()
 
 
 if __name__ == "__main__":  # pragma: no cover
     # we are launching this file manually from Thonny - do not create the watchdog
-    r = SensorBox(OperatingMode.DebugHardware)
+    from st7735 import TFT
+
+    r = SensorBox(TFT, OperatingMode.DebugHardware)
     r.run()
