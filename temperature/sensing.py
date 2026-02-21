@@ -3,8 +3,16 @@ from binascii import b2a_base64
 from socket import getaddrinfo, socket, AF_INET, SOCK_DGRAM
 from struct import unpack
 
+
+class OperatingMode:  # enum is not available in micropython
+    NormalRun = 1  # in this mode, we run everything completely normally, including the watchdog
+    DebugHardware = 2  # in this mode, we run everything normally, except we don't include the watchdog
+    UnitTesting = 3  # in this mode, we mock everything, and do not try to instantiate anything tk
+    MockWindow = 4  # in this mode, we run the mock TFT in an actual little tk window locally, other
+
+
 # the other imports need to either be mocked or found from the nested temperature package when running locally
-try:
+try:  # pragma: no cover
     from ds18x20 import DS18X20
     # noinspection PyPackageRequirements
     from machine import Pin, SPI, RTC, WDT
@@ -20,19 +28,14 @@ try:
     from st7735 import TFT, FONT, TFTColor
     from config import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
 except ImportError:
-    from temperature.mock import DS18X20  # ds18x20
-    from temperature.mock import Pin, SPI, RTC, WDT  # machine
-    from temperature.mock import WLAN, STA_IF  # network
-    from temperature.mock import OneWire, OneWireError  # onewire
-    from temperature.mock import sleep, sleep_ms, ticks_ms, ticks_diff, localtime  # time
-    from temperature.mock import get, put  # urequests
-    from temperature.mock import load as load_json  # ujson
-    from os import environ
-    if 'CI' in environ:
-        # noinspection PyPep8Naming
-        from temperature.mock import TFTNull as TFT, FONT, TFTColor
-    else:
-        from temperature.mock import TFT, FONT, TFTColor
+    from temperature.tests.mock import DS18X20  # ds18x20
+    from temperature.tests.mock import Pin, SPI, RTC, WDT  # machine
+    from temperature.tests.mock import WLAN, STA_IF  # network
+    from temperature.tests.mock import OneWire, OneWireError  # onewire
+    from temperature.tests.mock import sleep, sleep_ms, ticks_ms, ticks_diff, localtime  # time
+    from temperature.tests.mock import get, put  # urequests
+    from temperature.tests.mock import load as load_json  # ujson
+    from temperature.tests.mock import TFT, FONT, TFTColor
     from temperature.config_template import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
 
 
@@ -111,10 +114,11 @@ class SensorBox:
     PIN_RESET = 20
     PIN_LED = 21
 
-    def __init__(self, enable_watchdog: bool):
+    def __init__(self, operating_mode: int = OperatingMode.NormalRun):
+        self.mode = operating_mode
 
         # set up the watchdog right away as needed
-        self.wdt = WDT(timeout=8000) if enable_watchdog else DummyWatchdog()
+        self.wdt = WDT(timeout=8000) if operating_mode == OperatingMode.NormalRun else DummyWatchdog()
 
         # basic member variables
         self.last_temp_stamp = None
@@ -141,6 +145,8 @@ class SensorBox:
         try:
             spi = SPI(0, baudrate=20_000_000, polarity=0, phase=0, sck=Pin(self.PIN_SCI_SCK),
                       mosi=Pin(self.PIN_SDA_MOSI))
+            if self.mode == OperatingMode.MockWindow:  # pragma: no cover
+                TFT._show_window = True  # only do the tk window in this one condition
             self.tft = TFT(
                 spi, aDC=self.PIN_DC, aReset=self.PIN_RESET, aCS=self.PIN_CS, ScreenSize=(self.WIDTH, self.HEIGHT)
             )
@@ -149,8 +155,11 @@ class SensorBox:
             self.tft.rgb(False)
             self.tft.fill(TFT.BLACK)
         except Exception as e:
-            print(f"Could not initialize display: {e}")
-            while True:  # just hang here forever, we can't go on without a screen
+            if self.mode == OperatingMode.UnitTesting:
+                raise e from None
+            # just hang here forever, we can't go on without a screen, obviously not covering this with unit tests
+            print(f"Could not initialize display: {e}")  # pragma: no cover
+            while True:  # pragma: no cover
                 self.flash_led(3)
                 sleep(2)
                 self.wdt.feed()
@@ -167,9 +176,13 @@ class SensorBox:
         missing = [label for label, hex_id in CONNECTED_SENSORS if hex_id not in scanned_roms]
         if missing:
             self.show_fatal_error(f"Could not initialize sensor(s): {', '.join(missing)}; check connections")
-            while True:  # just hang here forever, we don't want to continue without the sensors
-                sleep(2)
-                self.wdt.feed()
+            if self.mode == OperatingMode.UnitTesting:
+                raise Exception()
+            else:  # pragma: no cover
+                # just hang here forever, we don't want to continue without the sensors
+                while True:
+                    sleep(2)
+                    self.wdt.feed()
         self.sensors = [Sensor(scanned_roms[hex_id], label) for label, hex_id in CONNECTED_SENSORS]
         self.display_text((0, post_y_sensors), "Sensors: OK", TFT.WHITE, 2)
         self.wdt.feed()
@@ -249,6 +262,11 @@ class SensorBox:
                 for _ in range(10):  # actual wait loop between sensing temperature
                     sleep(1)
                     self.wdt.feed()
+                    if self.mode == OperatingMode.MockWindow:
+                        # for mock window, check to see if it is closed to halt the program
+                        self.tft.root.update()
+                        if self.tft.closed:
+                            return
             except KeyboardInterrupt:  # pragma: no cover
                 print("Encountered keyboard interrupt, exiting")
                 return
@@ -259,6 +277,8 @@ class SensorBox:
                     sleep(1)
                     self.wdt.feed()
             first_time = False
+            if self.mode == OperatingMode.UnitTesting:
+                break
 
     # noinspection PyTypeHints
     def display_text(self, point: tuple[int, int], text: str, color: TFTColor, size: int):
@@ -346,7 +366,7 @@ class SensorBox:
         self.display_text((0, 5), "*EXCEPTION*", TFT.RED, 2)
         y = 25
         msg = str(error)
-        print(msg)
+        # print(msg)
         for i in range(0, len(msg), 20):
             self.display_text((0, y), (msg[i:i + 20]), TFT.RED, 1)
             y += 10
@@ -362,10 +382,12 @@ class SensorBox:
             self.wlan.connect(ssid, pw)
             start = ticks_ms()
             while not self.wlan.isconnected():
-                if ticks_diff(ticks_ms(), start) > wifi_connect_timeout_ms:
+                if self.mode == OperatingMode.UnitTesting:  # assuming it is just disabling Wi-Fi
                     break
-                sleep_ms(200)
-                self.wdt.feed()
+                if ticks_diff(ticks_ms(), start) > wifi_connect_timeout_ms:  # pragma: no cover
+                    break
+                sleep_ms(200)  # pragma: no cover
+                self.wdt.feed()  # pragma: no cover
             if self.wlan.isconnected():
                 self.ip, _, _, _ = self.wlan.ifconfig()
                 self.ssid = self.wlan.config('ssid')
@@ -468,7 +490,7 @@ measurement_time: {current}
         self.led.off()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # we are launching this file manually from Thonny - do not create the watchdog
-    r = SensorBox(enable_watchdog=False)
+    r = SensorBox(OperatingMode.DebugHardware)
     r.run()
