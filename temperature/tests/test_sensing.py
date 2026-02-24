@@ -1,79 +1,65 @@
 from unittest import TestCase
 
-from temperature.tests.mock import SPI, TFT, DS18X20, RTC, Response, WLAN
-from temperature.sensing import OperatingMode, SensorBox
+from temperature.board_mock import BoardMock
+from temperature.screen_mock import ScreenMock
+from temperature.sensing import SensorBox
 
 
 class TestSensing(TestCase):
 
     def setUp(self):
-        WLAN.__connected__ = True
-        SPI.__throw__ = False
-        DS18X20.__missing_entry__ = False
-        RTC.__throw__ = False
-        Response.__throw__ = False
-    #
-    # def tearDown(self):
-    #     WLAN.__connected__ = True
-    #     SPI.__throw__ = False
-    #     DS18X20.__missing_entry__ = False
-    #     RTC.__throw__ = False
-    #     Response.__throw__ = False
+        self.screen = ScreenMock()
+        self.board = BoardMock()
 
     def test_construction(self):
         """Given the inputs we have set up to mock, we would expect it to be connected and set up"""
-        s = SensorBox(TFT, operating_mode=OperatingMode.UnitTesting)
+        s = SensorBox(self.screen, self.board)
         self.assertTrue(len(s.sensors) == 2)
-        self.assertTrue(s.wlan.isconnected())
+        self.assertTrue(s.board.isconnected())
         self.assertTrue(s.time_synced)
         s.run()
 
-    def test_spi_failure_reports_on_screen_failure(self):
-        SPI.__throw__ = True
-        with self.assertRaises(Exception):
-            SensorBox(TFT, operating_mode=OperatingMode.UnitTesting)
-
     def test_missing_sensor_reports_fatal(self):
-        DS18X20.__missing_entry__ = True
+        self.board.ds18x20_missing_entry = True
         with self.assertRaises(Exception):
-            SensorBox(TFT, operating_mode=OperatingMode.UnitTesting)
+            SensorBox(self.screen, self.board)
 
     def test_clock_sync_reports_error_but_continues(self):
-        RTC.__throw__ = True
-        s = SensorBox(TFT, operating_mode=OperatingMode.UnitTesting)
-        self.assertIn("SYNC", s.printed_messages_for_testing)
+        self.board.throw_rtc = True
+        s = SensorBox(self.screen, self.board)
+        self.assertTrue(any("SYNC" in s for s in s.board.printed_messages_for_testing))
 
     def test_sensor_config_reports_error_but_continues(self):
-        Response.__throw__ = True
-        s = SensorBox(TFT, operating_mode=OperatingMode.UnitTesting)
-        self.assertIn("sensor config", s.printed_messages_for_testing)
+        self.board.throw_http = True
+        s = SensorBox(self.screen, self.board)
+        self.assertTrue(any("sensor config" in s for s in s.board.printed_messages_for_testing))
 
     def test_wifi_disconnected_reports_error_but_continues(self):
-        WLAN.__connected__ = False
-        s = SensorBox(TFT, operating_mode=OperatingMode.UnitTesting)
-        self.assertIn("CHECK", s.displayed_messages_for_testing)
+        self.board.wifi_connect = False
+        s = SensorBox(self.screen, self.board)
+        self.assertTrue(any("CHECK" in s for s in s.screen.displayed_messages_for_testing))
         s.run()
-        # should work but doesn't always self.assertIn("DISCONNECTED", s.displayed_messages_for_testing)
+        self.assertTrue(any("DISCONNECTED" in s for s in s.screen.displayed_messages_for_testing))
 
     def test_normal_run(self):
-        s = SensorBox(TFT, operating_mode=OperatingMode.UnitTesting)
+        s = SensorBox(self.screen, self.board)
         s.run()
 
     def test_tries_to_run_without_wifi(self):
-        WLAN.__connected__ = False
-        s = SensorBox(TFT, operating_mode=OperatingMode.UnitTesting)
+        self.board.wifi_connect = False
+        s = SensorBox(self.screen, self.board)
         s.run()
 
     def test_tries_to_run_with_sensor_read_failure(self):
-        DS18X20.__read_failure__ = True
-        s = SensorBox(TFT, operating_mode=OperatingMode.UnitTesting)
+        self.board.ds18x20_read_failure = True
+        s = SensorBox(self.screen, self.board)
         s.run()
 
     def test_dev_mode_works(self):
-        s = SensorBox(TFT, operating_mode=OperatingMode.UnitTesting)
+        s = SensorBox(self.screen, self.board)
         s.display_dev_mode_warning()
-        self.assertIn("developer mode", s.printed_messages_for_testing)
+        self.assertTrue(any("developer mode" in s for s in s.board.printed_messages_for_testing))
 
     def test_flashing_led(self):
-        s = SensorBox(TFT, operating_mode=OperatingMode.UnitTesting)
+        s = SensorBox(self.screen, self.board)
         s.flash_led(1)

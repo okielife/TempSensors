@@ -1,12 +1,20 @@
-import tkinter as tk
 from PIL import Image, ImageDraw, ImageTk
+import tkinter as tk
 
-from sensing import OperatingMode, SensorBox
+from temperature.font import FONT
+from temperature.screen_base import ScreenBase
 
 
-class TFT:
+class ScreenTk(ScreenBase):
+    BLACK = (0, 0, 0)
+    WHITE = (255, 255, 255)
+    RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
+    BLUE = (0, 0, 255)
+    YELLOW = (255, 255, 0)
+    GRAY = (128, 128, 128)
 
-    # noinspection PyUnusedLocal,PyPep8Naming
+    # noinspection PyUnusedLocal,PyPep8Naming,PyMissingConstructor
     def __init__(self, spi=None, aDC=None, aReset=None, aCS=None, ScreenSize=(128, 160)):
 
         self.closed = False
@@ -55,17 +63,18 @@ class TFT:
         y_min, y_max = y_center - radius, y_center + radius
         self.draw.ellipse((x_min, y_min, x_max, y_max), outline=color)
 
-    def text(self, point, text, color, font, size=1, nowrap=True):
+    def text(self, point, text, color, size=1, nowrap=True):
+
         x, y = point
-        cw = font["Width"]
-        ch = font["Height"]
-        data = font["Data"]
-        start = font["Start"]
+        cw = FONT["Width"]
+        ch = FONT["Height"]
+        data = FONT["Data"]
+        start = FONT["Start"]
 
         for ch_i in text:
             code = ord(ch_i)
 
-            if code < start or code > font["End"]:
+            if code < start or code > FONT["End"]:
                 x += cw * size + size
                 continue
 
@@ -130,12 +139,3 @@ class TFT:
         self.canvas.itemconfig(self._image_id, image=self._photo)
         self.root.update()
         self.root.update_idletasks()
-
-
-def main():
-    r = SensorBox(TFT, OperatingMode.MockWindow)
-    r.run()
-
-
-if __name__ == "__main__":
-    main()
