@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from temperature.board_mock import BoardMock, ResponseMock, PinMock
+from temperature.board_mock import ResponseMock, PinMock
 
 
 class TestResponseMock(TestCase):

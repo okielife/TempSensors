@@ -6,6 +6,7 @@ from temperature.board_base import BoardBase, ResponseBase, PinBase
 # I will assert that it raises NotImplementedError
 # If something is wrong with the signature/call, then it will give a TypeError
 
+
 class TestResponseBase(TestCase):
     def test_response_api(self):
         r = ResponseBase()

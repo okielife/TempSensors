@@ -6,6 +6,7 @@ from temperature.screen_base import ScreenBase
 # I will assert that it raises NotImplementedError
 # If something is wrong with the signature/call, then it will give a TypeError
 
+
 class TestScreenBase(TestCase):
     def test_screen_api(self):
         s = ScreenBase()
