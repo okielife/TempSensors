@@ -21,13 +21,16 @@ sensors_ignored = set()
 
 config_file = repo_root / '_data' / 'config.json'
 config = loads(config_file.read_text())
-active_sensors = config['sensors']
-for cable_num, active_sensor in active_sensors.items():
+sensors = config['sensors']
+for cable_num, sensor in sensors.items():
     if cable_num.startswith('readme'):
         continue
-    sensor_rom = active_sensor['hex']
-    max_temp = float(active_sensor['maximum_temp'])
-    nice_name = active_sensor['nice_name']
+    active = sensor.get('active', False)
+    if not active:
+        continue
+    sensor_rom = sensor['hex']
+    max_temp = float(sensor['maximum_temp'])
+    nice_name = sensor['nice_name']
     sensor_posts_folder = posts_folder / sensor_rom
     all_posts_this_sensor = sorted(sensor_posts_folder.glob('*.html'))
     up_to_last_three = all_posts_this_sensor[-3:][::-1]
