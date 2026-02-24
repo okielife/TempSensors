@@ -6,7 +6,7 @@
 {% assign page_active_sensors = "" | split: '/' %}
 {% for s in site.data.config.sensors %}
   {% assign sensor = s[1] %}
-  {% if page_locations contains sensor.sensor_location %}
+  {% if sensor.active and page_locations contains sensor.sensor_location %}
     {% assign page_active_sensors = page_active_sensors | push: sensor %}
   {% endif %}
 {% endfor %}
@@ -37,6 +37,11 @@
     </div>
   </div>
 </header>
+
+<script>
+  const isSmallScreen = window.matchMedia("(max-width: 1500px)").matches;
+  const plotLineWidth = isSmallScreen ? 6 : 4;
+</script>
 
 {% assign page_active_sensors = page_active_sensors | sort: "sensor_location" %}
 {% for sensor in page_active_sensors %}
@@ -100,6 +105,7 @@
     </div>
   </div>
   <hr>
+  <!--suppress JSUnresolvedReference -->
   <script>
     Plotly.newPlot(
       'plot {{ sensor.hex }}',
@@ -130,17 +136,17 @@
             y0: 32.0,
             x1: 1,
             y1: 32.0,
-            line:{color: 'rgb(0, 0, 150)', width: 4, dash: 'dot'},
+            line:{color: 'rgb(0, 0, 150)', width: plotLineWidth, dash: 'dot'},
             name: "Freezing Line",
           },
           {
             type: 'line',
             xref: 'paper',
             x0: 0,
-            y0: {{ sensor.maximum_temp }},
+            y0: Number("{{ sensor.maximum_temp | default: 0 | jsonify }}"),
             x1: 1,
-            y1: {{ sensor.maximum_temp }},
-            line:{color: 'rgb(150, 0, 0)', width: 4, dash: 'dot'},
+            y1: Number("{{ sensor.maximum_temp | default: 0 | jsonify }}"),
+            line:{color: 'rgb(150, 0, 0)', width: plotLineWidth, dash: 'dot'},
             name: "Sensor Max Temp",
           }
         ]
@@ -158,7 +164,7 @@
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".ts-timestamp").forEach(el => {
-      const p = el.dataset.ts.split("-");
+      const p = el.dataset.ts.split("-").map(Number);
       const d = new Date(Date.UTC(p[0], p[1] - 1, p[2], p[3], p[4], p[5]));
       el.textContent = d.toLocaleDateString() + "  " + d.toLocaleTimeString();
     });
