@@ -1,3 +1,4 @@
+from random import randint
 from time import time
 
 from temperature.board_base import BoardBase, ResponseBase, PinBase
@@ -10,12 +11,11 @@ class ResponseMock(ResponseBase):
         if throw:
             raise Exception()
         self.status_code = 200
-        self.raw = "\b2010"
+        self.text = ""
+        self.raw = b""
 
-
-class WatchdogMock:
-    def feed(self):
-        pass
+    def close(self):
+        return
 
 
 class PinMock(PinBase):
@@ -37,17 +37,21 @@ class PinMock(PinBase):
     def toggle(self) -> None:
         self.value_on = not self.value_on
 
+    def value(self) -> int:
+        return 1 if self.value_on else 0
+
 
 class BoardMock(BoardBase):
 
     # noinspection PyUnusedLocal,PyMissingConstructor
     def __init__(
-            self, verbose: bool = False,
+            self, watchdog_enabled: bool, verbose: bool = False,
             throw_rtc: bool = False, throw_http: bool = False, wifi_connect: bool = True,
             ds18x20_missing_entry: bool = False, ds18x20_read_failure: bool = False,
             continue_running_after_first_iteration: bool = False
     ):
         # config flags
+        self.watchdog_enabled = watchdog_enabled
         self.verbose = verbose
         self.throw_rtc = throw_rtc
         self.throw_http = throw_http
@@ -62,14 +66,11 @@ class BoardMock(BoardBase):
         self.ssid = ''
         self.pw = ''
         self.known_ssids = ["MiFi8000-C1DE", "EmeraldWiFi"]
-        self.watchdog = WatchdogMock()
+        self.watchdog = type("NoopWatchdog", (), {"feed": lambda _: None})()
         self.watchdog_watching = False
         self.pins = {}
         self.clock = time() * 1000
         self.printed_messages_for_testing = []
-
-    def led(self) -> PinMock:
-        return PinMock('led')
 
     def active(self, active: bool) -> None:
         self.activated = active
@@ -107,29 +108,16 @@ class BoardMock(BoardBase):
     # noinspection PyUnusedLocal
     def rtc_datetime(self, timestamp: tuple[int, int, int, int, int, int, int, int]):
         if self.throw_rtc:
-            raise Exception()
+            raise OSError()
         year, month, day, weekday, hours, minutes, seconds, sub_seconds = timestamp
         if self.verbose:  # pragma: no cover
             print(f"RTC clock set to: {year}-{month}-{day} {hours}:{minutes}:{seconds}")
 
     def create_watchdog(self, timeout: int):
-        self.watchdog_watching = True
+        self.watchdog_watching = self.watchdog_enabled
 
     def feed_watchdog(self):
         self.watchdog.feed()
-
-    def pin_create(self, pin_id: int | str, direction: int = PinMock.IN, pull: int = PinMock.PULL_UP):
-        self.pins[pin_id] = PinMock(pin_id, direction, pull)
-        return self.pins[pin_id]
-
-    def set_pin_on(self, pin_id: int | str):
-        self.pins[pin_id].on()
-
-    def set_pin_off(self, pin_id: int | str):
-        self.pins[pin_id].off()
-
-    def set_pin_toggle(self, pin_id: int | str):
-        self.pins[pin_id].toggle()
 
     def ds18x20_scan(self) -> list[bytes]:
         if self.ds18x20_missing_entry:
@@ -138,9 +126,8 @@ class BoardMock(BoardBase):
 
     def ds18x20_read_temp(self, rom: bytes):
         if self.ds18x20_read_failure:
-            raise Exception()
-        import random
-        t = random.randint(-20, 40)
+            raise OSError()
+        t = randint(-20, 40)
         if self.verbose:  # pragma: no cover
             print(f"Reading temperature as {t} Celsius")
         return t

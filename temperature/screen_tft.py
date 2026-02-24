@@ -4,7 +4,11 @@ from machine import Pin, SPI
 from st7735 import TFT
 
 from font import FONT
-from screen_base import ScreenBase
+
+try:
+    from temperature.screen_base import ScreenBase
+except ImportError:
+    ScreenBase = object
 
 
 class ScreenTFT(ScreenBase):
@@ -23,39 +27,16 @@ class ScreenTFT(ScreenBase):
     PIN_RESET = 20
     PIN_LED = 21
 
-    # noinspection PyUnusedLocal,PyPep8Naming
-    def __init__(self, spi=None, aDC=None, aReset=None, aCS=None, ScreenSize=(128, 160)):
-        super().__init__(spi, aDC, aReset, aCS, ScreenSize)
-        self.tft = TFT(spi, aDC, aReset, aCS, ScreenSize)
-
-    @classmethod
-    def default_construct(cls) -> 'ScreenTFT':
-        spi = SPI(
-            0,
-            baudrate=20_000_000,
-            polarity=0,
-            phase=0,
-            sck=Pin(cls.PIN_SCI_SCK),
-            mosi=Pin(cls.PIN_SDA_MOSI)
-        )
-        screen = cls(
-            spi,
-            aDC=cls.PIN_DC,
-            aReset=cls.PIN_RESET,
-            aCS=cls.PIN_CS,
-            ScreenSize=(cls.WIDTH, cls.HEIGHT)
-        )
-        screen.tft.initr()
-        Pin(cls.PIN_LED, Pin.OUT).on()
-        screen.tft.rgb(False)
-        screen.tft.fill(TFT.BLACK)
-        return screen
-
-    def initr(self):
+    # noinspection PyUnusedLocal,PyPep8Naming,PyMissingConstructor
+    def __init__(self):
+        pin_sck = ScreenTFT.PIN_SCI_SCK
+        pin_sda = ScreenTFT.PIN_SDA_MOSI
+        spi = SPI(0, baudrate=20_000_000, polarity=0, phase=0, sck=Pin(pin_sck), mosi=Pin(pin_sda))
+        self.tft = TFT(spi, ScreenTFT.PIN_DC, ScreenTFT.PIN_RESET, ScreenTFT.PIN_CS, (128, 160))
         self.tft.initr()
-
-    def rgb(self, *args, **kwargs):
-        self.tft.rgb(*args, **kwargs)
+        Pin(ScreenTFT.PIN_LED, Pin.OUT).on()
+        self.tft.rgb(False)
+        self.tft.fill(TFT.BLACK)
 
     def fill(self, *args, **kwargs):
         self.tft.fill(*args, **kwargs)

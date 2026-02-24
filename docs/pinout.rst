@@ -1,4 +1,8 @@
-__diagram__ = """
+Pinout Diagram
+==============
+
+.. code-block::
+
   Looking at the Pico from "above", so that you can see the WiFi antenna
                 ┏━━━━┓USB CONNECTION
           ┌─────┃    ┃─────┐
@@ -43,4 +47,3 @@ __diagram__ = """
    │                                                             │ VCC   - SPLITTER FROM PICO 3V3
    │                                                             │ GND   - PICO GND
    └─────────────────────────────────────────────────────────────┘
-"""

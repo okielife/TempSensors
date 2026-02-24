@@ -3,17 +3,22 @@ from binascii import b2a_base64
 from socket import getaddrinfo, socket, AF_INET, SOCK_DGRAM
 from struct import unpack
 
+# if we are on the Pico, typing won't be available, so this will fall through and set the type check flag to False
+# if we are on the PC, typing will be available, so this flag will be valid
+try:
+    from typing import TYPE_CHECKING
+except ImportError:  # pragma: no cover
+    # noinspection PyFinal
+    TYPE_CHECKING = False
 
-# I'm not convinced I need the `from temperatures.` part, but it's ok for now
-# TODO: Pass in the wifi networks, connected sensors, github token as args to the sensor box
-try:  # pragma: no cover
-    from board_base import BoardBase
-    from screen_base import ScreenBase
-    from config import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
-except ImportError:
+# while running the static type checker, import the proper base classes to make the IDE happy
+# when running the actual Python code on PC or Pico, just keep them as plain objects, it does not matter
+if TYPE_CHECKING:
     from temperature.board_base import BoardBase
     from temperature.screen_base import ScreenBase
-    from temperature.config_template import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
+else:
+    BoardBase = object
+    ScreenBase = object
 
 
 __version__ = 3
@@ -32,14 +37,31 @@ class Sensor:
 class SensorBox:
 
     # noinspection PyPep8Naming
-    def __init__(self, screen: ScreenBase, board: BoardBase):
+    def __init__(
+            self,
+            board, screen,  # deferring type hints on these because base class detection is not working well
+            wifi_networks: list[tuple[str, str]], connected_sensors: list[tuple[str, str]], github_token: str
+    ):
+        """
+        This constructor sets up local copies of the screen, board, and other config variables passed in.
+        The constructor then initializes member variables and finally calls post() to boot up.
+
+        :param board: A board instance for hardware API, should inherit BoardBase, could be BoardPico, BoardMOck, etc.
+        :param screen: A screen instance for display API, should inherit ScreenBase, could be ScreenTFT, ScreenTk, etc.
+        :param wifi_networks: A list of network auth (name, pw) for all known Wi-Fi networks
+        :param connected_sensors: A list of sensor data (id, name) entries for each connected sensor
+        :param github_token: A string token generated from GitHub, with write access to the dashboard repo
+        """
         # Unfortunately, this SensorBox will be acting different based on the current scenario
         # I will try to keep that to a minimum to avoid complexity in here. But there will likely
         # be a few cases that I want to handle different.  For example, I do not want to accumulate
         # the printed messages when running normally, or we would hit memory issues.  So only
         # accumulate those when unit testing.
-        self.screen = screen
-        self.board = board
+        self.board: BoardBase = board
+        self.screen: ScreenBase = screen
+        self.wifi_networks = wifi_networks
+        self.connected_sensors = connected_sensors
+        self.github_token = github_token
 
         # basic member variables
         self.last_temp_stamp = None
@@ -48,154 +70,205 @@ class SensorBox:
         self.last_push_ms = 0
         self.time_synced = False
         self.retrieved_sensor_info = False
+        self.developer_mode = False
+        self.ip = ""
+        self.ssid = ""
+        self.sensors: list[Sensor] = list()
 
-        post_y_starting = 0
-        post_y_version = 18
-        post_y_screen = 36
-        post_y_sensors = 54
-        post_y_wifi = 72
-        post_y_clock = 90
-        post_y_date = 108
-        post_y_config = 126
-        post_y_booting = 144
+        # always try to make the watchdog, the board setup will decide whether to actually do it.  Then POST
+        self.board.create_watchdog(8000)
+        self.post()
+
+    def post(self):
+        """
+        This functions performs the boot process, kind of mocking a POST step.
+        There are some failure conditions which will cause the boot to hang indefinitely.
+        There are also some conditions which will cause the boot to pause, then continue, leaving setup incomplete.
+        Basic flow is:
+        - Report the version and screen status.
+        - Check connected sensor ROMs and make sure they can be properly initialized, if not then HANG FOREVER.
+        - If not already connected to Wi-Fi, try to connect -- this will only try for a few seconds before giving up.
+        - Gather Wi-Fi details, but If still not connected, we can't do anything else, so report no Wi-Fi and leave.
+        - Try to sync the clock from the network -- this will only try for a few seconds before giving up.
+        - Try to get the sensor details from the centralized dashboard config file.
+        """
+        y_starting = 0
+        y_version = 18
+        y_screen = 36
+        y_sensors = 54
+        y_wifi = 72
+        y_clock = 90
+        y_date = 108
+        y_config = 126
+        y_booting = 144
 
         # init the TFT base class to get a terminal first
-        self.screen.text((15, post_y_starting), "STARTING", self.screen.GREEN, 2)
-        self.screen.text((0, post_y_version), f"Version {__version__}.{__revision__}", self.screen.WHITE, 2)
-        self.screen.text((0, post_y_screen), "Screen:  OK", self.screen.WHITE, 2)
+        self.screen.text((15, y_starting), "STARTING", self.screen.GREEN, 2)
+        self.screen.text((0, y_version), f"Version {__version__}.{__revision__}", self.screen.WHITE, 2)
+        self.screen.text((0, y_screen), "Screen:  OK", self.screen.WHITE, 2)
         self.board.feed_watchdog()
 
         # set up the sensors now
         scanned_roms = {rom.hex(): rom for rom in self.board.ds18x20_scan()}
         self.board.feed_watchdog()
-        missing = [label for label, hex_id in CONNECTED_SENSORS if hex_id not in scanned_roms]
+        missing = [label for label, hex_id in self.connected_sensors if hex_id not in scanned_roms]
         if missing:
             self.show_fatal_error(f"Could not initialize sensor(s): {', '.join(missing)}; check connections")
             # just hang here forever, we don't want to continue without the sensors
             self.board.system_hang()
-        self.sensors = [Sensor(scanned_roms[hex_id], label) for label, hex_id in CONNECTED_SENSORS]
-        self.screen.text((0, post_y_sensors), "Sensors: OK", self.screen.WHITE, 2)
+        self.sensors = [Sensor(scanned_roms[hex_id], label) for label, hex_id in self.connected_sensors]
+        self.screen.text((0, y_sensors), "Sensors: OK", self.screen.WHITE, 2)
         self.board.feed_watchdog()
 
-        # init the Wi-Fi and try to sync the clock
-
+        # init the Wi-Fi and try to connect as needed
         self.board.active(True)
-        self.ip = ""
-        self.ssid = ""
         if not self.board.isconnected():
             self.try_to_connect_to_wifi()
+
+        # get Wi-Fi details, but if we still aren't connected, there isn't much we can do, just report and leave
         if self.board.isconnected():
             self.ip, _, _, _ = self.board.ifconfig()
             self.ssid = self.board.config('ssid')
-            self.screen.text((0, post_y_wifi), "Wi-Fi:   OK", self.screen.WHITE, 2)
-            self.try_to_sync_time()
-            if self.time_synced:
-                t = self.board.localtime()
-                self.screen.text((0, post_y_clock), "Clock:   OK", self.screen.WHITE, 2)
-                self.screen.text((0, post_y_date), "Date: {:02d}/{:02d}".format(t[1], t[2]), self.screen.WHITE, 2)
-            else:
-                self.show_fatal_error("CLOCK SYNC ERROR, will continue to boot in 5 seconds and retry sync later.")
-                self.board.sleep(5)
-            self.try_to_get_sensor_details()
-            if self.retrieved_sensor_info:
-                self.screen.text((0, post_y_config), "Config:  OK", self.screen.WHITE, 2)
-            else:
-                self.screen.text((0, post_y_config), "Config: ERR", self.screen.RED, 2)
-                self.show_fatal_error(
-                    "Could not retrieve sensor config data from GitHub, "
-                    "will continue to boot in 5 seconds and retry later."
-                )
-                self.board.sleep(5)
+            self.screen.text((0, y_wifi), "Wi-Fi:   OK", self.screen.WHITE, 2)
         else:
-            self.screen.text((0, post_y_wifi), "Wi-Fi:  NOT", self.screen.YELLOW, 2)
-            self.screen.text((0, post_y_clock), "READY, CHECK", self.screen.YELLOW, 2)
-            self.screen.text((0, post_y_date), "NETWORK", self.screen.YELLOW, 2)
-            self.screen.text((0, post_y_config), "WILL RETRY", self.screen.YELLOW, 2)
+            self.screen.text((0, y_wifi), "Wi-Fi:  NOT", self.screen.YELLOW, 2)
+            self.screen.text((0, y_clock), "READY, CHECK", self.screen.YELLOW, 2)
+            self.screen.text((0, y_date), "NETWORK", self.screen.YELLOW, 2)
+            self.screen.text((0, y_config), "WILL RETRY", self.screen.YELLOW, 2)
+            self.screen.text((0, y_booting), "BOOTING UP!", self.screen.WHITE, 2)
             self.board.sleep(2)
-        self.board.feed_watchdog()
+            self.board.feed_watchdog()
+            return
 
-        self.screen.text((0, post_y_booting), "BOOTING UP!", self.screen.WHITE, 2)
+        # try to sync the clock
+        self.try_to_sync_time()
+        if self.time_synced:
+            t = self.board.localtime()
+            self.screen.text((0, y_clock), "Clock:   OK", self.screen.WHITE, 2)
+            self.screen.text((0, y_date), "Date: {:02d}/{:02d}".format(t[1], t[2]), self.screen.WHITE, 2)
+        else:
+            self.show_fatal_error("CLOCK SYNC ERROR, will continue to boot in 5 seconds and retry sync later.")
+            self.board.sleep(5)
+            self.screen.fill(self.screen.BLACK)
+
+        # try to get sensor details
+        self.try_to_get_sensor_details()
+        if self.retrieved_sensor_info:
+            self.screen.text((0, y_config), "Config:  OK", self.screen.WHITE, 2)
+        else:
+            self.screen.text((0, y_config), "Config: ERR", self.screen.RED, 2)
+            self.show_fatal_error(
+                "Could not retrieve sensor config data from GitHub, "
+                "will continue to boot in 5 seconds and retry later."
+            )
+            self.board.sleep(5)
+
+        # final report and leave
+        self.screen.text((0, y_booting), "BOOTING UP!", self.screen.WHITE, 2)
+        self.board.sleep(1)
         self.board.feed_watchdog()
 
     def run(self):
-        github_push_interval_ms = 3_600_000
+        """
+        This function performs the "infinite" loop of actually running the sensor.
+        Some of the logic is just like the post function, where it is continually checking what has been completed.
+        This function is small to keep a clear and obvious understanding of what is required on a typical iteration.
+        In summary, this has an infinite loop, where each loop performs sensing, network, GitHub, display, and idling.
+        This function will trap all exceptions - keyboard interrupts lead to a graceful exit, all others will return.
+        In development, this will result in a reset() call to reboot the pico and restart everything.
+        """
         self.board.feed_watchdog()
         first_time = True
         while True:
             try:
-                self.update_temperatures()
-                self.board.feed_watchdog()
-                self.last_temp_stamp = self.board.localtime()
-                if not self.board.isconnected():
-                    # try to connect, but if we can't, just continue to updating temps and looping
-                    self.try_to_connect_to_wifi()
-                    self.board.feed_watchdog()
-                if self.board.isconnected():
-                    if not self.time_synced:
-                        self.try_to_sync_time()
-                        self.board.feed_watchdog()
-                    if not self.retrieved_sensor_info:
-                        self.try_to_get_sensor_details()
-                    # we don't necessarily need the sensor extra info to push to GitHub,
-                    # so no need to check if self.retrieved_sensor_info
-                    interval = self.board.ticks_diff(self.board.ticks_ms(), self.last_push_ms)
-                    reached_push_time = interval > github_push_interval_ms
-                    if self.time_synced and (first_time or reached_push_time):
-                        all_successful = self.push_to_github()
-                        if all_successful:
-                            self.last_push_ms = self.board.ticks_ms()
-                            self.last_push_stamp = self.board.localtime()
-                            self.last_push_had_errors = False
-                        else:
-                            self.last_push_had_errors = True
-                        self.board.feed_watchdog()
-                self.regular_update()
-                for _ in range(10):  # actual wait loop between sensing temperature
-                    self.board.sleep(1)
-                    self.board.feed_watchdog()
+                self.phase_sensing()
+                self.phase_network()
+                self.phase_push(first_time)
+                self.update_display()
+                self.phase_idle()
             except KeyboardInterrupt:  # pragma: no cover
                 self.board.print("Encountered keyboard interrupt, exiting")
                 return
             except Exception as e:
-                self.board.print(str(e))
-                self.show_fatal_error(e)
-                for _ in range(30):
-                    self.board.sleep(1)
-                    self.board.feed_watchdog()
+                self.phase_error(e)
+                return
             first_time = False
-            if self.board.run_forever():
-                continue
-            else:
+            if not self.board.run_forever():
                 break
 
-    def display_dev_mode_warning(self):
-        self.board.print("GP22 jumper is connected; device is in developer mode")
-        self.screen.fill(self.screen.BLACK)
-        self.screen.text((7, 5), "*DEV MODE*", self.screen.YELLOW, 2)
-        self.screen.text((7, 25), "GP22 jumper active", self.screen.YELLOW, 1)
-        self.screen.text((7, 35), "In developer mode", self.screen.YELLOW, 1)
-        self.screen.rect((15, 60), (50, 90), self.screen.WHITE)
-        self.screen.fillrect((30, 50), (20, 20), self.screen.GRAY)
-        self.screen.fillrect((27, 95), (26, 26), self.screen.WHITE)
-        pins_to_print = ["GP27", "GP26", "RUN", "GP22", "GND", "GP21", "GP20", "GP19"]
-        y = 65
-        for pin in pins_to_print:
-            self.screen.text((70, y), pin, self.screen.YELLOW, 1)
-            y += 10
-        self.screen.hline((92, 88), 15, self.screen.YELLOW)
-        self.screen.vline((107, 88), 11, self.screen.YELLOW)
-        self.screen.hline((97, 98), 10, self.screen.YELLOW)
+    def phase_sensing(self):
+        """
+        "Sensing" run phase which is basically just reading new temperatures and logging the current time
+        """
+        self.update_temperatures()
+        self.board.feed_watchdog()
+        self.last_temp_stamp = self.board.localtime()
 
-    def regular_update(self):
+    def phase_network(self):
+        """
+        "Network" run phase which is basically just trying to connect to Wi-Fi again, and once connected, trying to
+        sync time and do an http request for active sensor info.
+        """
+        if not self.board.isconnected():
+            self.try_to_connect_to_wifi()
+            self.board.feed_watchdog()
+        if not self.board.isconnected():
+            return
+        if not self.time_synced:
+            self.try_to_sync_time()
+            self.board.feed_watchdog()
+        if not self.retrieved_sensor_info:
+            self.try_to_get_sensor_details()
+
+    def phase_push(self, first_time: bool):
+        """
+        "Push" run phase, which is basically waiting until connected and enough time has passed, then pushing data
+        up to GitHub, and logging the time.
+        """
+        if not self.board.isconnected():
+            return
+        if not self.time_synced:
+            return
+        interval = self.board.ticks_diff(self.board.ticks_ms(), self.last_push_ms)
+        github_push_interval_ms = 3_600_000
+        reached_push_time = interval > github_push_interval_ms
+        if not (first_time or reached_push_time):
+            return
+        success = self.push_to_github()
+        if success:
+            self.last_push_ms = self.board.ticks_ms()
+            self.last_push_stamp = self.board.localtime()
+            self.last_push_had_errors = False
+        else:
+            self.last_push_had_errors = True
+        self.board.feed_watchdog()
+
+    def phase_idle(self):
+        """
+        "Idle" run phase, which is basically just sleep for a little while between sensing loops
+        """
+        for _ in range(10):  # actual wait loop between sensing temperature
+            self.board.sleep(1)
+            self.board.feed_watchdog()
+
+    def phase_error(self, e: Exception):
+        """
+        "Error" run phase, which is just the generalized error reporter, including a sleep to hold it on the screen.
+        """
+        self.board.print(str(e))
+        self.show_fatal_error(e)
+        self.board.sleep(30)
+
+    def update_display(self):
+        """
+        This function does a normal update of the screen, gathering data and presenting on whatever screen is registered
+        """
         self.screen.fill(self.screen.BLACK)
         # SENSOR INFORMATION
-        self.screen.hline((0, 5), 24, self.screen.GRAY)
-        self.screen.hline((0, 10), 24, self.screen.GRAY)
-        self.screen.hline((106, 5), 24, self.screen.GRAY)
-        self.screen.hline((106, 10), 24, self.screen.GRAY)
-        self.screen.text((27, 0), "Sensors", self.screen.WHITE, 2)
+        self.screen.text((33, 2), f"Sensors {__version__}.{__revision__}", self.screen.GREEN, 1)
+        self.screen.hline((0, 10), 128, self.screen.GRAY)
         # Need to alert here on the screen if the sensor data is bad
-        y = 17
+        y = 14
         for sensor in self.sensors:
             if sensor.active:
                 self.screen.text((0, y), f"{sensor.label} {sensor.name}", self.screen.WHITE, 1)
@@ -205,18 +278,22 @@ class SensorBox:
             if sensor.temperature_f:
                 temp_string = f"{sensor.temperature_f:.2f} F"
                 self.screen.text((27, y), temp_string, self.screen.WHITE, 2)
-                if len(temp_string) == 6 or len(temp_string) == 7:
-                    # draw the degree symbol if it's like "X.YY F" or "XX.YY F"
-                    self.screen.circle((89, y + 3), 3, self.screen.WHITE)
+                # draw the degree symbol if it's like "X.YY F" or "XX.YY F"
+                if len(temp_string) == 6:
+                    self.screen.circle((78, y + 3), 3, self.screen.WHITE)
+                elif len(temp_string) == 7:
+                    self.screen.circle((90, y + 3), 3, self.screen.WHITE)
+                elif len(temp_string) == 8:
+                    self.screen.circle((102, y + 3), 3, self.screen.WHITE)
             else:
                 self.screen.text((27, y), "NULL", self.screen.YELLOW, 1)
-            y += 17
+            y += 19
         # WI-FI INFORMATION
-        self.screen.hline((0, 79), 40, self.screen.GRAY)
-        self.screen.hline((0, 84), 40, self.screen.GRAY)
-        self.screen.hline((88, 79), 40, self.screen.GRAY)
-        self.screen.hline((88, 84), 40, self.screen.GRAY)
-        self.screen.text((44, 74), "WiFi", self.screen.WHITE, 2)
+        self.screen.hline((0, 78), 40, self.screen.GRAY)
+        self.screen.hline((0, 83), 40, self.screen.GRAY)
+        self.screen.hline((88, 78), 40, self.screen.GRAY)
+        self.screen.hline((88, 83), 40, self.screen.GRAY)
+        self.screen.text((44, 73), "WiFi", self.screen.WHITE, 2)
         if self.board.isconnected():
             self.screen.text((0, 90), "Connected!", self.screen.GREEN, 1)
             self.screen.text((0, 100), f"SSID: {self.ssid}", self.screen.WHITE, 1)
@@ -245,7 +322,33 @@ class SensorBox:
         else:
             self.screen.text((0, 150), "Push: NEVER", self.screen.YELLOW, 1)
 
+    def enter_dev_mode(self):
+        """
+        This function displays the developer screen as a signal (mostly a reminder) that the debug jumper is connected
+        """
+        self.developer_mode = True
+        self.screen.fill(self.screen.BLACK)
+        self.screen.text((7, 5), "*DEV MODE*", self.screen.YELLOW, 2)
+        self.screen.text((7, 25), "GP22 jumper active", self.screen.YELLOW, 1)
+        self.screen.text((7, 35), "In developer mode", self.screen.YELLOW, 1)
+        self.screen.rect((15, 60), (50, 90), self.screen.WHITE)
+        self.screen.fillrect((30, 50), (20, 20), self.screen.GRAY)
+        self.screen.fillrect((27, 95), (26, 26), self.screen.WHITE)
+        pins_to_print = ["GP27", "GP26", "RUN", "GP22", "GND", "GP21", "GP20", "GP19"]
+        y = 65
+        for pin in pins_to_print:
+            self.screen.text((70, y), pin, self.screen.YELLOW, 1)
+            y += 10
+        self.screen.hline((92, 88), 15, self.screen.YELLOW)
+        self.screen.vline((107, 88), 11, self.screen.YELLOW)
+        self.screen.hline((97, 98), 10, self.screen.YELLOW)
+
     def show_fatal_error(self, error: Exception | str):
+        """
+        This function is responsible for issuing a fatal message to the user.  This includes printing the message
+        according to the board instance's print capability, as well as attempting to break up the message and display
+        it on the screen.
+        """
         self.screen.fill(self.screen.BLACK)
         self.screen.text((0, 5), "*EXCEPTION*", self.screen.RED, 2)
         y = 25
@@ -256,11 +359,16 @@ class SensorBox:
             y += 10
 
     def try_to_connect_to_wifi(self) -> None:
+        """
+        This function tries to connect the device to Wi-Fi.
+        It first resets the known ssid/ip, loops over known Wi-Fi data, connects up to a given timeout interval,
+        and either succeeds or ultimately just gives up and leaves it disconnected.
+        """
         self.ssid = ""
         self.ip = ""
         wifi_connect_timeout_ms = 10_000
         available = {n[0].decode() for n in self.board.scan()}
-        for ssid, pw in WIFI_NETWORKS:
+        for ssid, pw in self.wifi_networks:
             if ssid not in available:
                 continue
             self.board.connect(ssid, pw)
@@ -276,6 +384,14 @@ class SensorBox:
                 break
 
     def update_temperatures(self):
+        """
+        This function is responsible for updating the sensed temperature values on all connected sensors.
+        The process is pretty simple, just call to convert_temp on the sensors, which resets the sensor scratchpad,
+        sends a signal to read "all" sensors, and then actually converts the live reading from the sensor into a
+        meaningful temperature.  This is why you need to call this with each pass, since that convert_temp call
+        is actually what updates the temperatures on the sensor's scratchpad.  Once the temperature is there, we simply
+        update the Sensor wrapper instance with the new temperature and move on.
+        """
         if not self.sensors:
             return
         try:
@@ -290,52 +406,76 @@ class SensorBox:
             except Exception as e:
                 raise Exception(f"Could not get temperature from sensor named {sensor.name}") from e
 
-    def try_to_sync_time(self, timeout=3):
+    def try_to_sync_time(self, timeout=5):
+        """
+        This function tries to synchronize the clock (RTC) using an NTP server response.
+        The UDP packet is prepared, sent, the response is parsed into a Unix time, and stored back on the board clock.
+        If any failures arise, this function just returns, leaving the time un-synchronized, so that it will try again.
+        """
         s = socket(AF_INET, SOCK_DGRAM)
-        # noinspection PyBroadException
         try:
             addr = getaddrinfo("pool.ntp.org", 123)[0][-1]
             s.settimeout(timeout)
             s.sendto(b'\x1b' + 47 * b'\0', addr)
             data, _ = s.recvfrom(48)
-            t = unpack("!I", data[40:44])[0] - 2208988800  # magic number is 1970 offset
+            t = unpack("!I", data[40:44])[0] - 2208988800  # convert to Unix time; magic number is 1970 offset
             tm = self.board.localtime(t)
             self.board.rtc_datetime((tm[0], tm[1], tm[2], tm[6] + 1, tm[3], tm[4], tm[5], 0))
             self.time_synced = True
-        except Exception:  # I'm not sure what all could happen
-            pass  # just allow it to continue, unsynced for now
+        except (OSError, ValueError, IndexError):
+            # Expected failure modes: network, DNS, short packet, unpack issues
+            # just allow it to continue; the time_synced flag will stay false so that it will retry
+            pass
         finally:
             s.close()
 
     def try_to_get_sensor_details(self):
-        # TODO: Make this versioned/tagged
-        # something like:
-        # https://raw.githubusercontent.com/okielife/TempSensors/9415cce73d7304f120dae78d9b60993843035ba0/_data/config.json  # noqa: E501
+        """
+        This function is responsible for trying to download and parse the sensor configuration from the centralized
+        JSON config on the dashboard repo.  The config file should be a static URL so that we don't have to get back
+        on the sensor box code to update the location.
+        The function is pretty standard - just go to the prescribed URL, parse the JSON sensor data, and then update
+        the local array of Sensor information.
+        """
         url = 'https://raw.githubusercontent.com/okielife/TempSensors/refs/heads/gh-pages/_data/config.json'
-        # noinspection PyBroadException
+        response = None
         try:
             response = self.board.http_get(url)
-            if response.status_code in (200, 201):
-                data = self.board.load_json(response.raw)
-                for sensor in self.sensors:
-                    sensor.label = data['rom_hex_to_cable_number'][sensor.rom.hex()]
-                    if sensor.label in data['sensors']:
-                        sensor.name = data['sensors'][sensor.label]['short_name']
-                        sensor.active = data['sensors'][sensor.label].get('active', False)
-                    else:
-                        sensor.name = "INACTIVE SENSOR"
-                        sensor.active = False
-                self.retrieved_sensor_info = True
-            else:
+            if response.status_code not in (200, 201):
                 self.board.print(f"HTTP Error while trying to get sensor config: {response.status_code}")
-            response.close()
+                return
+            data = self.board.load_json(response.raw)
+            for sensor in self.sensors:
+                rom_hex = sensor.rom.hex()
+                label = data.get('rom_hex_to_cable_number', {}).get(rom_hex)
+                if not label:
+                    sensor.name = "UNKNOWN SENSOR"
+                    sensor.active = False
+                    continue
+                if label in data['sensors']:
+                    sensor.label = label
+                    sensor.name = data['sensors'][label].get('short_name', '???')
+                    sensor.active = data['sensors'][label].get('active', False)
+                else:
+                    sensor.name = "UNKNOWN SENSOR"
+                    sensor.active = False
+            self.retrieved_sensor_info = True
         except Exception as e:
-            self.board.print(str(e))
-            pass  # just allow it to continue, sensors will be unnamed for now
+            self.board.print(str(e))  # print, but just allow it to continue, sensors will be unnamed for now
+        finally:
+            if response:
+                response.close()
 
     def push_to_github(self) -> bool:
-        # we will return true if all were successful, but if any fail, it's fine,
-        # because the unresponsive sensor check will alert us
+        """
+        This function is responsible for pushing updated temperature results to GitHub for all connected sensors.
+        The content is a simple YAML file header with a few variables at the top and no body HTML content beneath ---.
+        The push is actually a "put" http action where it will live at the repo's gh-pages branch at:
+        /_posts/romHexAbc123Def/2026-02-24-10-30-02_romHexAbc123Def_Sensor_Name_Here.html.
+        If any fail, it will return False, and the sensor box can alert that the last push failed.
+        Also, if this keeps failing for any reason, the periodic sensor responsiveness check will alert us.
+        :return bool: True if successful, False otherwise
+        """
         all_success = True
         t = self.board.localtime()
         current = f"{t[0]}-{t[1]:02d}-{t[2]:02d}-{t[3]:02d}-{t[4]:02d}-{t[5]:02d}"
@@ -353,7 +493,7 @@ measurement_time: {current}
             file_path = f"_posts/{sensor.rom.hex()}/{file_name}"
             url = f"https://api.github.com/repos/okielife/TempSensors/contents/{file_path}"
             headers = {'Accept': 'application/vnd.github + json', 'User-Agent': 'Temp Sensor',
-                       'Authorization': f'Token {GITHUB_TOKEN}'}
+                       'Authorization': f'Token {self.github_token}'}
             encoded_content = b2a_base64(file_content.encode()).decode()
             data = {'message': f"Updating {file_path}", 'content': encoded_content, 'branch': 'gh-pages'}
             try:
@@ -366,20 +506,15 @@ measurement_time: {current}
                 all_success = False
         return all_success
 
-    def flash_led(self, num_times: int) -> None:
-        self.board.led().off()
-        for i in range(num_times * 2):
-            self.board.sleep(0.2)
-            self.board.led().toggle()
-        self.board.led().off()
-
 
 if __name__ == "__main__":  # pragma: no cover
     # this entry point should only ever be called from Micropython hardware itself
     # we are launching this file manually from Thonny - do not create the watchdog
     from screen_tft import ScreenTFT
-    from board_mock import BoardMock
-    tft = ScreenTFT.default_construct()
-    net = BoardMock()
-    r = SensorBox(tft, net)
+    from board_pico import BoardPico
+    from config import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
+
+    tft = ScreenTFT()
+    pico = BoardPico(watchdog_enabled=False)
+    r = SensorBox(pico, tft, WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN)
     r.run()

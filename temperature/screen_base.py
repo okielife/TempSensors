@@ -11,14 +11,8 @@ class ScreenBase:
     HEIGHT = 160
 
     # noinspection PyUnusedLocal,PyPep8Naming
-    def __init__(self, spi=None, aDC=None, aReset=None, aCS=None, ScreenSize=(128, 160)):
-        raise NotImplementedError
-
-    def initr(self):
-        raise NotImplementedError
-
-    def rgb(self, _):
-        raise NotImplementedError
+    def __init__(self):
+        self.displayed_messages_for_testing: list[str] = []
 
     def fill(self, color):
         raise NotImplementedError

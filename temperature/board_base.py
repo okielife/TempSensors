@@ -12,7 +12,7 @@ class PinBase:
 
     # noinspection PyUnusedLocal
     def __init__(self, pin_id: int | str, direction: int = 0, pull: int = 0):
-        raise NotImplementedError
+        pass
 
     def on(self) -> None:
         raise NotImplementedError
@@ -23,15 +23,15 @@ class PinBase:
     def toggle(self) -> None:
         raise NotImplementedError
 
+    def value(self) -> int:
+        raise NotImplementedError
+
 
 class BoardBase:
 
     # noinspection PyUnusedLocal
     def __init__(self):
-        raise NotImplementedError
-
-    def led(self) -> PinBase:
-        raise NotImplementedError
+        self.printed_messages_for_testing: list[str] = []
 
     def active(self, active: bool) -> None:
         raise NotImplementedError
@@ -64,18 +64,6 @@ class BoardBase:
         raise NotImplementedError
 
     def feed_watchdog(self):
-        raise NotImplementedError
-
-    def pin_create(self, pin_id: int | str, direction: int, pull: int):
-        raise NotImplementedError
-
-    def set_pin_on(self, pin_id: int | str):
-        raise NotImplementedError
-
-    def set_pin_off(self, pin_id: int | str):
-        raise NotImplementedError
-
-    def set_pin_toggle(self, pin_id: int | str):
         raise NotImplementedError
 
     def ds18x20_scan(self) -> list[bytes]:

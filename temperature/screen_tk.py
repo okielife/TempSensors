@@ -15,13 +15,13 @@ class ScreenTk(ScreenBase):
     GRAY = (128, 128, 128)
 
     # noinspection PyUnusedLocal,PyPep8Naming,PyMissingConstructor
-    def __init__(self, spi=None, aDC=None, aReset=None, aCS=None, ScreenSize=(128, 160)):
+    def __init__(self):
 
         self.closed = False
-        self.width, self.height = ScreenSize
+        self.width, self.height = 128, 160
         self.scale = 2  # 1 = real size, 2 = double, etc.
 
-        self.image = Image.new("RGB", ScreenSize, (0, 0, 0))
+        self.image = Image.new("RGB", (128, 160), (0, 0, 0))
         self.draw = ImageDraw.Draw(self.image)
 
         self.root = tk.Tk()

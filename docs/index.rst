@@ -18,3 +18,4 @@ In summary, the temperature sensors are based on:
    assembly
    developer
    design
+   pinout

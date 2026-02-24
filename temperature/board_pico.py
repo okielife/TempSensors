@@ -12,9 +12,11 @@ from ujson import load as load_json
 from urequests import get, put
 
 from time import ticks_ms, ticks_diff, localtime, sleep
-from typing import Optional
 
-from board_base import BoardBase
+try:
+    from temperature.board_base import BoardBase
+except ImportError:
+    BoardBase = object
 
 
 class BoardPico(BoardBase):
@@ -24,15 +26,12 @@ class BoardPico(BoardBase):
     def __init__(self, watchdog_enabled: bool):
         self.watchdog_enabled = watchdog_enabled
         self.wlan = WLAN(STA_IF)
-        self.wdt: Optional[WDT] = None
-        self.ds18x20: Optional[DS18X20] = None
-        self._led = Pin('led', Pin.OUT)
+        self.wdt: WDT | None = None
+        self.ds18x20: DS18X20 | None = None
+        self._led = Pin('LED', Pin.OUT)
         self.pins = {}
-        ow = OneWire(self.pin_create(BoardPico.ONE_WIRE_SENSOR_PIN))
+        ow = OneWire(Pin(BoardPico.ONE_WIRE_SENSOR_PIN))
         self.ds18x20 = DS18X20(ow)
-
-    def led(self):
-        return self._led
 
     def active(self, active: bool) -> None:
         self.wlan.active(active)
@@ -56,7 +55,7 @@ class BoardPico(BoardBase):
         return get(url)
 
     def http_put(self, url: str, headers: dict, json: dict):
-        return put(url, headers, json)
+        return put(url, headers=headers, json=json)
 
     # noinspection PyUnusedLocal
     def rtc_datetime(self, timestamp: tuple[int, int, int, int, int, int, int, int]):
@@ -70,20 +69,8 @@ class BoardPico(BoardBase):
         if self.watchdog_enabled:
             self.wdt.feed()
 
-    def pin_create(self, pin_id: int | str, direction: int = Pin.IN, pull: int = Pin.PULL_UP):
-        self.pins[pin_id] = Pin(pin_id, direction, pull)
-
-    def set_pin_on(self, pin_id: int | str):
-        self.pins[pin_id].on()
-
-    def set_pin_off(self, pin_id: int | str):
-        self.pins[pin_id].off()
-
-    def set_pin_toggle(self, pin_id: int | str):
-        self.pins[pin_id].toggle()
-
     def ds18x20_scan(self) -> list[bytes]:
-        return self.ds18x20_scan()
+        return self.ds18x20.scan()
 
     def ds18x20_read_temp(self, rom: bytes):
         return self.ds18x20.read_temp(rom)
@@ -114,6 +101,14 @@ class BoardPico(BoardBase):
             for i in range(seconds):
                 sleep(1)
                 self.feed_watchdog()
+
+    def sleep(self, seconds: float):
+        if seconds > 3:
+            for i in range(int(seconds)):
+                sleep(1)
+                self.feed_watchdog()
+        else:
+            sleep(seconds)
 
     def run_forever(self) -> bool:
         return True

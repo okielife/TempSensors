@@ -11,14 +11,8 @@ class ScreenMock(ScreenBase):
     GRAY = 0
 
     # noinspection PyUnusedLocal,PyPep8Naming,PyMissingConstructor
-    def __init__(self, spi=None, aDC=None, aReset=None, aCS=None, ScreenSize=(128, 160)):
+    def __init__(self):
         self.displayed_messages_for_testing = []
-
-    def initr(self):
-        pass
-
-    def rgb(self, _):
-        pass
 
     def fill(self, color):
         pass
