@@ -1,4 +1,4 @@
 [flake8]
 max-line-length = 120
-exclude = temperature/st7735.py
+exclude = firmware/st7735.py
 ignore = E266

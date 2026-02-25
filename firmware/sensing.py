@@ -445,7 +445,7 @@ class SensorBox:
         The function is pretty standard - just go to the prescribed URL, parse the JSON sensor data, and then update
         the local array of Sensor information.
         """
-        url = 'https://raw.githubusercontent.com/okielife/TempSensors/refs/heads/gh-pages/_data/config.json'
+        url = 'https://raw.githubusercontent.com/okielife/TempSensors/AddRGBSwitch/dashboard/_data/config.json'
         response = None
         try:
             response = self.board.http_get(url)
