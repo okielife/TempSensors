@@ -3,6 +3,15 @@ config.py
 __pycache__
 docs/_build
 
+dashboard/Gemfile.lock
+dashboard/_site
+dashboard/.idea
+dashboard/.jekyll-metadata
+dashboard/.bundle
+dashboard/vendor
+
+sensor_data/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

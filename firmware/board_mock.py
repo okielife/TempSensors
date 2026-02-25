@@ -1,7 +1,7 @@
 from random import randint
 from time import time
 
-from temperature.board_base import BoardBase, ResponseBase, PinBase
+from firmware.board_base import BoardBase, ResponseBase, PinBase
 
 
 class ResponseMock(ResponseBase):

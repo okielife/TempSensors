@@ -1,4 +1,4 @@
-from temperature.screen_base import ScreenBase
+from firmware.screen_base import ScreenBase
 
 
 class ScreenMock(ScreenBase):

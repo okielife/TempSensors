@@ -1,7 +1,7 @@
-from temperature.sensing import SensorBox
-from temperature.screen_tk import ScreenTk
-from temperature.board_tk import BoardTk
-from temperature.config_template import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
+from firmware.sensing import SensorBox
+from firmware.screen_tk import ScreenTk
+from firmware.board_tk import BoardTk
+from firmware.config_template import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
 
 
 def main():

@@ -1,8 +1,8 @@
 from PIL import Image, ImageDraw, ImageTk
 import tkinter as tk
 
-from temperature.font import FONT
-from temperature.screen_base import ScreenBase
+from firmware.font import FONT
+from firmware.screen_base import ScreenBase
 
 
 class ScreenTk(ScreenBase):

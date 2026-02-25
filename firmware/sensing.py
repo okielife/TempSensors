@@ -17,8 +17,8 @@ except ImportError:  # pragma: no cover
 # while running the static type checker, import the proper base classes to make the IDE happy
 # when running the actual Python code on PC or Pico, just keep them as plain objects, it does not matter
 if TYPE_CHECKING:
-    from temperature.board_base import BoardBase
-    from temperature.screen_base import ScreenBase
+    from firmware.board_base import BoardBase
+    from firmware.screen_base import ScreenBase
 else:
     BoardBase = object
     ScreenBase = object

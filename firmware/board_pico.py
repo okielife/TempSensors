@@ -14,7 +14,7 @@ from urequests import get, put
 from time import ticks_ms, ticks_diff, localtime, sleep
 
 try:
-    from temperature.board_base import BoardBase
+    from firmware.board_base import BoardBase
 except ImportError:
     BoardBase = object
 
