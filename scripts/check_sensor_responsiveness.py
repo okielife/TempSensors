@@ -22,7 +22,7 @@ this_file_path = Path(__file__).resolve()
 repo_root = this_file_path.parent.parent
 
 # grab some data from the config file, ignoring any readme*s
-config_file = repo_root / '_data' / 'config.json'
+config_file = repo_root / 'dashboard' / '_data' / 'config.json'
 config = loads(config_file.read_text())
 active_sensors = config['sensors']
 active_sensor_roms = []
@@ -36,7 +36,7 @@ active_sensors_checked = {x: False for x in active_sensor_roms}
 hex_map = config['rom_hex_to_cable_number']
 
 # loop over all the latest posts, just operating on the most recent from each
-posts_folder = repo_root / '_posts'
+posts_folder = repo_root / 'dashboard' / '_posts'  # assuming it was previously synced from the sensor_data branch
 all_posts = posts_folder.glob('**/*.html')
 all_posts_list = reversed(sorted(all_posts))  # should put the most recent first
 sensors_handled_already = set()

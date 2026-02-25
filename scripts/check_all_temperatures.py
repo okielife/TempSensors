@@ -13,13 +13,13 @@ ENDC = '\033[0m'
 
 this_file_path = Path(__file__).resolve()
 repo_root = this_file_path.parent.parent
-posts_folder = repo_root / '_posts'
+posts_folder = repo_root / 'dashboard' / '_posts'  # assuming it was previously synced from the sensor_data branch
 
 failures = []
 sensors_passing = set()
 sensors_ignored = set()
 
-config_file = repo_root / '_data' / 'config.json'
+config_file = repo_root / 'dashboard' / '_data' / 'config.json'
 config = loads(config_file.read_text())
 sensors = config['sensors']
 for cable_num, sensor in sensors.items():

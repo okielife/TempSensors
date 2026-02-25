@@ -9,6 +9,8 @@ dashboard/.idea
 dashboard/.jekyll-metadata
 dashboard/.bundle
 dashboard/vendor
+dashboard/_vendor
+dashboard/_posts
 
 sensor_data/
 

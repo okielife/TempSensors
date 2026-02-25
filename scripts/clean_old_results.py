@@ -4,16 +4,16 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 from subprocess import check_call
+from sys import argv
+
+data_root = Path(argv[1])  # pass path to the sensor_data/data folder in a standalone clone
 
 max_age_days = 10
 
 current_time = datetime.now()
 cutoff_date = current_time - timedelta(days=max_age_days)
 
-this_file_path = Path(__file__).resolve()
-repo_root = this_file_path.parent.parent
-posts_folder = repo_root / '_posts'
-all_posts = posts_folder.glob('**/*.html')
+all_posts = data_root.glob('**/*.html')
 all_posts_list = list(all_posts)
 num_to_delete = 0
 for post in all_posts_list:
@@ -25,9 +25,9 @@ for post in all_posts_list:
     except Exception as e:
         print(f"Could not create timestamp for file: \"{post}\"; Reason: {e}")
     if measurement_time < cutoff_date:
-        check_call(['git', 'rm', post])
+        check_call(['rm', post])
         num_to_delete += 1
 if num_to_delete > 0:
-    print(f"{num_to_delete} file(s) staged for deletion, next `git commit -m MSG` and `git push origin main`")
+    print(f"{num_to_delete} file(s) deleted, next `git add -A`, `git commit -m MSG` and `git push origin sensor_data")
 else:
     print("No files were staged for deletion, nothing to do")
