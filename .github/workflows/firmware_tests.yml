@@ -3,7 +3,7 @@ name: Firmware Tests
 on: [push, pull_request]
 
 jobs:
-  flake8:
+  testing:
     runs-on: ubuntu-latest
 
     steps:
