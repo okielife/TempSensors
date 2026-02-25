@@ -21,8 +21,6 @@ jobs:
         with:
           ref: sensor_data
           path: sensor_data
-      - name: Sync Sensor Data
-        run: mkdir -p main/dashboard/_posts && rsync -a --delete sensor_data/data/ main/dashboard/_posts/
       - name: Configure git
         working-directory: sensor_data
         run: |
@@ -37,8 +35,7 @@ jobs:
           git checkout -b "$BRANCH"
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
       - name: Clean old results
-        working-directory: main
-        run: python scripts/clean_old_results.py sensor_data/data
+        run: python main/scripts/clean_old_results.py sensor_data/data
       - name: Commit changes (if any)
         working-directory: sensor_data
         run: |
