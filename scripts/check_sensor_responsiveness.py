@@ -27,9 +27,10 @@ config = loads(config_file.read_text())
 active_sensors = config['sensors']
 active_sensor_roms = []
 for k in active_sensors:
-    is_readme = k.startswith('readme')
+    if k.startswith('readme'):
+        continue
     is_active = active_sensors[k].get('active', False)
-    if is_active and not is_readme:
+    if is_active:
         active_sensor_roms.append(active_sensors[k]["hex"])
 active_sensors_checked = {x: False for x in active_sensor_roms}
 hex_map = config['rom_hex_to_cable_number']
