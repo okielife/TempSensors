@@ -24,11 +24,13 @@ jobs:
       - name: Sync Sensor Data
         run: mkdir -p main/dashboard/_posts && rsync -a --delete sensor_data/data/ main/dashboard/_posts/
       - name: Configure git
+        working-directory: sensor_data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       - name: Create cleanup branch
         id: branch
+        working-directory: sensor_data
         run: |
           TS=$(date -u +"%Y%m%d-%H%M%S")
           BRANCH="cleanup/old-posts-${TS}"
