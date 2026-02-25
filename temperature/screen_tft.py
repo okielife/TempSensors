@@ -6,7 +6,7 @@ from st7735 import TFT
 from font import FONT
 
 try:
-    from temperature.screen_base import ScreenBase
+    from screen_base import ScreenBase
 except ImportError:
     ScreenBase = object
 
@@ -28,14 +28,14 @@ class ScreenTFT(ScreenBase):
     PIN_LED = 21
 
     # noinspection PyUnusedLocal,PyPep8Naming,PyMissingConstructor
-    def __init__(self):
+    def __init__(self, invert_rgb: bool):
         pin_sck = ScreenTFT.PIN_SCI_SCK
         pin_sda = ScreenTFT.PIN_SDA_MOSI
         spi = SPI(0, baudrate=20_000_000, polarity=0, phase=0, sck=Pin(pin_sck), mosi=Pin(pin_sda))
         self.tft = TFT(spi, ScreenTFT.PIN_DC, ScreenTFT.PIN_RESET, ScreenTFT.PIN_CS, (128, 160))
         self.tft.initr()
         Pin(ScreenTFT.PIN_LED, Pin.OUT).on()
-        self.tft.rgb(False)
+        self.tft.rgb(invert_rgb)
         self.tft.fill(TFT.BLACK)
 
     def fill(self, *args, **kwargs):

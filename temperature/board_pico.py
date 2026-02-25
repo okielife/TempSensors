@@ -26,8 +26,7 @@ class BoardPico(BoardBase):
     def __init__(self, watchdog_enabled: bool):
         self.watchdog_enabled = watchdog_enabled
         self.wlan = WLAN(STA_IF)
-        self.wdt: WDT | None = None
-        self.ds18x20: DS18X20 | None = None
+        self.wdt = None
         self._led = Pin('LED', Pin.OUT)
         self.pins = {}
         ow = OneWire(Pin(BoardPico.ONE_WIRE_SENSOR_PIN))

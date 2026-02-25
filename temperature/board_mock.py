@@ -24,7 +24,7 @@ class PinMock(PinBase):
     PULL_UP = 0
 
     # noinspection PyUnusedLocal,PyMissingConstructor
-    def __init__(self, pin_id: int | str, direction: int = IN, pull: int = 0):
+    def __init__(self, pin_id, direction: int = IN, pull: int = 0):
         self.pin_id = pin_id
         self.value_on = False
 

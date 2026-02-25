@@ -6,8 +6,11 @@ from struct import unpack
 # if we are on the Pico, typing won't be available, so this will fall through and set the type check flag to False
 # if we are on the PC, typing will be available, so this flag will be valid
 try:
-    from typing import TYPE_CHECKING
+    from typing import NewType, TYPE_CHECKING
+    WiFiNetworkType = NewType('WiFiNetworkType', list[tuple[str, str]])
+    ConnectedSensorType = NewType('ConnectedSensorType', list[tuple[str, str]])
 except ImportError:  # pragma: no cover
+    NewType = None
     # noinspection PyFinal
     TYPE_CHECKING = False
 
@@ -40,7 +43,7 @@ class SensorBox:
     def __init__(
             self,
             board, screen,  # deferring type hints on these because base class detection is not working well
-            wifi_networks: list[tuple[str, str]], connected_sensors: list[tuple[str, str]], github_token: str
+            wifi_networks: 'WiFiNetworkType', connected_sensors: 'ConnectedSensorType', github_token: str
     ):
         """
         This constructor sets up local copies of the screen, board, and other config variables passed in.
@@ -256,7 +259,7 @@ class SensorBox:
         "Error" run phase, which is just the generalized error reporter, including a sleep to hold it on the screen.
         """
         self.board.print(str(e))
-        self.show_fatal_error(e)
+        self.show_fatal_error(str(e))
         self.board.sleep(30)
 
     def update_display(self):
@@ -275,7 +278,7 @@ class SensorBox:
             else:
                 self.screen.text((0, y), f"{sensor.label} {sensor.name}", self.screen.YELLOW, 1)
             y += 10
-            if sensor.temperature_f:
+            if sensor.temperature_f is not None:
                 temp_string = f"{sensor.temperature_f:.2f} F"
                 self.screen.text((27, y), temp_string, self.screen.WHITE, 2)
                 # draw the degree symbol if it's like "X.YY F" or "XX.YY F"
@@ -343,7 +346,7 @@ class SensorBox:
         self.screen.vline((107, 88), 11, self.screen.YELLOW)
         self.screen.hline((97, 98), 10, self.screen.YELLOW)
 
-    def show_fatal_error(self, error: Exception | str):
+    def show_fatal_error(self, error: str):
         """
         This function is responsible for issuing a fatal message to the user.  This includes printing the message
         according to the board instance's print capability, as well as attempting to break up the message and display
@@ -413,6 +416,7 @@ class SensorBox:
         If any failures arise, this function just returns, leaving the time un-synchronized, so that it will try again.
         """
         s = socket(AF_INET, SOCK_DGRAM)
+        # noinspection PyBroadException
         try:
             addr = getaddrinfo("pool.ntp.org", 123)[0][-1]
             s.settimeout(timeout)
@@ -423,8 +427,12 @@ class SensorBox:
             self.board.rtc_datetime((tm[0], tm[1], tm[2], tm[6] + 1, tm[3], tm[4], tm[5], 0))
             self.time_synced = True
         except (OSError, ValueError, IndexError):
-            # Expected failure modes: network, DNS, short packet, unpack issues
+            # Expected failure modes: network, DNS, short packet
             # just allow it to continue; the time_synced flag will stay false so that it will retry
+            pass
+        except Exception:
+            # struct.error could occur on the unpack method, but it was causing issues for me on the Pico
+            # I know this is silly to just do the same thing on the broad Exception, but it's the safest bet
             pass
         finally:
             s.close()
@@ -492,9 +500,9 @@ measurement_time: {current}
             file_name = f"{current}_{sensor.rom.hex()}_{sensor_name_cleaned}.html"
             file_path = f"_posts/{sensor.rom.hex()}/{file_name}"
             url = f"https://api.github.com/repos/okielife/TempSensors/contents/{file_path}"
-            headers = {'Accept': 'application/vnd.github + json', 'User-Agent': 'Temp Sensor',
+            headers = {'Accept': 'application/vnd.github+json', 'User-Agent': 'Temp Sensor',
                        'Authorization': f'Token {self.github_token}'}
-            encoded_content = b2a_base64(file_content.encode()).decode()
+            encoded_content = b2a_base64(file_content.encode()).decode().strip()
             data = {'message': f"Updating {file_path}", 'content': encoded_content, 'branch': 'gh-pages'}
             try:
                 response = self.board.http_put(url, headers=headers, json=data)
@@ -513,8 +521,14 @@ if __name__ == "__main__":  # pragma: no cover
     from screen_tft import ScreenTFT
     from board_pico import BoardPico
     from config import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
+    # noinspection PyPackageRequirements
+    from machine import Pin
 
-    tft = ScreenTFT()
+    rgb_invert_pin = 22  # TFT screens are inconsistent with RGB order, so jump pin GP14 to ground to invert blue/red
+    rgb_invert_pin = Pin(rgb_invert_pin, Pin.IN, Pin.PULL_UP)
+    rgb_invert_mode = (rgb_invert_pin.value() == 0)
+
+    tft = ScreenTFT(rgb_invert_mode)
     pico = BoardPico(watchdog_enabled=False)
     r = SensorBox(pico, tft, WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN)
     r.run()
