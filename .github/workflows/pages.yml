@@ -37,13 +37,13 @@ jobs:
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
-          source: ./dashboard
-          destination: ./dashboard/_site
+          source: ./main/dashboard
+          destination: ./main/dashboard/_site
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dashboard/_site
+          path: ./main/dashboard/_site
 
   deploy:
     needs: build
