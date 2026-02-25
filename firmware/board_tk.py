@@ -1,6 +1,6 @@
 from time import sleep
 
-from temperature.board_mock import BoardMock
+from firmware.board_mock import BoardMock
 
 
 class BoardTk(BoardMock):

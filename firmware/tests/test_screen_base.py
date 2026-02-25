@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from temperature.screen_base import ScreenBase
+from firmware.screen_base import ScreenBase
 
 # This file is really just a test of the API.
 # I will assert that it raises NotImplementedError

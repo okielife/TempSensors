@@ -11,6 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: gh-pages
+          ref: main
+          path: main
+      - uses: actions/checkout@v6
+        with:
+          ref: sensor_data
+          path: sensor_data
+      - name: Sync Sensor Data
+        run: mkdir -p main/dashboard/_posts && rsync -a --delete sensor_data/data/ main/dashboard/_posts/
       - name: Check Sensors Each Day
+        working-directory: main
         run: python scripts/check_sensor_responsiveness.py

@@ -16,8 +16,12 @@ def main():
     dev_pin = Pin(dev_pin, Pin.IN, Pin.PULL_UP)
     dev_mode = (dev_pin.value() == 0)
 
+    rgb_invert_pin = 22  # TFT screens are inconsistent with RGB order, so jump pin GP14 to ground to invert blue/red
+    rgb_invert_pin = Pin(rgb_invert_pin, Pin.IN, Pin.PULL_UP)
+    rgb_invert_mode = (rgb_invert_pin.value() == 0)
+
     # init the TFT base class to get a terminal first
-    tft = ScreenTFT()
+    tft = ScreenTFT(rgb_invert_mode)
 
     if dev_mode:
         print("GP22 jumper is connected; device is in developer mode")

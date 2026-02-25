@@ -11,7 +11,7 @@ class ResponseBase:
 class PinBase:
 
     # noinspection PyUnusedLocal
-    def __init__(self, pin_id: int | str, direction: int = 0, pull: int = 0):
+    def __init__(self, pin_id, direction: int = 0, pull: int = 0):
         pass
 
     def on(self) -> None:

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from temperature.board_base import BoardBase, ResponseBase, PinBase
+from firmware.board_base import BoardBase, ResponseBase, PinBase
 
 # This file is really just a test of the API.
 # I will assert that it raises NotImplementedError

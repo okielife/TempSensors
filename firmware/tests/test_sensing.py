@@ -1,9 +1,9 @@
 from unittest import TestCase
 
-from temperature.board_mock import BoardMock
-from temperature.screen_mock import ScreenMock
-from temperature.sensing import SensorBox
-from temperature.config_template import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
+from firmware.board_mock import BoardMock
+from firmware.screen_mock import ScreenMock
+from firmware.sensing import SensorBox
+from firmware.config_template import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
 
 
 class TestSensing(TestCase):
