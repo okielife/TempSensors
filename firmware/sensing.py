@@ -498,12 +498,12 @@ measurement_time: {current}
 """
             sensor_name_cleaned = sensor.name.replace(" ", "_")
             file_name = f"{current}_{sensor.rom.hex()}_{sensor_name_cleaned}.html"
-            file_path = f"_posts/{sensor.rom.hex()}/{file_name}"
+            file_path = f"data/{sensor.rom.hex()}/{file_name}"
             url = f"https://api.github.com/repos/okielife/TempSensors/contents/{file_path}"
             headers = {'Accept': 'application/vnd.github+json', 'User-Agent': 'Temp Sensor',
                        'Authorization': f'Token {self.github_token}'}
             encoded_content = b2a_base64(file_content.encode()).decode().strip()
-            data = {'message': f"Updating {file_path}", 'content': encoded_content, 'branch': 'gh-pages'}
+            data = {'message': f"Updating {file_path}", 'content': encoded_content, 'branch': 'sensor_data'}
             try:
                 response = self.board.http_put(url, headers=headers, json=data)
                 if response.status_code not in (200, 201):
