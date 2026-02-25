@@ -1,0 +1,24 @@
+name: Firmware Tests
+
+on: [push, pull_request]
+
+jobs:
+  flake8:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install Pip Dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run Flake8
+      run: coverage run -m unittest discover -s firmware/tests/
+
+    - name: Coveralls
+      uses: coverallsapp/github-action@v2

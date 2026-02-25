@@ -1,4 +1,9 @@
-# Temperature Sensor Repo
+# Temperature Sensors
+
+[![Build and deploy GitHub Pages](https://github.com/okielife/TempSensors/actions/workflows/pages.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/pages.yml)
+[![Check All Temperatures](https://github.com/okielife/TempSensors/actions/workflows/check_all_temps.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/check_all_temps.yml)
+[![Clean Old Results](https://github.com/okielife/TempSensors/actions/workflows/clean_old_results.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/clean_old_results.yml)
+[![Scheduled Sensor Responsiveness Check](https://github.com/okielife/TempSensors/actions/workflows/check_sensor_responsiveness.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/check_sensor_responsiveness.yml)
 
 My goal with this repo is to provide everything needed for someone to construct and stand up one of the temperature sensor boxes.  
 This includes the box design, hardware specs, and code.  
