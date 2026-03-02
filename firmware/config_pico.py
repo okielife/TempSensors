@@ -8,7 +8,7 @@ from ubinascii import hexlify
 # noinspection PyPackageRequirements
 from machine import unique_id, reset, Pin
 # noinspection PyPackageRequirements
-from network import WLAN, AP_IF, STA_IF
+from network import WLAN, AP_IF
 
 from firmware.config_base import ConfigBase
 from firmware.config_data import html_form, html_reboot, QR_CODE_192_168_4_1, DEFAULT_WIFI_NETWORKS, default_token
