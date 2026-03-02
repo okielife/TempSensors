@@ -3,36 +3,19 @@ from binascii import b2a_base64
 from socket import getaddrinfo, socket, AF_INET, SOCK_DGRAM
 from struct import unpack
 
-# if we are on the Pico, typing won't be available, so this will fall through and set the type check flag to False
-# if we are on the PC, typing will be available, so this flag will be valid
-try:
-    from typing import NewType, TYPE_CHECKING
-    WiFiNetworkType = NewType('WiFiNetworkType', list[tuple[str, str]])
-    ConnectedSensorType = NewType('ConnectedSensorType', list[tuple[str, str]])
-except ImportError:  # pragma: no cover
-    NewType = None
-    # noinspection PyFinal
-    TYPE_CHECKING = False
-
-# while running the static type checker, import the proper base classes to make the IDE happy
-# when running the actual Python code on PC or Pico, just keep them as plain objects, it does not matter
-if TYPE_CHECKING:
-    from firmware.board_base import BoardBase
-    from firmware.screen_base import ScreenBase
-else:
-    BoardBase = object
-    ScreenBase = object
-
+from board_base import BoardBase
+from screen_base import ScreenBase
+from config_base import ConfigBase
 
 __version__ = 3
 __revision__ = 7
 
 
 class Sensor:
-    def __init__(self, rom: bytes, label: str):
+    def __init__(self, rom: bytes):
         self.rom = rom
+        self.label = "??"
         self.temperature_f = None
-        self.label = label
         self.name = "UNKNOWN_NAME"
         self.active = False
 
@@ -40,31 +23,26 @@ class Sensor:
 class SensorBox:
 
     # noinspection PyPep8Naming
-    def __init__(
-            self,
-            board, screen,  # deferring type hints on these because base class detection is not working well
-            wifi_networks: 'WiFiNetworkType', connected_sensors: 'ConnectedSensorType', github_token: str
-    ):
+    def __init__(self, board: BoardBase, screen: ScreenBase, config: ConfigBase):
         """
         This constructor sets up local copies of the screen, board, and other config variables passed in.
         The constructor then initializes member variables and finally calls post() to boot up.
 
         :param board: A board instance for hardware API, should inherit BoardBase, could be BoardPico, BoardMOck, etc.
         :param screen: A screen instance for display API, should inherit ScreenBase, could be ScreenTFT, ScreenTk, etc.
-        :param wifi_networks: A list of network auth (name, pw) for all known Wi-Fi networks
-        :param connected_sensors: A list of sensor data (id, name) entries for each connected sensor
-        :param github_token: A string token generated from GitHub, with write access to the dashboard repo
+        :param config: A config instance which will provide GitHub token and Wi-Fi network information
         """
         # Unfortunately, this SensorBox will be acting different based on the current scenario
         # I will try to keep that to a minimum to avoid complexity in here. But there will likely
         # be a few cases that I want to handle different.  For example, I do not want to accumulate
         # the printed messages when running normally, or we would hit memory issues.  So only
         # accumulate those when unit testing.
-        self.board: BoardBase = board
-        self.screen: ScreenBase = screen
-        self.wifi_networks = wifi_networks
-        self.connected_sensors = connected_sensors
-        self.github_token = github_token
+        self.board = board
+        self.screen = screen
+        self.config = config
+        self.config.establish_config(self.screen)
+        self.wifi_networks = self.config.wifi_networks()
+        self.github_token = self.config.github_token()
 
         # basic member variables
         self.last_temp_stamp = None
@@ -82,7 +60,7 @@ class SensorBox:
         self.board.create_watchdog(8000)
         self.post()
 
-    def post(self):
+    def post(self) -> None:
         """
         This functions performs the boot process, kind of mocking a POST step.
         There are some failure conditions which will cause the boot to hang indefinitely.
@@ -105,22 +83,15 @@ class SensorBox:
         y_config = 126
         y_booting = 144
 
-        # init the TFT base class to get a terminal first
+        self.screen.fill(self.screen.BLACK)
         self.screen.text((15, y_starting), "STARTING", self.screen.GREEN, 2)
         self.screen.text((0, y_version), f"Version {__version__}.{__revision__}", self.screen.WHITE, 2)
         self.screen.text((0, y_screen), "Screen:  OK", self.screen.WHITE, 2)
         self.board.feed_watchdog()
 
         # set up the sensors now
-        scanned_roms = {rom.hex(): rom for rom in self.board.ds18x20_scan()}
-        self.board.feed_watchdog()
-        missing = [label for label, hex_id in self.connected_sensors if hex_id not in scanned_roms]
-        if missing:
-            self.show_fatal_error(f"Could not initialize sensor(s): {', '.join(missing)}; check connections")
-            # just hang here forever, we don't want to continue without the sensors
-            self.board.system_hang()
-        self.sensors = [Sensor(scanned_roms[hex_id], label) for label, hex_id in self.connected_sensors]
-        self.screen.text((0, y_sensors), "Sensors: OK", self.screen.WHITE, 2)
+        self.sensors = [Sensor(rom) for rom in self.board.ds18x20_scan()]
+        self.screen.text((0, y_sensors), f"Sensors:  {len(self.sensors)}", self.screen.WHITE, 2)
         self.board.feed_watchdog()
 
         # init the Wi-Fi and try to connect as needed
@@ -171,7 +142,7 @@ class SensorBox:
         self.board.sleep(1)
         self.board.feed_watchdog()
 
-    def run(self):
+    def run(self) -> None:
         """
         This function performs the "infinite" loop of actually running the sensor.
         Some of the logic is just like the post function, where it is continually checking what has been completed.
@@ -180,6 +151,11 @@ class SensorBox:
         This function will trap all exceptions - keyboard interrupts lead to a graceful exit, all others will return.
         In development, this will result in a reset() call to reboot the pico and restart everything.
         """
+        if self.board.developer_mode():
+            self.board.print("GP22 jumper is connected; device is in developer mode")
+            self.enter_dev_mode()
+            self.board.system_hang()
+            return
         self.board.feed_watchdog()
         first_time = True
         while True:
@@ -199,7 +175,7 @@ class SensorBox:
             if not self.board.run_forever():
                 break
 
-    def phase_sensing(self):
+    def phase_sensing(self) -> None:
         """
         "Sensing" run phase which is basically just reading new temperatures and logging the current time
         """
@@ -207,7 +183,7 @@ class SensorBox:
         self.board.feed_watchdog()
         self.last_temp_stamp = self.board.localtime()
 
-    def phase_network(self):
+    def phase_network(self) -> None:
         """
         "Network" run phase which is basically just trying to connect to Wi-Fi again, and once connected, trying to
         sync time and do an http request for active sensor info.
@@ -223,7 +199,7 @@ class SensorBox:
         if not self.retrieved_sensor_info:
             self.try_to_get_sensor_details()
 
-    def phase_push(self, first_time: bool):
+    def phase_push(self, first_time: bool) -> None:
         """
         "Push" run phase, which is basically waiting until connected and enough time has passed, then pushing data
         up to GitHub, and logging the time.
@@ -246,7 +222,7 @@ class SensorBox:
             self.last_push_had_errors = True
         self.board.feed_watchdog()
 
-    def phase_idle(self):
+    def phase_idle(self) -> None:
         """
         "Idle" run phase, which is basically just sleep for a little while between sensing loops
         """
@@ -254,7 +230,7 @@ class SensorBox:
             self.board.sleep(1)
             self.board.feed_watchdog()
 
-    def phase_error(self, e: Exception):
+    def phase_error(self, e: Exception) -> None:
         """
         "Error" run phase, which is just the generalized error reporter, including a sleep to hold it on the screen.
         """
@@ -262,7 +238,7 @@ class SensorBox:
         self.show_fatal_error(str(e))
         self.board.sleep(30)
 
-    def update_display(self):
+    def update_display(self) -> None:
         """
         This function does a normal update of the screen, gathering data and presenting on whatever screen is registered
         """
@@ -325,7 +301,7 @@ class SensorBox:
         else:
             self.screen.text((0, 150), "Push: NEVER", self.screen.YELLOW, 1)
 
-    def enter_dev_mode(self):
+    def enter_dev_mode(self) -> None:
         """
         This function displays the developer screen as a signal (mostly a reminder) that the debug jumper is connected
         """
@@ -346,7 +322,7 @@ class SensorBox:
         self.screen.vline((107, 88), 11, self.screen.YELLOW)
         self.screen.hline((97, 98), 10, self.screen.YELLOW)
 
-    def show_fatal_error(self, error: str):
+    def show_fatal_error(self, error: str) -> None:
         """
         This function is responsible for issuing a fatal message to the user.  This includes printing the message
         according to the board instance's print capability, as well as attempting to break up the message and display
@@ -371,7 +347,7 @@ class SensorBox:
         self.ip = ""
         wifi_connect_timeout_ms = 10_000
         available = {n[0].decode() for n in self.board.scan()}
-        for ssid, pw in self.wifi_networks:
+        for ssid, pw in self.wifi_networks.items():
             if ssid not in available:
                 continue
             self.board.connect(ssid, pw)
@@ -386,7 +362,7 @@ class SensorBox:
                 self.ssid = self.board.config('ssid')
                 break
 
-    def update_temperatures(self):
+    def update_temperatures(self) -> None:
         """
         This function is responsible for updating the sensed temperature values on all connected sensors.
         The process is pretty simple, just call to convert_temp on the sensors, which resets the sensor scratchpad,
@@ -409,7 +385,7 @@ class SensorBox:
             except Exception as e:
                 raise Exception(f"Could not get temperature from sensor named {sensor.name}") from e
 
-    def try_to_sync_time(self, timeout=5):
+    def try_to_sync_time(self, timeout: int = 5) -> None:
         """
         This function tries to synchronize the clock (RTC) using an NTP server response.
         The UDP packet is prepared, sent, the response is parsed into a Unix time, and stored back on the board clock.
@@ -437,7 +413,7 @@ class SensorBox:
         finally:
             s.close()
 
-    def try_to_get_sensor_details(self):
+    def try_to_get_sensor_details(self) -> None:
         """
         This function is responsible for trying to download and parse the sensor configuration from the centralized
         JSON config on the dashboard repo.  The config file should be a static URL so that we don't have to get back
@@ -456,12 +432,12 @@ class SensorBox:
             for sensor in self.sensors:
                 rom_hex = sensor.rom.hex()
                 label = data.get('rom_hex_to_cable_number', {}).get(rom_hex)
+                sensor.label = label
                 if not label:
                     sensor.name = "UNKNOWN SENSOR"
                     sensor.active = False
                     continue
                 if label in data['sensors']:
-                    sensor.label = label
                     sensor.name = data['sensors'][label].get('short_name', '???')
                     sensor.active = data['sensors'][label].get('active', False)
                 else:
@@ -520,15 +496,10 @@ if __name__ == "__main__":  # pragma: no cover
     # we are launching this file manually from Thonny - do not create the watchdog
     from screen_tft import ScreenTFT
     from board_pico import BoardPico
-    from config import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
-    # noinspection PyPackageRequirements
-    from machine import Pin
+    from config_pico import ConfigPico
 
-    rgb_invert_pin = 22  # TFT screens are inconsistent with RGB order, so jump pin GP14 to ground to invert blue/red
-    rgb_invert_pin = Pin(rgb_invert_pin, Pin.IN, Pin.PULL_UP)
-    rgb_invert_mode = (rgb_invert_pin.value() == 0)
-
-    tft = ScreenTFT(rgb_invert_mode)
-    pico = BoardPico(watchdog_enabled=False)
-    r = SensorBox(pico, tft, WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN)
+    tft = ScreenTFT()
+    pico = BoardPico()
+    c = ConfigPico()
+    r = SensorBox(pico, tft, c)
     r.run()

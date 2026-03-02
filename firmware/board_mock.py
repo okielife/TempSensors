@@ -14,7 +14,7 @@ class ResponseMock(ResponseBase):
         self.text = ""
         self.raw = b""
 
-    def close(self):
+    def close(self) -> None:
         return
 
 
@@ -47,7 +47,7 @@ class BoardMock(BoardBase):
     def __init__(
             self, watchdog_enabled: bool, verbose: bool = False,
             throw_rtc: bool = False, throw_http: bool = False, wifi_connect: bool = True,
-            ds18x20_missing_entry: bool = False, ds18x20_read_failure: bool = False,
+            ds18x20_read_failure: bool = False,
             continue_running_after_first_iteration: bool = False
     ):
         # config flags
@@ -56,7 +56,6 @@ class BoardMock(BoardBase):
         self.throw_rtc = throw_rtc
         self.throw_http = throw_http
         self.wifi_connect = wifi_connect
-        self.ds18x20_missing_entry = ds18x20_missing_entry
         self.ds18x20_read_failure = ds18x20_read_failure
         self.continue_running_after_first_iteration = continue_running_after_first_iteration
         # state data
@@ -71,6 +70,9 @@ class BoardMock(BoardBase):
         self.pins = {}
         self.clock = time() * 1000
         self.printed_messages_for_testing = []
+
+    def developer_mode(self) -> bool:
+        return False
 
     def active(self, active: bool) -> None:
         self.activated = active
@@ -99,32 +101,30 @@ class BoardMock(BoardBase):
             self.pw = pw
             self.ip = '127.0.0.1'
 
-    def http_get(self, url: str):
+    def http_get(self, url: str) -> ResponseBase:
         return ResponseMock(self.throw_http)
 
-    def http_put(self, _: str, headers: dict, json: dict):
+    def http_put(self, _: str, headers: dict, json: dict) -> ResponseBase:
         return ResponseMock(self.throw_http)
 
     # noinspection PyUnusedLocal
-    def rtc_datetime(self, timestamp: tuple[int, int, int, int, int, int, int, int]):
+    def rtc_datetime(self, timestamp: tuple[int, int, int, int, int, int, int, int]) -> None:
         if self.throw_rtc:
             raise OSError()
         year, month, day, weekday, hours, minutes, seconds, sub_seconds = timestamp
         if self.verbose:  # pragma: no cover
             print(f"RTC clock set to: {year}-{month}-{day} {hours}:{minutes}:{seconds}")
 
-    def create_watchdog(self, timeout: int):
+    def create_watchdog(self, timeout: int) -> None:
         self.watchdog_watching = self.watchdog_enabled
 
-    def feed_watchdog(self):
+    def feed_watchdog(self) -> None:
         self.watchdog.feed()
 
     def ds18x20_scan(self) -> list[bytes]:
-        if self.ds18x20_missing_entry:
-            return []
         return [b'(\x93d[\x00\x00\x00\xb4', b'(\xa7\x0fF\xd48h:']
 
-    def ds18x20_read_temp(self, rom: bytes):
+    def ds18x20_read_temp(self, rom: bytes) -> float:
         if self.ds18x20_read_failure:
             raise OSError()
         t = randint(-20, 40)
@@ -132,7 +132,7 @@ class BoardMock(BoardBase):
             print(f"Reading temperature as {t} Celsius")
         return t
 
-    def ds18x20_convert_temp(self):
+    def ds18x20_convert_temp(self) -> None:
         pass
 
     def load_json(self, _) -> dict:
@@ -140,7 +140,7 @@ class BoardMock(BoardBase):
             "sensors": {
                 "03": {
                     "hex": "2893645b000000b4",
-                    "active": True,
+                    "active": False,
                     "short_name": "Em Garage Fridge",
                 },
                 "13": {
@@ -160,7 +160,7 @@ class BoardMock(BoardBase):
             },
         }
 
-    def localtime(self, seconds: int = None):
+    def localtime(self, seconds: int = None) -> tuple:
         return 2025, 1, 19, 10, 55, 29, 1
 
     def ticks_ms(self) -> int:
@@ -169,16 +169,16 @@ class BoardMock(BoardBase):
     def ticks_diff(self, milliseconds_a: int, milliseconds_b: int) -> int:
         return 1_000_000  # return something big so it always advances
 
-    def system_hang(self, seconds: int = None):
+    def system_hang(self, seconds: int = None) -> None:
         if seconds is None:
             raise RuntimeError("Mocking the sensor box infinite system hang with an exception")
         # if there was a short positive hang, then it just returns
 
-    def sleep(self, seconds: float):
+    def sleep(self, seconds: float) -> None:
         return
 
     def run_forever(self) -> bool:
         return self.continue_running_after_first_iteration
 
-    def print(self, message: str):
+    def print(self, message: str) -> None:
         self.printed_messages_for_testing.append(message)

@@ -43,27 +43,21 @@ class ScreenTk(ScreenBase):
 
         self.show()
 
-    def _on_close(self):
+    def _on_close(self) -> None:
         self.closed = True
         self.root.destroy()
 
-    def initr(self):
-        pass
-
-    def rgb(self, _):
-        pass
-
-    def fill(self, color):
+    def fill(self, color: tuple) -> None:
         self.draw.rectangle((0, 0, self.width, self.height), fill=color)
         self.show()
 
-    def circle(self, point, radius, color):
+    def circle(self, point: tuple, radius: int, color: tuple) -> None:
         x_center, y_center = point
         x_min, x_max = x_center - radius, x_center + radius
         y_min, y_max = y_center - radius, y_center + radius
         self.draw.ellipse((x_min, y_min, x_max, y_max), outline=color)
 
-    def text(self, point, text, color, size=1, nowrap=True):
+    def text(self, point: tuple, text: str, color: tuple, size: int = 1, nowrap: bool = True) -> None:
 
         x, y = point
         cw = FONT["Width"]
@@ -100,27 +94,27 @@ class ScreenTk(ScreenBase):
 
         self.show()
 
-    def rect(self, p1, p2, color):
+    def rect(self, p1: tuple, p2: tuple, color: tuple) -> None:
         self.draw.rectangle((p1, p2), outline=color)
         self.show()
 
-    def fillrect(self, point, size, color):
+    def fillrect(self, point: tuple, size: tuple, color: tuple) -> None:
         x, y = point
         w, h = size
         self.draw.rectangle((x, y, x + w, y + h), fill=color)
         self.show()
 
-    def hline(self, point, length, color):
+    def hline(self, point: tuple, length: int, color: tuple) -> None:
         x, y = point
         self.draw.line((x, y, x + length, y), fill=color)
         self.show()
 
-    def vline(self, point, length, color):
+    def vline(self, point: tuple, length: int, color: tuple) -> None:
         x, y = point
         self.draw.line((x, y, x, y + length), fill=color)
         self.show()
 
-    def show(self):
+    def show(self) -> None:
         if self.closed:
             return
 
@@ -139,3 +133,21 @@ class ScreenTk(ScreenBase):
         self.canvas.itemconfig(self._image_id, image=self._photo)
         self.root.update()
         self.root.update_idletasks()
+
+    def draw_qr(self, y_offset: int, qr_bits: list, scale: int = 3) -> None:
+        self.fill(self.WHITE)
+        size = len(qr_bits)
+        x_offset = (128 - size * scale) // 2
+        for y in range(size):
+            for x in range(size):
+                if qr_bits[y][x]:
+                    starting_x_position = x_offset + x * scale
+                    starting_y_position = y_offset + y * scale
+                    width = scale
+                    height = scale
+                    self.draw.rectangle(
+                        (starting_x_position, starting_y_position, starting_x_position + width,
+                         starting_y_position + height),
+                        self.BLACK
+                    )
+        self.show()

@@ -3,14 +3,14 @@ from unittest import TestCase
 from firmware.board_mock import BoardMock
 from firmware.screen_mock import ScreenMock
 from firmware.sensing import SensorBox
-from firmware.config_template import WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN
+from firmware.config_template import WIFI_NETWORKS, GITHUB_TOKEN
 
 
 class TestSensing(TestCase):
 
     def setUp(self):
         self.screen = ScreenMock()
-        self.config = (WIFI_NETWORKS, CONNECTED_SENSORS, GITHUB_TOKEN)
+        self.config = (WIFI_NETWORKS, GITHUB_TOKEN)
         self.board = BoardMock(watchdog_enabled=False)
 
     def test_construction(self):
@@ -20,11 +20,6 @@ class TestSensing(TestCase):
         self.assertTrue(s.board.isconnected())
         self.assertTrue(s.time_synced)
         s.run()
-
-    def test_missing_sensor_reports_fatal(self):
-        self.board.ds18x20_missing_entry = True
-        with self.assertRaises(Exception):
-            SensorBox(self.board, self.screen, *self.config)
 
     def test_clock_sync_reports_error_but_continues(self):
         self.board.throw_rtc = True
