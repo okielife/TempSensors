@@ -1,10 +1,9 @@
 # noinspection PyPackageRequirements
 from machine import Pin, SPI
 
-from st7735 import TFT
-
-from font import FONT
-from screen_base import ScreenBase
+from firmware.font import FONT
+from firmware.screen_base import ScreenBase
+from firmware.st7735 import TFT
 
 
 class ScreenTFT(ScreenBase):
@@ -33,6 +32,7 @@ class ScreenTFT(ScreenBase):
         self.tft.initr()
         rgb_invert_pin = Pin(ScreenTFT.PIN_RGB_INVERT, Pin.IN, Pin.PULL_UP)
         rgb_invert_mode = (rgb_invert_pin.value() == 0)
+        Pin(ScreenTFT.PIN_LED, Pin.OUT).on()
         self.tft.rgb(rgb_invert_mode)
         self.tft.fill(TFT.BLACK)
 

@@ -8,6 +8,8 @@ flask
 coverage
 # we can also test with flake8
 flake8
+# and we can also test with mypy
+mypy
 # we will do documentation with sphinx
 sphinx
 python-docs-theme

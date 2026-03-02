@@ -8,11 +8,11 @@ class ConfigMock(ConfigBase):
         self.networks = DEFAULT_WIFI_NETWORKS
         self.token = default_token()
 
-    def wifi_networks(self) -> tuple:
+    def wifi_networks(self) -> dict:
         return self.networks
 
     def github_token(self) -> str:
         return self.token
 
-    def establish_config(self, _: ScreenBase = None) -> None:
+    def establish_config(self, _: ScreenBase | None = None) -> None:
         return

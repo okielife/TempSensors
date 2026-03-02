@@ -3,9 +3,9 @@ from binascii import b2a_base64
 from socket import getaddrinfo, socket, AF_INET, SOCK_DGRAM
 from struct import unpack
 
-from board_base import BoardBase
-from screen_base import ScreenBase
-from config_base import ConfigBase
+from firmware.board_base import BoardBase
+from firmware.screen_base import ScreenBase
+from firmware.config_base import ConfigBase
 
 __version__ = 3
 __revision__ = 7
@@ -15,7 +15,7 @@ class Sensor:
     def __init__(self, rom: bytes):
         self.rom = rom
         self.label = "??"
-        self.temperature_f = None
+        self.temperature_f: float | None = None
         self.name = "UNKNOWN_NAME"
         self.active = False
 
@@ -45,8 +45,8 @@ class SensorBox:
         self.github_token = self.config.github_token()
 
         # basic member variables
-        self.last_temp_stamp = None
-        self.last_push_stamp = None
+        self.last_temp_stamp: tuple | None = None
+        self.last_push_stamp: tuple | None = None
         self.last_push_had_errors = False
         self.last_push_ms = 0
         self.time_synced = False
@@ -305,6 +305,7 @@ class SensorBox:
         """
         This function displays the developer screen as a signal (mostly a reminder) that the debug jumper is connected
         """
+        # TODO: Fix this display, also maybe move it to the board class itself or the screen class??
         self.developer_mode = True
         self.screen.fill(self.screen.BLACK)
         self.screen.text((7, 5), "*DEV MODE*", self.screen.YELLOW, 2)
@@ -494,9 +495,9 @@ measurement_time: {current}
 if __name__ == "__main__":  # pragma: no cover
     # this entry point should only ever be called from Micropython hardware itself
     # we are launching this file manually from Thonny - do not create the watchdog
-    from screen_tft import ScreenTFT
-    from board_pico import BoardPico
-    from config_pico import ConfigPico
+    from firmware.screen_tft import ScreenTFT
+    from firmware.board_pico import BoardPico
+    from firmware.config_pico import ConfigPico
 
     tft = ScreenTFT()
     pico = BoardPico()

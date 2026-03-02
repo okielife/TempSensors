@@ -67,7 +67,7 @@ class BoardMock(BoardBase):
         self.known_ssids = ["MiFi8000-C1DE", "EmeraldWiFi"]
         self.watchdog = type("NoopWatchdog", (), {"feed": lambda _: None})()
         self.watchdog_watching = False
-        self.pins = {}
+        self.pins: dict = {}
         self.clock = time() * 1000
         self.printed_messages_for_testing = []
 
@@ -160,7 +160,7 @@ class BoardMock(BoardBase):
             },
         }
 
-    def localtime(self, seconds: int = None) -> tuple:
+    def localtime(self, seconds: int | None = None) -> tuple:
         return 2025, 1, 19, 10, 55, 29, 1
 
     def ticks_ms(self) -> int:
@@ -169,7 +169,7 @@ class BoardMock(BoardBase):
     def ticks_diff(self, milliseconds_a: int, milliseconds_b: int) -> int:
         return 1_000_000  # return something big so it always advances
 
-    def system_hang(self, seconds: int = None) -> None:
+    def system_hang(self, seconds: int | None = None) -> None:
         if seconds is None:
             raise RuntimeError("Mocking the sensor box infinite system hang with an exception")
         # if there was a short positive hang, then it just returns

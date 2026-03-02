@@ -3,10 +3,10 @@
 # noinspection PyPackageRequirements
 from machine import reset
 
-from board_pico import BoardPico
-from config_pico import ConfigPico
-from screen_tft import ScreenTFT
-from sensing import SensorBox
+from firmware.board_pico import BoardPico
+from firmware.config_pico import ConfigPico
+from firmware.screen_tft import ScreenTFT
+from firmware.sensing import SensorBox
 
 
 def main():

@@ -30,7 +30,7 @@ class PinBase:
 class BoardBase:
 
     # noinspection PyUnusedLocal
-    def __init__(self):
+    def __init__(self) -> None:
         self.printed_messages_for_testing: list[str] = []
 
     def developer_mode(self) -> bool:
@@ -81,7 +81,7 @@ class BoardBase:
     def load_json(self, json_bytes) -> dict:
         raise NotImplementedError
 
-    def localtime(self, seconds: int = None) -> tuple:
+    def localtime(self, seconds: int | None = None) -> tuple:
         raise NotImplementedError
 
     def ticks_ms(self) -> int:
@@ -90,7 +90,7 @@ class BoardBase:
     def ticks_diff(self, milliseconds_a: int, milliseconds_b: int) -> int:
         raise NotImplementedError
 
-    def system_hang(self, seconds: int = None) -> None:
+    def system_hang(self, seconds: int | None = None) -> None:
         raise NotImplementedError
 
     def sleep(self, seconds: float) -> None:

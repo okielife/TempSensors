@@ -10,8 +10,7 @@ class ScreenBase:
     WIDTH = 128
     HEIGHT = 160
 
-    # noinspection PyUnusedLocal,PyPep8Naming
-    def __init__(self):
+    def __init__(self) -> None:
         self.displayed_messages_for_testing: list[str] = []
 
     def fill(self, color) -> None:

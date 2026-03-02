@@ -1,4 +1,4 @@
-from screen_base import ScreenBase
+from firmware.screen_base import ScreenBase
 
 
 class ConfigBase:
@@ -9,5 +9,5 @@ class ConfigBase:
     def github_token(self) -> str:
         raise NotImplementedError()
 
-    def establish_config(self, screen: ScreenBase = None) -> None:
+    def establish_config(self, screen: ScreenBase | None = None) -> None:
         raise NotImplementedError()

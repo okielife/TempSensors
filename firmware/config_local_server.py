@@ -2,18 +2,18 @@ import http.server
 import socketserver
 import webbrowser
 
-from config_data import html_form, html_reboot, default_token, DEFAULT_WIFI_NETWORKS
+from firmware.config_data import html_form, html_reboot, default_token, DEFAULT_WIFI_NETWORKS
 from firmware.config_base import ConfigBase
 from firmware.screen_tk import ScreenBase
 
-local_token = default_token()
-additional_network = {}
-ready = False
+local_token: str = default_token()
+additional_network: dict = {}
+ready: bool = False
 
 
 class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
-    def _set_response(self, status_code=200):
+    def _set_response(self, status_code=200) -> None:
         self.send_response(status_code)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
@@ -36,9 +36,9 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 key, value = pair.split("=", 1)
                 value = value.replace("+", " ")
                 d[key] = value
-        local_token = d.get("github_token")
-        ssid = d.get("wifi_ssid")
-        password = d.get("wifi_password")
+        local_token = d.get("github_token", "")
+        ssid = d.get("wifi_ssid", "")
+        password = d.get("wifi_password", "")
         if ssid and password:
             additional_network[ssid] = password
         ready = True
@@ -49,16 +49,16 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
 class ConfigLocalServer(ConfigBase):
 
-    def __init__(self, valid_config: bool = False):
+    def __init__(self, valid_config: bool = False) -> None:
         self.valid_config = valid_config
 
-    def wifi_networks(self) -> list:
+    def wifi_networks(self) -> dict:
         return DEFAULT_WIFI_NETWORKS | additional_network
 
     def github_token(self) -> str:
         return local_token
 
-    def establish_config(self, screen: ScreenBase = None) -> None:
+    def establish_config(self, screen: ScreenBase | None = None) -> None:
         port = 5000
         if self.valid_config:
             return

@@ -1,3 +1,4 @@
+from gc import collect
 from json import dump, loads
 from os import remove
 from socket import getaddrinfo, socket
@@ -7,11 +8,11 @@ from ubinascii import hexlify
 # noinspection PyPackageRequirements
 from machine import unique_id, reset, Pin
 # noinspection PyPackageRequirements
-from network import WLAN, AP_IF
+from network import WLAN, AP_IF, STA_IF
 
-from config_base import ConfigBase
-from config_data import html_form, html_reboot, QR_CODE_192_168_4_1, DEFAULT_WIFI_NETWORKS, default_token
-from screen_tft import ScreenTFT, ScreenBase
+from firmware.config_base import ConfigBase
+from firmware.config_data import html_form, html_reboot, QR_CODE_192_168_4_1, DEFAULT_WIFI_NETWORKS, default_token
+from firmware.screen_tft import ScreenTFT, ScreenBase
 
 
 class ConfigPico(ConfigBase):
@@ -23,7 +24,7 @@ class ConfigPico(ConfigBase):
         self.device_id_short = self.device_id[0:4]
         self.ap_wifi_name = f"Sensor_{self.device_id_short}"
         self.token = default_token()
-        self.additional_wifi_network = {}
+        self.additional_wifi_network: dict = {}
         self.ready_to_reset = False
         factory_reset_pin = Pin(ConfigPico.PIN_FACTORY_RESET, Pin.IN, Pin.PULL_UP)
         perform_factory_reset = (factory_reset_pin.value() == 0)
@@ -35,7 +36,7 @@ class ConfigPico(ConfigBase):
             except Exception:  # it's fine if it didn't exist or anything
                 pass
 
-    def wifi_networks(self) -> tuple:
+    def wifi_networks(self) -> dict:
         return DEFAULT_WIFI_NETWORKS | self.additional_wifi_network
 
     def github_token(self) -> str:
@@ -94,10 +95,11 @@ class ConfigPico(ConfigBase):
         if self.valid_config_found():
             print(f"Valid configuration found:\n{self.get_config()}\nAll done.")
             return
+        collect()
         print("No valid configuration found, entering provisioning mode.")
         ap = WLAN(AP_IF)
         ap.active(False)
-        sleep(0.5)
+        sleep(1)
         ap.active(True)
         ap.config(essid=self.ap_wifi_name, security=0)
         print(f"Provisioning mode. Connect to Wi-Fi: {self.ap_wifi_name}")

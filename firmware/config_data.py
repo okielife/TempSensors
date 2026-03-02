@@ -36,7 +36,7 @@ QR_CODE_192_168_4_1 = [
 ]
 
 
-def html_form(device_id, initial_token: str = "", additional_network: dict = None) -> str:
+def html_form(device_id: str, initial_token: str = "", additional_network: dict | None = None) -> str:
     network_bullets = "".join(f"<li>{x}</li>" for x in DEFAULT_WIFI_NETWORKS)
     extra_ssid, extra_pw = "", ""
     if additional_network:
