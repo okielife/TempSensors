@@ -15,7 +15,7 @@ jobs:
         python-version: '3.12'
 
     - name: Install Pip Dependencies
-      run: pip install mypy
+      run: pip install mypy pillow
 
     - name: Run Flake8
       run: mypy firmware
