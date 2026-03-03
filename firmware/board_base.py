@@ -30,8 +30,11 @@ class PinBase:
 class BoardBase:
 
     # noinspection PyUnusedLocal
-    def __init__(self):
+    def __init__(self) -> None:
         self.printed_messages_for_testing: list[str] = []
+
+    def developer_mode(self) -> bool:
+        raise NotImplementedError
 
     def active(self, active: bool) -> None:
         raise NotImplementedError
@@ -57,28 +60,28 @@ class BoardBase:
     def http_put(self, _: str, headers: dict, json: dict) -> ResponseBase:
         raise NotImplementedError
 
-    def rtc_datetime(self, timestamp: tuple[int, int, int, int, int, int, int, int]):
+    def rtc_datetime(self, timestamp: tuple[int, int, int, int, int, int, int, int]) -> None:
         raise NotImplementedError
 
-    def create_watchdog(self, timeout: int):
+    def create_watchdog(self, timeout: int) -> None:
         raise NotImplementedError
 
-    def feed_watchdog(self):
+    def feed_watchdog(self) -> None:
         raise NotImplementedError
 
     def ds18x20_scan(self) -> list[bytes]:
         raise NotImplementedError
 
-    def ds18x20_read_temp(self, rom: bytes):
+    def ds18x20_read_temp(self, rom: bytes) -> float:
         raise NotImplementedError
 
-    def ds18x20_convert_temp(self):
+    def ds18x20_convert_temp(self) -> None:
         raise NotImplementedError
 
     def load_json(self, json_bytes) -> dict:
         raise NotImplementedError
 
-    def localtime(self, seconds: int = None):
+    def localtime(self, seconds: int | None = None) -> tuple:
         raise NotImplementedError
 
     def ticks_ms(self) -> int:
@@ -87,10 +90,10 @@ class BoardBase:
     def ticks_diff(self, milliseconds_a: int, milliseconds_b: int) -> int:
         raise NotImplementedError
 
-    def system_hang(self, seconds: int = None):
+    def system_hang(self, seconds: int | None = None) -> None:
         raise NotImplementedError
 
-    def sleep(self, seconds: float):
+    def sleep(self, seconds: float) -> None:
         raise NotImplementedError
 
     def run_forever(self) -> bool:

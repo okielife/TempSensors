@@ -205,5 +205,8 @@
       "maximum_temp": 42,
       "sensor_location": "Emerald"
     }
-  ]
+  ],
+  "latest_box_data": {
+    "25": "Not sure where this is at right now, but 25 was the first serial number I made"
+  }
 }

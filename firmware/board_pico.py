@@ -13,24 +13,26 @@ from urequests import get, put
 
 from time import ticks_ms, ticks_diff, localtime, sleep
 
-try:
-    from firmware.board_base import BoardBase
-except ImportError:
-    BoardBase = object
+from firmware.board_base import BoardBase
 
 
 class BoardPico(BoardBase):
     ONE_WIRE_SENSOR_PIN = 28
+    DEV_MODE_PIN = 10  # when developing, jump pin GP10 over to GND
 
     # noinspection PyMissingConstructor
-    def __init__(self, watchdog_enabled: bool):
-        self.watchdog_enabled = watchdog_enabled
+    def __init__(self):
+        dev_pin = Pin(BoardPico.DEV_MODE_PIN, Pin.IN, Pin.PULL_UP)
+        self.watchdog_enabled = (dev_pin.value() == 0)
         self.wlan = WLAN(STA_IF)
         self.wdt = None
         self._led = Pin('LED', Pin.OUT)
         self.pins = {}
         ow = OneWire(Pin(BoardPico.ONE_WIRE_SENSOR_PIN))
         self.ds18x20 = DS18X20(ow)
+
+    def developer_mode(self) -> bool:
+        return not self.watchdog_enabled
 
     def active(self, active: bool) -> None:
         self.wlan.active(active)
@@ -71,7 +73,7 @@ class BoardPico(BoardBase):
     def ds18x20_scan(self) -> list[bytes]:
         return self.ds18x20.scan()
 
-    def ds18x20_read_temp(self, rom: bytes):
+    def ds18x20_read_temp(self, rom: bytes) -> float:
         return self.ds18x20.read_temp(rom)
 
     def ds18x20_convert_temp(self):

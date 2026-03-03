@@ -8,14 +8,14 @@ This repo contains design information, 3D print models, assembly instructions, d
 
 ## Badges that should always be green
 
-[![Build and deploy GitHub Pages](https://github.com/okielife/TempSensors/actions/workflows/pages.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/pages.yml)
-[![Firmware Tests](https://github.com/okielife/TempSensors/actions/workflows/firmware_tests.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/firmware_tests.yml)
-[![Clean Old Results](https://github.com/okielife/TempSensors/actions/workflows/clean_old_results.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/clean_old_results.yml)
+[![Dashboard Deployment](https://github.com/okielife/TempSensors/actions/workflows/pages.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/pages.yml)
+[![Firmware Code Tests](https://github.com/okielife/TempSensors/actions/workflows/firmware_tests.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/firmware_tests.yml)
+[![Stale Sensor Data Cleanup](https://github.com/okielife/TempSensors/actions/workflows/clean_old_results.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/clean_old_results.yml)
 
 ## Badges that might not be green
 
-[![Check All Temperatures](https://github.com/okielife/TempSensors/actions/workflows/check_all_temps.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/check_all_temps.yml)
-[![Scheduled Sensor Responsiveness Check](https://github.com/okielife/TempSensors/actions/workflows/check_sensor_responsiveness.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/check_sensor_responsiveness.yml)
+[![Temperature(s) out of Range](https://github.com/okielife/TempSensors/actions/workflows/check_all_temps.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/check_all_temps.yml)
+[![Unresponsive sensor(s)](https://github.com/okielife/TempSensors/actions/workflows/check_sensor_responsiveness.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/check_sensor_responsiveness.yml)
 
 ## Convenient Links
 

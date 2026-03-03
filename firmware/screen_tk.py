@@ -5,14 +5,29 @@ from firmware.font import FONT
 from firmware.screen_base import ScreenBase
 
 
+def rgb_to_565(r: int, g: int, b: int) -> int:
+    return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
+
+
+def _color565_to_rgb(color: int) -> tuple:
+    r = (color >> 11) & 0x1F
+    g = (color >> 5) & 0x3F
+    b = color & 0x1F
+    # Expand to 8-bit
+    r = (r * 255) // 31
+    g = (g * 255) // 63
+    b = (b * 255) // 31
+    return r, g, b
+
+
 class ScreenTk(ScreenBase):
-    BLACK = (0, 0, 0)
-    WHITE = (255, 255, 255)
-    RED = (255, 0, 0)
-    GREEN = (0, 255, 0)
-    BLUE = (0, 0, 255)
-    YELLOW = (255, 255, 0)
-    GRAY = (128, 128, 128)
+    BLACK = rgb_to_565(0, 0, 0)
+    WHITE = rgb_to_565(255, 255, 255)
+    RED = rgb_to_565(255, 0, 0)
+    GREEN = rgb_to_565(0, 255, 0)
+    BLUE = rgb_to_565(0, 0, 255)
+    YELLOW = rgb_to_565(255, 255, 0)
+    GRAY = rgb_to_565(128, 128, 128)
 
     # noinspection PyUnusedLocal,PyPep8Naming,PyMissingConstructor
     def __init__(self):
@@ -43,38 +58,36 @@ class ScreenTk(ScreenBase):
 
         self.show()
 
-    def _on_close(self):
+    def _on_close(self) -> None:
         self.closed = True
         self.root.destroy()
 
-    def initr(self):
-        pass
-
-    def rgb(self, _):
-        pass
-
-    def fill(self, color):
+    def fill(self, color: int) -> None:
         self.draw.rectangle((0, 0, self.width, self.height), fill=color)
         self.show()
 
-    def circle(self, point, radius, color):
+    def circle(self, point: tuple, radius: int, color: int) -> None:
         x_center, y_center = point
         x_min, x_max = x_center - radius, x_center + radius
         y_min, y_max = y_center - radius, y_center + radius
-        self.draw.ellipse((x_min, y_min, x_max, y_max), outline=color)
+        c = _color565_to_rgb(color)
+        self.draw.ellipse((x_min, y_min, x_max, y_max), outline=c)
 
-    def text(self, point, text, color, size=1, nowrap=True):
+    def text(self, point: tuple, text: str, color: int, size: int = 1, nowrap: bool = True) -> None:
 
-        x, y = point
-        cw = FONT["Width"]
-        ch = FONT["Height"]
-        data = FONT["Data"]
-        start = FONT["Start"]
+        x: int = point[0]
+        y: int = point[1]
+        cw: int = FONT.width
+        ch: int = FONT.height
+        start: int = FONT.start
+        end: int = FONT.end
+        data: bytearray = FONT.data
+        c = _color565_to_rgb(color)
 
         for ch_i in text:
             code = ord(ch_i)
 
-            if code < start or code > FONT["End"]:
+            if code < start or code > end:
                 x += cw * size + size
                 continue
 
@@ -89,7 +102,7 @@ class ScreenTk(ScreenBase):
                         py = y + row * size
                         self.draw.rectangle(
                             (px, py, px + size - 1, py + size - 1),
-                            fill=color
+                            fill=c
                         )
 
             x += cw * size + size  # inter-character spacing
@@ -100,27 +113,31 @@ class ScreenTk(ScreenBase):
 
         self.show()
 
-    def rect(self, p1, p2, color):
-        self.draw.rectangle((p1, p2), outline=color)
+    def rect(self, p1: tuple, p2: tuple, color: int) -> None:
+        c = _color565_to_rgb(color)
+        self.draw.rectangle((p1, p2), outline=c)
         self.show()
 
-    def fillrect(self, point, size, color):
+    def fillrect(self, point: tuple, size: tuple, color: int) -> None:
         x, y = point
         w, h = size
-        self.draw.rectangle((x, y, x + w, y + h), fill=color)
+        c = _color565_to_rgb(color)
+        self.draw.rectangle((x, y, x + w, y + h), fill=c)
         self.show()
 
-    def hline(self, point, length, color):
+    def hline(self, point: tuple, length: int, color: int) -> None:
         x, y = point
-        self.draw.line((x, y, x + length, y), fill=color)
+        c = _color565_to_rgb(color)
+        self.draw.line((x, y, x + length, y), fill=c)
         self.show()
 
-    def vline(self, point, length, color):
+    def vline(self, point: tuple, length: int, color: int) -> None:
         x, y = point
-        self.draw.line((x, y, x, y + length), fill=color)
+        c = _color565_to_rgb(color)
+        self.draw.line((x, y, x, y + length), fill=c)
         self.show()
 
-    def show(self):
+    def show(self) -> None:
         if self.closed:
             return
 
@@ -139,3 +156,21 @@ class ScreenTk(ScreenBase):
         self.canvas.itemconfig(self._image_id, image=self._photo)
         self.root.update()
         self.root.update_idletasks()
+
+    def draw_qr(self, y_offset: int, qr_bits: list, scale: int = 3) -> None:
+        self.fill(self.WHITE)
+        size = len(qr_bits)
+        x_offset = (128 - size * scale) // 2
+        for y in range(size):
+            for x in range(size):
+                if qr_bits[y][x]:
+                    starting_x_position = x_offset + x * scale
+                    starting_y_position = y_offset + y * scale
+                    width = scale
+                    height = scale
+                    self.draw.rectangle(
+                        (starting_x_position, starting_y_position, starting_x_position + width,
+                         starting_y_position + height),
+                        self.BLACK
+                    )
+        self.show()

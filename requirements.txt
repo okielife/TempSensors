@@ -2,10 +2,14 @@
 micropython-rp2-rpi-pico-w-stubs
 # for testing, we are going to use Pillow to render the screen :)
 pillow
+# also for testing, we are going to include flask so that we can mimic the pico server :)
+flask
 # whenever we are running coverage, we need that installed here
 coverage
 # we can also test with flake8
 flake8
+# and we can also test with mypy
+mypy
 # we will do documentation with sphinx
 sphinx
 python-docs-theme
