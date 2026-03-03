@@ -21,51 +21,51 @@ jobs:
       - name: Install ARM toolchain
         run: |
           sudo apt update
-          sudo apt install -y gcc-arm-none-eabi build-essential cmake python3 python3-pip texlive-latex-recommended
+          sudo apt install -y gcc-arm-none-eabi build-essential cmake python3 python3-pip texlive-latex-recommended latexmk
 
-      - name: Clone MicroPython
-        run: |
-          git clone https://github.com/micropython/micropython.git
-          cd micropython
-          git submodule update --init --recursive
-
-      - name: Copy application modules into rp2 port
-        run: |
-          cp firmware/main.py micropython/ports/rp2/modules/
-          mkdir micropython/ports/rp2/modules/firmware
-          cp firmware/board_base.py micropython/ports/rp2/modules/firmware
-          cp firmware/board_pico.py micropython/ports/rp2/modules/firmware
-          cp firmware/config_base.py micropython/ports/rp2/modules/firmware
-          cp firmware/config_data.py micropython/ports/rp2/modules/firmware
-          cp firmware/config_pico.py micropython/ports/rp2/modules/firmware
-          cp firmware/font.py micropython/ports/rp2/modules/firmware
-          cp firmware/screen_base.py micropython/ports/rp2/modules/firmware
-          cp firmware/screen_tft.py micropython/ports/rp2/modules/firmware
-          cp firmware/sensing.py micropython/ports/rp2/modules/firmware
-          cp firmware/st7735.py micropython/ports/rp2/modules/firmware
-          cp firmware/__init__.py micropython/ports/rp2/modules/firmware
-
-      - name: Build Pico W firmware
-        run: |
-          cd micropython/ports/rp2
-          make BOARD=RPI_PICO_W -j 3
-
-      - name: Rename firmware
-        run: |
-          mkdir output
-          cp micropython/ports/rp2/build-RPI_PICO_W/firmware.uf2 output/pico-w-firmware.uf2
-
-      - name: Upload firmware as Actions artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: pico-w-firmware
-          path: output/pico-w-firmware.uf2
-
-      - name: Upload firmware to release
-        if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: output/pico-w-firmware.uf2
+#      - name: Clone MicroPython
+#        run: |
+#          git clone https://github.com/micropython/micropython.git
+#          cd micropython
+#          git submodule update --init --recursive
+#
+#      - name: Copy application modules into rp2 port
+#        run: |
+#          cp firmware/main.py micropython/ports/rp2/modules/
+#          mkdir micropython/ports/rp2/modules/firmware
+#          cp firmware/board_base.py micropython/ports/rp2/modules/firmware
+#          cp firmware/board_pico.py micropython/ports/rp2/modules/firmware
+#          cp firmware/config_base.py micropython/ports/rp2/modules/firmware
+#          cp firmware/config_data.py micropython/ports/rp2/modules/firmware
+#          cp firmware/config_pico.py micropython/ports/rp2/modules/firmware
+#          cp firmware/font.py micropython/ports/rp2/modules/firmware
+#          cp firmware/screen_base.py micropython/ports/rp2/modules/firmware
+#          cp firmware/screen_tft.py micropython/ports/rp2/modules/firmware
+#          cp firmware/sensing.py micropython/ports/rp2/modules/firmware
+#          cp firmware/st7735.py micropython/ports/rp2/modules/firmware
+#          cp firmware/__init__.py micropython/ports/rp2/modules/firmware
+#
+#      - name: Build Pico W firmware
+#        run: |
+#          cd micropython/ports/rp2
+#          make BOARD=RPI_PICO_W -j 3
+#
+#      - name: Rename firmware
+#        run: |
+#          mkdir output
+#          cp micropython/ports/rp2/build-RPI_PICO_W/firmware.uf2 output/pico-w-firmware.uf2
+#
+#      - name: Upload firmware as Actions artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: pico-w-firmware
+#          path: output/pico-w-firmware.uf2
+#
+#      - name: Upload firmware to release
+#        if: github.event_name == 'release'
+#        uses: softprops/action-gh-release@v2
+#        with:
+#          files: output/pico-w-firmware.uf2
 
       - name: Build instruction manual
         working-directory: docs
