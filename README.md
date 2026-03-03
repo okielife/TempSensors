@@ -11,6 +11,7 @@ This repo contains design information, 3D print models, assembly instructions, d
 [![Dashboard Deployment](https://github.com/okielife/TempSensors/actions/workflows/pages.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/pages.yml)
 [![Firmware Code Tests](https://github.com/okielife/TempSensors/actions/workflows/firmware_tests.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/firmware_tests.yml)
 [![Stale Sensor Data Cleanup](https://github.com/okielife/TempSensors/actions/workflows/clean_old_results.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/clean_old_results.yml)
+[![Static Code Analysis](https://github.com/okielife/TempSensors/actions/workflows/mypy.yml/badge.svg)](https://github.com/okielife/TempSensors/actions/workflows/mypy.yml)
 
 ## Badges that might not be green
 
