@@ -56,10 +56,11 @@ jobs:
           cp micropython/ports/rp2/build-RPI_PICO_W/firmware.uf2 output/pico-w-firmware.uf2
 
       - name: Upload firmware as Actions artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pico-w-firmware
           path: output/pico-w-firmware.uf2
+          archive: false
 
       - name: Upload firmware to release
         if: github.event_name == 'release'
@@ -79,10 +80,11 @@ jobs:
           cp docs/_build/latex/assembly.pdf output/AssemblyInstructions.pdf
 
       - name: Upload instruction manual as Actions artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: instruction-manual
           path: output/AssemblyInstructions.pdf
+          archive: false
 
       - name: Upload instructions to release
         if: github.event_name == 'release'
@@ -91,7 +93,7 @@ jobs:
           files: output/AssemblyInstructions.pdf
 
       - name: Upload 3D models as Actions artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: 3d-models
           path: model/*
