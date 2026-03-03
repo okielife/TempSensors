@@ -34,6 +34,8 @@ class TestBoardBase(TestCase):
     def test_board_api(self):
         b = BoardBase()
         with self.assertRaises(NotImplementedError):
+            b.developer_mode()
+        with self.assertRaises(NotImplementedError):
             b.active(True)
         with self.assertRaises(NotImplementedError):
             b.isconnected()
@@ -51,6 +53,8 @@ class TestBoardBase(TestCase):
             b.http_put("url", {'header': 'value'}, {'data': 'value'})
         with self.assertRaises(NotImplementedError):
             b.rtc_datetime((2020, 1, 21, 2, 10, 32, 36, 0))
+        with self.assertRaises(NotImplementedError):
+            b.get_ntp_timestamp()
         with self.assertRaises(NotImplementedError):
             b.create_watchdog(8000)
         with self.assertRaises(NotImplementedError):

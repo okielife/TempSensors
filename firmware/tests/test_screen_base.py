@@ -17,7 +17,7 @@ class TestScreenBase(TestCase):
         length = 1
         text = "Hello"
         size = (128, 160)
-        self.assertIsInstance(s.displayed_messages_for_testing, list)
+        self.assertIsInstance(s.displayed_messages_for_testing, str)
         with self.assertRaises(NotImplementedError):
             s.fill(color)
         with self.assertRaises(NotImplementedError):
@@ -32,3 +32,5 @@ class TestScreenBase(TestCase):
             s.hline(p1, length, color)
         with self.assertRaises(NotImplementedError):
             s.vline(p1, length, color)
+        with self.assertRaises(NotImplementedError):
+            s.draw_qr(0, [])

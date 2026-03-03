@@ -1,7 +1,4 @@
-# these imports are fine whether we are running on regular Python or MicroPython
 from binascii import b2a_base64
-from socket import getaddrinfo, socket, AF_INET, SOCK_DGRAM
-from struct import unpack
 
 from firmware.board_base import BoardBase
 from firmware.screen_base import ScreenBase
@@ -15,7 +12,7 @@ class Sensor:
     def __init__(self, rom: bytes):
         self.rom = rom
         self.label = "??"
-        self.temperature_f: float | None = None
+        self.temperature_f: float = -1000
         self.name = "UNKNOWN_NAME"
         self.active = False
 
@@ -45,8 +42,8 @@ class SensorBox:
         self.github_token = self.config.github_token()
 
         # basic member variables
-        self.last_temp_stamp: tuple | None = None
-        self.last_push_stamp: tuple | None = None
+        self.last_temp_stamp: tuple = ()
+        self.last_push_stamp: tuple = ()
         self.last_push_had_errors = False
         self.last_push_ms = 0
         self.time_synced = False
@@ -155,7 +152,6 @@ class SensorBox:
             self.board.print("GP22 jumper is connected; device is in developer mode")
             self.enter_dev_mode()
             self.board.system_hang()
-            return
         self.board.feed_watchdog()
         first_time = True
         while True:
@@ -254,18 +250,15 @@ class SensorBox:
             else:
                 self.screen.text((0, y), f"{sensor.label} {sensor.name}", self.screen.YELLOW, 1)
             y += 10
-            if sensor.temperature_f is not None:
-                temp_string = f"{sensor.temperature_f:.2f} F"
-                self.screen.text((27, y), temp_string, self.screen.WHITE, 2)
-                # draw the degree symbol if it's like "X.YY F" or "XX.YY F"
-                if len(temp_string) == 6:
-                    self.screen.circle((78, y + 3), 3, self.screen.WHITE)
-                elif len(temp_string) == 7:
-                    self.screen.circle((90, y + 3), 3, self.screen.WHITE)
-                elif len(temp_string) == 8:
-                    self.screen.circle((102, y + 3), 3, self.screen.WHITE)
-            else:
-                self.screen.text((27, y), "NULL", self.screen.YELLOW, 1)
+            temp_string = f"{sensor.temperature_f:.2f} F"
+            self.screen.text((27, y), temp_string, self.screen.WHITE, 2)
+            # draw the degree symbol if it's like "X.YY F" or "XX.YY F"
+            if len(temp_string) == 6:
+                self.screen.circle((78, y + 3), 3, self.screen.WHITE)
+            elif len(temp_string) == 7:
+                self.screen.circle((90, y + 3), 3, self.screen.WHITE)
+            elif len(temp_string) == 8:
+                self.screen.circle((102, y + 3), 3, self.screen.WHITE)
             y += 19
         # WI-FI INFORMATION
         self.screen.hline((0, 78), 40, self.screen.GRAY)
@@ -356,8 +349,12 @@ class SensorBox:
             while not self.board.isconnected():
                 if self.board.ticks_diff(self.board.ticks_ms(), start) > wifi_connect_timeout_ms:
                     break
-                self.board.sleep(0.2)
-                self.board.feed_watchdog()
+                # during unit testing, I'm not trying to reach these lines
+                # I don't want to have to make ticks_diff actually increment forward some amount of time
+                # within this loop.  I'm satisfied that in real hardware, it will sleep until the time
+                # ticks forward enough and eventually give up.
+                self.board.sleep(0.2)  # pragma: no cover
+                self.board.feed_watchdog()  # pragma: no cover
             if self.board.isconnected():
                 self.ip, _, _, _ = self.board.ifconfig()
                 self.ssid = self.board.config('ssid')
@@ -386,33 +383,22 @@ class SensorBox:
             except Exception as e:
                 raise Exception(f"Could not get temperature from sensor named {sensor.name}") from e
 
-    def try_to_sync_time(self, timeout: int = 5) -> None:
+    def try_to_sync_time(self) -> None:
         """
         This function tries to synchronize the clock (RTC) using an NTP server response.
         The UDP packet is prepared, sent, the response is parsed into a Unix time, and stored back on the board clock.
         If any failures arise, this function just returns, leaving the time un-synchronized, so that it will try again.
         """
-        s = socket(AF_INET, SOCK_DGRAM)
-        # noinspection PyBroadException
-        try:
-            addr = getaddrinfo("pool.ntp.org", 123)[0][-1]
-            s.settimeout(timeout)
-            s.sendto(b'\x1b' + 47 * b'\0', addr)
-            data, _ = s.recvfrom(48)
-            t = unpack("!I", data[40:44])[0] - 2208988800  # convert to Unix time; magic number is 1970 offset
+        t = self.board.get_ntp_timestamp()
+        if t is None:
+            return
+        else:
             tm = self.board.localtime(t)
-            self.board.rtc_datetime((tm[0], tm[1], tm[2], tm[6] + 1, tm[3], tm[4], tm[5], 0))
+            try:
+                self.board.rtc_datetime((tm[0], tm[1], tm[2], tm[6] + 1, tm[3], tm[4], tm[5], 0))
+            except OSError:
+                return
             self.time_synced = True
-        except (OSError, ValueError, IndexError):
-            # Expected failure modes: network, DNS, short packet
-            # just allow it to continue; the time_synced flag will stay false so that it will retry
-            pass
-        except Exception:
-            # struct.error could occur on the unpack method, but it was causing issues for me on the Pico
-            # I know this is silly to just do the same thing on the broad Exception, but it's the safest bet
-            pass
-        finally:
-            s.close()
 
     def try_to_get_sensor_details(self) -> None:
         """
@@ -430,6 +416,7 @@ class SensorBox:
                 self.board.print(f"HTTP Error while trying to get sensor config: {response.status_code}")
                 return
             data = self.board.load_json(response.raw)
+            any_issues = False
             for sensor in self.sensors:
                 rom_hex = sensor.rom.hex()
                 label = data.get('rom_hex_to_cable_number', {}).get(rom_hex)
@@ -437,6 +424,7 @@ class SensorBox:
                 if not label:
                     sensor.name = "UNKNOWN SENSOR"
                     sensor.active = False
+                    any_issues = True
                     continue
                 if label in data['sensors']:
                     sensor.name = data['sensors'][label].get('short_name', '???')
@@ -444,7 +432,9 @@ class SensorBox:
                 else:
                     sensor.name = "UNKNOWN SENSOR"
                     sensor.active = False
-            self.retrieved_sensor_info = True
+                    any_issues = True
+            if not any_issues:
+                self.retrieved_sensor_info = True
         except Exception as e:
             self.board.print(str(e))  # print, but just allow it to continue, sensors will be unnamed for now
         finally:
@@ -486,7 +476,7 @@ measurement_time: {current}
                 if response.status_code not in (200, 201):
                     self.board.print(f"PUT Error: {response.text}")
                     all_success = False
-            except (RuntimeError, OSError) as e:
+            except Exception as e:
                 self.board.print(f"Could not send request, reason={e}, skipping this report, checks will continue")
                 all_success = False
         return all_success

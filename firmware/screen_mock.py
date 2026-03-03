@@ -12,7 +12,7 @@ class ScreenMock(ScreenBase):
 
     # noinspection PyUnusedLocal,PyPep8Naming,PyMissingConstructor
     def __init__(self):
-        self.displayed_messages_for_testing = []
+        self.displayed_messages_for_testing = ""
 
     def fill(self, color: int) -> None:
         pass
@@ -21,7 +21,7 @@ class ScreenMock(ScreenBase):
         pass
 
     def text(self, point: tuple, text: str, color: int, size: int = 1, nowrap: bool = True) -> None:
-        self.displayed_messages_for_testing.append(text)
+        self.displayed_messages_for_testing += text
 
     def rect(self, p1: tuple, p2: tuple, color: int) -> None:
         pass

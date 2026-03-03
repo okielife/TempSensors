@@ -45,11 +45,6 @@ jobs:
           cp firmware/st7735.py micropython/ports/rp2/modules/firmware
           cp firmware/__init__.py micropython/ports/rp2/modules/firmware
 
-#      - name: Build mpy-cross
-#        run: |
-#          cd micropython/mpy-cross
-#          make
-
       - name: Build Pico W firmware
         run: |
           cd micropython/ports/rp2

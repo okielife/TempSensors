@@ -11,7 +11,7 @@ class ScreenBase:
     HEIGHT = 160
 
     def __init__(self) -> None:
-        self.displayed_messages_for_testing: list[str] = []
+        self.displayed_messages_for_testing: str = ""
 
     def fill(self, color) -> None:
         raise NotImplementedError

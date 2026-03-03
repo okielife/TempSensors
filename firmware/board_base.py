@@ -31,7 +31,7 @@ class BoardBase:
 
     # noinspection PyUnusedLocal
     def __init__(self) -> None:
-        self.printed_messages_for_testing: list[str] = []
+        self.printed_messages_for_testing: str = ""
 
     def developer_mode(self) -> bool:
         raise NotImplementedError
@@ -61,6 +61,9 @@ class BoardBase:
         raise NotImplementedError
 
     def rtc_datetime(self, timestamp: tuple[int, int, int, int, int, int, int, int]) -> None:
+        raise NotImplementedError
+
+    def get_ntp_timestamp(self) -> int | None:
         raise NotImplementedError
 
     def create_watchdog(self, timeout: int) -> None:

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from firmware.board_mock import ResponseMock, PinMock
+from firmware.board_mock import ResponseMock, PinMock, BoardMock
 
 
 class TestResponseMock(TestCase):
@@ -23,7 +23,9 @@ class TestPinMock(TestCase):
         self.assertEqual(1, p.value())
 
 
-# class TestBoardMock(TestCase):
-#     def test_pins(self):
-#         b = BoardMock(watchdog_enabled=False)
-#         p =
+class TestBoardMock(TestCase):
+    def test_system_hang(self):
+        b = BoardMock(watchdog_enabled=False)
+        b.system_hang(1)  # should pass fine
+        with self.assertRaises(Exception):
+            b.system_hang()

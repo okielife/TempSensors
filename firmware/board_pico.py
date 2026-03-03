@@ -1,3 +1,6 @@
+from socket import getaddrinfo, socket, AF_INET, SOCK_DGRAM
+from struct import unpack
+
 # noinspection PyPackageRequirements
 from ds18x20 import DS18X20
 # noinspection PyPackageRequirements
@@ -61,6 +64,27 @@ class BoardPico(BoardBase):
     # noinspection PyUnusedLocal
     def rtc_datetime(self, timestamp: tuple[int, int, int, int, int, int, int, int]):
         RTC().datetime(timestamp)
+
+    def get_ntp_timestamp(self) -> int | None:
+        s = socket(AF_INET, SOCK_DGRAM)
+        # noinspection PyBroadException
+        try:
+            addr = getaddrinfo("pool.ntp.org", 123)[0][-1]
+            s.settimeout(5)
+            s.sendto(b'\x1b' + 47 * b'\0', addr)
+            data, _ = s.recvfrom(48)
+            t = unpack("!I", data[40:44])[0] - 2208988800  # convert to Unix time; magic number is 1970 offset
+            return t
+        except (OSError, ValueError, IndexError):
+            # Expected failure modes: network, DNS, short packet
+            # just allow it to continue; the time_synced flag will stay false so that it will retry
+            return None
+        except Exception:
+            # struct.error could occur on the unpack method, but it was causing issues for me on the Pico
+            # I know this is silly to just do the same thing on the broad Exception, but it's the safest bet
+            return None
+        finally:
+            s.close()
 
     def create_watchdog(self, timeout: int):
         if self.watchdog_enabled:
