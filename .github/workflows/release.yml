@@ -21,7 +21,7 @@ jobs:
       - name: Install ARM toolchain
         run: |
           sudo apt update
-          sudo apt install -y gcc-arm-none-eabi build-essential cmake python3 python3-pip
+          sudo apt install -y gcc-arm-none-eabi build-essential cmake python3 python3-pip texlive-latex-recommended
 
       - name: Clone MicroPython
         run: |
@@ -55,14 +55,47 @@ jobs:
           mkdir output
           cp micropython/ports/rp2/build-RPI_PICO_W/firmware.uf2 output/pico-w-firmware.uf2
 
-      - name: Upload build artifact (always)
+      - name: Upload firmware as Actions artifact
         uses: actions/upload-artifact@v4
         with:
           name: pico-w-firmware
           path: output/pico-w-firmware.uf2
 
-      - name: Upload to Release (only if triggered by release)
+      - name: Upload firmware to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
           files: output/pico-w-firmware.uf2
+
+      - name: Build instruction manual
+        working-directory: docs
+        run: |
+          pip install sphinx
+          make latexpdf
+
+      - name: Package instruction manual
+        run: cp docs/_build/latex/assembly.pdf output/AssemblyInstructions.pdf
+
+      - name: Upload instruction manual as Actions artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: instruction-manual
+          path: output/AssemblyInstructions.pdf
+
+      - name: Upload instructions to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: output/AssemblyInstructions.pdf
+
+      - name: Upload 3D models as Actions artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 3d-models
+          path: model/*
+
+      - name: Upload 3D models to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: model/*
