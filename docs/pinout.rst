@@ -1,6 +1,8 @@
 Pinout Diagram
 ==============
 
+.. _pinout:
+
 .. code-block::
 
   Looking at the Pico from "above", so that you can see the WiFi antenna

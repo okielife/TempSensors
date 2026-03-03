@@ -24,3 +24,17 @@ If you want to make your own suite of sensors and dashboard.
 Fork the dashboard, maybe I'll make it a template
 You'll need a new bot user, then you'll need your own token, I'll have instructions for tokens here
 Add tokens
+
+Building the Custom Firmware
+----------------------------
+
+Check out the micropython repo, install tools, add the required files inside ports/rp2/modules, and build it:
+
+- git clone git@github.com:micropython/micropython
+- git submodule update --init --recursive
+- copy main.py into ports/rp2/modules
+- create ports/rp2/modules/firmware directory
+- copy all supporting files into that firmware directory
+- sudo apt install gcc-arm-none-eabi
+- make BOARD=RPI_PICO_W
+- new firmware will be at ports/rp2/modules/build-RPI_PICO_W/firmware.uf2
