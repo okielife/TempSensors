@@ -53,12 +53,12 @@ jobs:
       - name: Build Pico W firmware
         run: |
           cd micropython/ports/rp2
-          make BOARD=PICO_W -j 3
+          make BOARD=RPI_PICO_W -j 3
 
       - name: Rename firmware
         run: |
           mkdir output
-          cp micropython/ports/rp2/build-PICO_W/firmware.uf2 output/pico-w-firmware.uf2
+          cp micropython/ports/rp2/build-RPI_PICO_W/firmware.uf2 output/pico-w-firmware.uf2
 
       - name: Upload build artifact (always)
         uses: actions/upload-artifact@v4
