@@ -9,7 +9,7 @@ __revision__ = 7
 
 
 class Sensor:
-    def __init__(self, rom: bytes):
+    def __init__(self, rom: bytes) -> None:
         self.rom = rom
         self.label = "??"
         self.temperature_f: float = -1000
@@ -20,7 +20,7 @@ class Sensor:
 class SensorBox:
 
     # noinspection PyPep8Naming
-    def __init__(self, board: BoardBase, screen: ScreenBase, config: ConfigBase):
+    def __init__(self, board: BoardBase, screen: ScreenBase, config: ConfigBase) -> None:
         """
         This constructor sets up local copies of the screen, board, and other config variables passed in.
         The constructor then initializes member variables and finally calls post() to boot up.
@@ -29,11 +29,6 @@ class SensorBox:
         :param screen: A screen instance for display API, should inherit ScreenBase, could be ScreenTFT, ScreenTk, etc.
         :param config: A config instance which will provide GitHub token and Wi-Fi network information
         """
-        # Unfortunately, this SensorBox will be acting different based on the current scenario
-        # I will try to keep that to a minimum to avoid complexity in here. But there will likely
-        # be a few cases that I want to handle different.  For example, I do not want to accumulate
-        # the printed messages when running normally, or we would hit memory issues.  So only
-        # accumulate those when unit testing.
         self.board = board
         self.screen = screen
         self.config = config
@@ -69,6 +64,8 @@ class SensorBox:
         - Gather Wi-Fi details, but If still not connected, we can't do anything else, so report no Wi-Fi and leave.
         - Try to sync the clock from the network -- this will only try for a few seconds before giving up.
         - Try to get the sensor details from the centralized dashboard config file.
+
+        :return: Nothing
         """
         y_starting = 0
         y_version = 18
@@ -150,6 +147,8 @@ class SensorBox:
         In summary, this has an infinite loop, where each loop performs sensing, network, GitHub, display, and idling.
         This function will trap all exceptions - keyboard interrupts lead to a graceful exit, all others will return.
         In development, this will result in a reset() call to reboot the pico and restart everything.
+
+        :return: Nothing
         """
         if self.board.developer_mode():
             self.board.print("GP14 jumper is connected; device is in developer mode")
@@ -177,6 +176,8 @@ class SensorBox:
     def phase_sensing(self) -> None:
         """
         "Sensing" run phase which is basically just reading new temperatures and logging the current time
+
+        :return: Nothing
         """
         self.update_temperatures()
         self.board.feed_watchdog()
@@ -186,6 +187,8 @@ class SensorBox:
         """
         "Network" run phase which is basically just trying to connect to Wi-Fi again, and once connected, trying to
         sync time and do an http request for active sensor info.
+
+        :return: Nothing
         """
         if not self.board.isconnected():
             self.try_to_connect_to_wifi()
@@ -202,6 +205,9 @@ class SensorBox:
         """
         "Push" run phase, which is basically waiting until connected and enough time has passed, then pushing data
         up to GitHub, and logging the time.
+
+        :param first_time: If True, it forces an attempted GitHub push, regardless of time passed
+        :return: Nothing
         """
         if not self.board.isconnected():
             return
@@ -224,6 +230,8 @@ class SensorBox:
     def phase_idle(self) -> None:
         """
         "Idle" run phase, which is basically just sleep for a little while between sensing loops
+
+        :return: Nothing
         """
         for _ in range(10):  # actual wait loop between sensing temperature
             self.board.sleep(1)
@@ -232,6 +240,8 @@ class SensorBox:
     def phase_error(self, e: Exception) -> None:
         """
         "Error" run phase, which is just the generalized error reporter, including a sleep to hold it on the screen.
+
+        :return: Nothing
         """
         self.board.print(str(e))
         self.show_fatal_error(str(e))
@@ -240,6 +250,8 @@ class SensorBox:
     def update_display(self) -> None:
         """
         This function does a normal update of the screen, gathering data and presenting on whatever screen is registered
+
+        :return: Nothing
         """
         self.screen.fill(self.screen.BLACK)
         # SENSOR INFORMATION
@@ -300,6 +312,8 @@ class SensorBox:
     def enter_dev_mode(self) -> None:
         """
         This function displays the developer screen as a signal (mostly a reminder) that the debug jumper is connected
+
+        :return: Nothing
         """
         # TODO: Fix this display, also maybe move it to the board class itself or the screen class??
         self.developer_mode = True
@@ -324,6 +338,9 @@ class SensorBox:
         This function is responsible for issuing a fatal message to the user.  This includes printing the message
         according to the board instance's print capability, as well as attempting to break up the message and display
         it on the screen.
+
+        :param error: Error message
+        :return: Nothing
         """
         self.screen.fill(self.screen.BLACK)
         self.screen.text((0, 5), "*EXCEPTION*", self.screen.RED, 2)
@@ -339,6 +356,8 @@ class SensorBox:
         This function tries to connect the device to Wi-Fi.
         It first resets the known ssid/ip, loops over known Wi-Fi data, connects up to a given timeout interval,
         and either succeeds or ultimately just gives up and leaves it disconnected.
+
+        :return: Nothing
         """
         self.ssid = ""
         self.ip = ""
@@ -371,6 +390,8 @@ class SensorBox:
         meaningful temperature.  This is why you need to call this with each pass, since that convert_temp call
         is actually what updates the temperatures on the sensor's scratchpad.  Once the temperature is there, we simply
         update the Sensor wrapper instance with the new temperature and move on.
+
+        :return: Nothing
         """
         if not self.sensors:
             return
@@ -391,6 +412,8 @@ class SensorBox:
         This function tries to synchronize the clock (RTC) using an NTP server response.
         The UDP packet is prepared, sent, the response is parsed into a Unix time, and stored back on the board clock.
         If any failures arise, this function just returns, leaving the time un-synchronized, so that it will try again.
+
+        :return: Nothing
         """
         t = self.board.get_ntp_timestamp()
         if t is None:
@@ -410,6 +433,8 @@ class SensorBox:
         on the sensor box code to update the location.
         The function is pretty standard - just go to the prescribed URL, parse the JSON sensor data, and then update
         the local array of Sensor information.
+
+        :return: Nothing
         """
         url = 'https://raw.githubusercontent.com/okielife/TempSensors/main/dashboard/_data/config.json'
         response = None
@@ -452,7 +477,8 @@ class SensorBox:
         /_posts/romHexAbc123Def/2026-02-24-10-30-02_romHexAbc123Def_Sensor_Name_Here.html.
         If any fail, it will return False, and the sensor box can alert that the last push failed.
         Also, if this keeps failing for any reason, the periodic sensor responsiveness check will alert us.
-        :return bool: True if successful, False otherwise
+
+        :return: True if successful, False otherwise
         """
         all_success = True
         t = self.board.localtime()

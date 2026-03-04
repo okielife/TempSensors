@@ -189,8 +189,16 @@ First System Test
   - Paste in the GitHub token generated above, and if the sensor should connect to a Wi-Fi network not listed, add the credentials there
   - Once submitted, the sensor should reboot and go into debug mode
 
-- Execute sensing.py and take note of the POST screen.  The SCREEN section shows RGB, with R in red, G in green, and B in blue.  If those are reversed, then place a jumper between GP10 and ground to reverse BGR to RGB.
+- Take note of the POST screen as shown in :ref:`the figure below <tk-post>`.  The SCREEN section shows RGB, with R in red, G in green, and B in blue.
+- Execute sensing.py, and if those are reversed in the hardware, then place a jumper between GP10 and ground to reverse BGR to RGB.
 - Once everything is working well, you are ready to wrap it up and deploy!
+
+.. _tk-post:
+
+.. figure:: images/tk_post_success.png
+   :alt: Tk window showing POST screen
+   :align: center
+   :scale: 50
 
 Final Steps
 *****************

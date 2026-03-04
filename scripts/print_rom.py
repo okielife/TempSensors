@@ -6,5 +6,4 @@ import machine
 import onewire
 import ds18x20
 
-
-print(ds18x20.DS18X20(onewire.OneWire(machine.Pin(28))).scan()[0].hex())
+print([x.hex() for x in ds18x20.DS18X20(onewire.OneWire(machine.Pin(28))).scan()])

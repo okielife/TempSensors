@@ -12,4 +12,4 @@ flake8
 mypy
 # we will do documentation with sphinx
 sphinx
-python-docs-theme
+sphinx-rtd-theme

@@ -47,7 +47,17 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'python_docs_theme'  # 'alabaster'
+tried_themes_with_pip_packages = {
+    'alabaster': '',
+    'cloud': 'cloud-sptheme',
+    'groundwork': 'groundwork-sphinx-theme',
+    'nameko': 'sphinx-nameko-theme',
+    'pdj': 'phinx-pdj-theme',  # something wrong here
+    'python_docs_theme': 'python-docs-theme',
+    'sphinx_rtd_theme': 'sphinx-rtd-theme'
+}
+html_theme = 'sphinx_rtd_theme'
+
 html_static_path = ['_static']
 
 latex_documents = [

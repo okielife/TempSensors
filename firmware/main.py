@@ -10,6 +10,14 @@ from firmware.sensing import SensorBox
 
 
 def main():
+    """
+    This is the main entry point for the firmware.  After boot, this main.py file (frozen) is executed, which
+    calls this function.  This function is executed only in MicroPython, and constructs hardware based screen,
+    configuration, and controller board, before passing it to the sensor box class to run.  If anything happens
+    to cause control to return from the sensor.run method, this simply calls reset() and tries again.
+
+    :return: Nothing
+    """
     tft = ScreenTFT()
     config = ConfigPico()
     pico = BoardPico()

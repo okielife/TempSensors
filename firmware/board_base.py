@@ -80,6 +80,7 @@ class BoardBase:
     def isconnected(self) -> bool:
         """
         Returns whether the Wi-Fi system is connected to a network.
+
         :return: True or False if connected or not.
         """
         raise NotImplementedError
@@ -87,6 +88,7 @@ class BoardBase:
     def ifconfig(self) -> tuple[str, str, str, str]:
         """
         Returns ifconfig information
+
         :return: A tuple of network configuration: (IP, Subnet, Gateway, DNS)
         """
         raise NotImplementedError
@@ -209,7 +211,7 @@ class BoardBase:
 
     def localtime(self, linux_time_seconds: int | None = None) -> tuple:
         """
-        Converts the provided Linux time into a tuple of timestamp values.
+        Converts the provided Linux time, or the converted time if passed in, into a tuple of timestamp values.
 
         :param linux_time_seconds: Number of seconds since the Epoch; a Linux timestamp.
         :return: A tuple timestamp, with (year, month, day, hour, minute, second, weekday, year-day)
