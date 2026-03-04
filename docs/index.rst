@@ -16,6 +16,5 @@ In summary, the temperature sensors are based on:
    :caption: Contents:
 
    assembly
-   developer
-   design
    pinout
+   developer

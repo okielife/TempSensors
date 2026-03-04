@@ -19,15 +19,27 @@ repo_root = path.abspath(path.join(conf_dir, '..'))
 syspath.insert(0, repo_root)
 
 from firmware.sensing import __version__, __revision__
+
 release = f"{__version__}.{__revision__}"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-  "sphinx.ext.todo",
+    "sphinx.ext.todo",
+    'sphinx.ext.autodoc',
 ]
 todo_include_todos = environ.get("READTHEDOCS", "") == ""
+autodoc_mock_imports = [
+    'ds18x20',
+    'machine',
+    'network',
+    'onewire',
+    'time',
+    'ubinascii',
+    'ujson',
+    'urequests',
+]
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']

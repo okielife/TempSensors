@@ -83,7 +83,10 @@ class SensorBox:
         self.screen.fill(self.screen.BLACK)
         self.screen.text((15, y_starting), "STARTING", self.screen.GREEN, 2)
         self.screen.text((0, y_version), f"Version {__version__}.{__revision__}", self.screen.WHITE, 2)
-        self.screen.text((0, y_screen), "Screen:  OK", self.screen.WHITE, 2)
+        self.screen.text((0, y_screen), "Screen:   ", self.screen.WHITE, 2)
+        self.screen.text((88, y_screen), "R", self.screen.RED, 2)
+        self.screen.text((101, y_screen), "G", self.screen.GREEN, 2)
+        self.screen.text((114, y_screen), "B", self.screen.BLUE, 2)
         self.board.feed_watchdog()
 
         # set up the sensors now
@@ -136,7 +139,7 @@ class SensorBox:
 
         # final report and leave
         self.screen.text((0, y_booting), "BOOTING UP!", self.screen.WHITE, 2)
-        self.board.sleep(1)
+        self.board.sleep(3)
         self.board.feed_watchdog()
 
     def run(self) -> None:
@@ -149,7 +152,7 @@ class SensorBox:
         In development, this will result in a reset() call to reboot the pico and restart everything.
         """
         if self.board.developer_mode():
-            self.board.print("GP22 jumper is connected; device is in developer mode")
+            self.board.print("GP14 jumper is connected; device is in developer mode")
             self.enter_dev_mode()
             self.board.system_hang()
         self.board.feed_watchdog()
@@ -304,17 +307,17 @@ class SensorBox:
         self.screen.text((7, 5), "*DEV MODE*", self.screen.YELLOW, 2)
         self.screen.text((7, 25), "GP22 jumper active", self.screen.YELLOW, 1)
         self.screen.text((7, 35), "In developer mode", self.screen.YELLOW, 1)
-        self.screen.rect((15, 60), (50, 90), self.screen.WHITE)
-        self.screen.fillrect((30, 50), (20, 20), self.screen.GRAY)
-        self.screen.fillrect((27, 95), (26, 26), self.screen.WHITE)
-        pins_to_print = ["GP27", "GP26", "RUN", "GP22", "GND", "GP21", "GP20", "GP19"]
+        self.screen.rect((60, 60), (50, 90), self.screen.WHITE)
+        self.screen.fillrect((75, 50), (20, 20), self.screen.GRAY)
+        self.screen.fillrect((72, 95), (26, 26), self.screen.WHITE)
+        pins_to_print = reversed(["GP15", "GP14", " GND", "GP13", "GP12", "GP11", "GP10", " GND"])
         y = 65
         for pin in pins_to_print:
-            self.screen.text((70, y), pin, self.screen.YELLOW, 1)
+            self.screen.text((30, y), pin, self.screen.YELLOW, 1)
             y += 10
-        self.screen.hline((92, 88), 15, self.screen.YELLOW)
-        self.screen.vline((107, 88), 11, self.screen.YELLOW)
-        self.screen.hline((97, 98), 10, self.screen.YELLOW)
+        self.screen.hline((12, 118), 18, self.screen.YELLOW)
+        self.screen.vline((12, 118), 10, self.screen.YELLOW)
+        self.screen.hline((12, 128), 11, self.screen.YELLOW)
 
     def show_fatal_error(self, error: str) -> None:
         """

@@ -4,7 +4,7 @@ from firmware.config_data import DEFAULT_WIFI_NETWORKS, QR_CODE_192_168_4_1, htm
 
 
 class TestConfigData(TestCase):
-    def test_api(self):
+    def test_api(self) -> None:
         self.assertIsInstance(DEFAULT_WIFI_NETWORKS, dict)
         self.assertIsInstance(QR_CODE_192_168_4_1, list)
         self.assertIsInstance(html_form("id", "token", {'ssid': 'pw'}), str)

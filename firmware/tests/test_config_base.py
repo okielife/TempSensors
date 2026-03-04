@@ -4,7 +4,7 @@ from firmware.config_base import ConfigBase
 
 
 class TestConfigBase(TestCase):
-    def test_api(self):
+    def test_api(self) -> None:
         c = ConfigBase()
         with self.assertRaises(NotImplementedError):
             c.wifi_networks()

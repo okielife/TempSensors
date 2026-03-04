@@ -21,17 +21,17 @@ class ScreenTFT(ScreenBase):
     PIN_SDA_MOSI = 19
     PIN_RESET = 20
     PIN_LED = 21
-    PIN_RGB_INVERT = 14  # TFT screens are inconsistent with RGB order, so jump pin GP14 to ground to invert RGB<>BGR
+    PIN_RGB_INVERT = 10  # TFT screens are inconsistent with RGB order, so jump pin GP10 to ground to invert RGB<>BGR
 
     # noinspection PyUnusedLocal,PyPep8Naming,PyMissingConstructor
-    def __init__(self):
+    def __init__(self) -> None:
         pin_sck = ScreenTFT.PIN_SCI_SCK
         pin_sda = ScreenTFT.PIN_SDA_MOSI
         spi = SPI(0, baudrate=20_000_000, polarity=0, phase=0, sck=Pin(pin_sck), mosi=Pin(pin_sda))
         self.tft = TFT(spi, ScreenTFT.PIN_DC, ScreenTFT.PIN_RESET, ScreenTFT.PIN_CS, (128, 160))
         self.tft.initr()
         rgb_invert_pin = Pin(ScreenTFT.PIN_RGB_INVERT, Pin.IN, Pin.PULL_UP)
-        rgb_invert_mode = (rgb_invert_pin.value() == 0)
+        rgb_invert_mode = (rgb_invert_pin.value() == 1)
         Pin(ScreenTFT.PIN_LED, Pin.OUT).on()
         self.tft.rgb(rgb_invert_mode)
         self.tft.fill(TFT.BLACK)
@@ -45,8 +45,8 @@ class ScreenTFT(ScreenBase):
     def text(self, point: tuple, text: str, color: int, size: int = 1, nowrap=True) -> None:
         self.tft.text(point, text, color, FONT, size, nowrap)
 
-    def rect(self, p1: tuple, p2: tuple, color: int) -> None:
-        self.tft.rect(p1, p2, color)
+    def rect(self, point: tuple, size: tuple, color: int) -> None:
+        self.tft.rect(point, size, color)
 
     def fillrect(self, point: tuple, size: tuple, color: int) -> None:
         self.tft.fillrect(point, size, color)

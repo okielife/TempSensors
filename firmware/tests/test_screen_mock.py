@@ -4,7 +4,7 @@ from firmware.screen_mock import ScreenMock
 
 
 class TestScreenMock(TestCase):
-    def test_api(self):
+    def test_api(self) -> None:
         s = ScreenMock()
         self.assertFalse(s.displayed_messages_for_testing)
         s.fill(0)

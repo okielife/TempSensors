@@ -4,7 +4,7 @@ from firmware.board_mock import ResponseMock, PinMock, BoardMock
 
 
 class TestResponseMock(TestCase):
-    def test_response_api(self):
+    def test_response_api(self) -> None:
         r = ResponseMock()
         self.assertIsInstance(r.status_code, int)
         self.assertIsInstance(r.text, str)
@@ -13,7 +13,7 @@ class TestResponseMock(TestCase):
 
 
 class TestPinMock(TestCase):
-    def test_pin_api(self):
+    def test_pin_api(self) -> None:
         p = PinMock(0, 0, 0)
         p.on()
         self.assertEqual(1, p.value())
@@ -24,7 +24,7 @@ class TestPinMock(TestCase):
 
 
 class TestBoardMock(TestCase):
-    def test_system_hang(self):
+    def test_system_hang(self) -> None:
         b = BoardMock(watchdog_enabled=False)
         b.system_hang(1)  # should pass fine
         with self.assertRaises(Exception):

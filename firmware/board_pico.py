@@ -14,19 +14,25 @@ from ujson import load as load_json
 # noinspection PyPackageRequirements
 from urequests import get, put
 
-from time import ticks_ms, ticks_diff, localtime, sleep
+try:
+    from time import ticks_ms, ticks_diff, localtime, sleep
+except ImportError:  # pragma: only needed when parsing this file with sphinx
+    ticks_ms = None
+    ticks_diff = None
+    localtime = None
+    sleep = None
 
 from firmware.board_base import BoardBase
 
 
 class BoardPico(BoardBase):
     ONE_WIRE_SENSOR_PIN = 28
-    DEV_MODE_PIN = 10  # when developing, jump pin GP10 over to GND
+    DEV_MODE_PIN = 14  # when developing, jump pin GP14 over to GND
 
     # noinspection PyMissingConstructor
-    def __init__(self):
+    def __init__(self) -> None:
         dev_pin = Pin(BoardPico.DEV_MODE_PIN, Pin.IN, Pin.PULL_UP)
-        self.watchdog_enabled = (dev_pin.value() == 0)
+        self.watchdog_enabled = (dev_pin.value() == 1)
         self.wlan = WLAN(STA_IF)
         self.wdt = None
         self._led = Pin('LED', Pin.OUT)
@@ -86,9 +92,9 @@ class BoardPico(BoardBase):
         finally:
             s.close()
 
-    def create_watchdog(self, timeout: int):
+    def create_watchdog(self, timeout_ms: int):
         if self.watchdog_enabled:
-            self.wdt = WDT(timeout=timeout)
+            self.wdt = WDT(timeout=timeout_ms)
 
     def feed_watchdog(self):
         if self.watchdog_enabled:
@@ -103,13 +109,13 @@ class BoardPico(BoardBase):
     def ds18x20_convert_temp(self):
         self.ds18x20.convert_temp()
 
-    def load_json(self, json_bytes) -> dict:
-        return load_json(json_bytes)
+    def load_json(self, json_readable_bytes) -> dict:
+        return load_json(json_readable_bytes)
 
-    def localtime(self, seconds: int = None):
-        if seconds is None:
+    def localtime(self, linux_time_seconds: int = None):
+        if linux_time_seconds is None:
             return localtime()
-        return localtime(seconds)
+        return localtime(linux_time_seconds)
 
     def ticks_ms(self) -> int:
         return ticks_ms()

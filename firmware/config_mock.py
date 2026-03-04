@@ -4,7 +4,7 @@ from firmware.screen_base import ScreenBase
 
 
 class ConfigMock(ConfigBase):
-    def __init__(self):
+    def __init__(self) -> None:
         self.networks = DEFAULT_WIFI_NETWORKS
         self.token = default_token()
 

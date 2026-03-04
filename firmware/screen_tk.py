@@ -30,7 +30,7 @@ class ScreenTk(ScreenBase):
     GRAY = rgb_to_565(128, 128, 128)
 
     # noinspection PyUnusedLocal,PyPep8Naming,PyMissingConstructor
-    def __init__(self):
+    def __init__(self) -> None:
 
         self.closed = False
         self.width, self.height = 128, 160
@@ -113,9 +113,11 @@ class ScreenTk(ScreenBase):
 
         self.show()
 
-    def rect(self, p1: tuple, p2: tuple, color: int) -> None:
+    def rect(self, point: tuple, size: tuple, color: int) -> None:
+        x, y = point
+        w, h = size
         c = _color565_to_rgb(color)
-        self.draw.rectangle((p1, p2), outline=c)
+        self.draw.rectangle((x, y, x + w, y + h), outline=c)
         self.show()
 
     def fillrect(self, point: tuple, size: tuple, color: int) -> None:

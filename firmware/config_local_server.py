@@ -13,7 +13,7 @@ ready: bool = False
 
 class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
-    def _set_response(self, status_code=200) -> None:
+    def _set_response(self, status_code: int = 200) -> None:
         self.send_response(status_code)
         self.send_header('Content-type', 'text/html')
         self.end_headers()

@@ -11,7 +11,7 @@ class ScreenMock(ScreenBase):
     GRAY = 0
 
     # noinspection PyUnusedLocal,PyPep8Naming,PyMissingConstructor
-    def __init__(self):
+    def __init__(self) -> None:
         self.displayed_messages_for_testing = ""
 
     def fill(self, color: int) -> None:

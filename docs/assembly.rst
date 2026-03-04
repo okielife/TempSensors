@@ -58,6 +58,7 @@ Notes:
 - Most of these items listed come as a large amount of that product.  For example, the female splitter product has 10, even though each sensor only needs one wire.
 - You only need one USB micro data transfer cable to do development, each case does not need their own.
 - The cases do need their own USB micro power cable, just pick a length that works for you and include a power brick.
+- I'm still working out the mounting process.  One option is to use magnets like `these <https://www.amazon.com/dp/B072KDBJWC>__` .  Another option would be to use a metal bracket hanging on the door.  In many cases, you may be able to just set the sensor on top of the fridge.
 
 Assembly Steps
 --------------
@@ -97,10 +98,10 @@ It may be helpful to open it in a new tab, or even better, in split view, next t
 Flashing the Pico
 *****************
 
-- This is easier to do before mounting the Pico.  There is a small hole to access the BOOTSEL button, but it's easier before.
-- Soon I will be building the entire firmware myself; a custom MicroPython build with my own files already set to deploy.
-- Until that happens, continue with just plain MicroPython and copy files manually.
-- Flash the Pico with MicroPython - I'm using 1.27.0 because that's what Thonny currently defaults to.
+- This is easier to do before mounting the Pico.  There is a small hole to access the BOOTSEL button once installed, but it's easier before installing it.
+- There is now a custom MicroPython build available with sensor releases, with all sensor code pre-frozen into the firmware.
+- The preferred approach would be to flash that directly onto the Pico, as no other steps are necessary with a computer.
+- If that isn't working for any reason, continue with just plain MicroPython and copy files manually.
 
 Temperature Sensor(s)
 *********************
@@ -128,7 +129,7 @@ Installing the Pico
 *******************
 
 - Attach 7 female-to-female jumper wires to Pico GP21 - GP16, which will all wire to the screen
-- Assuming you are starting with a debugging session, put a jumper from pin 14 to ground
+- Assuming you are starting with a debugging session (yes), put a jumper from pin GP14 to ground
 - Attach the central end of the wire splitter to the 3V3 pin on the Pico
 - Screw in Pico with 3 M2x6mm screws
 
@@ -159,8 +160,8 @@ First System Test
 - Make sure debug jumper is engaged
 - Open Thonny on the computer
 - Plug in the temperature sensor using the data-enabled USB micro cable
-- If you are running with the new custom firmware that I intend to make, you will be able to skip transferring files.
-- Otherwise:
+- If you are running with the new custom firmware, you will be able to skip transferring files, as all necessary files are pre-frozen into the firmware.
+- Otherwise you will need to transfer the firmware files manually:
 
   - Open the file sidebar and browse for the code stored locally on your machine
   - Copy the main.py file from the repo to the Pico root by right clicking and choosing "Upload to /"
@@ -188,7 +189,8 @@ First System Test
   - Paste in the GitHub token generated above, and if the sensor should connect to a Wi-Fi network not listed, add the credentials there
   - Once submitted, the sensor should reboot and go into debug mode
 
-- Execute sensing.py and make sure everything is working well.  If so, you are ready to wrap it up and deploy!
+- Execute sensing.py and take note of the POST screen.  The SCREEN section shows RGB, with R in red, G in green, and B in blue.  If those are reversed, then place a jumper between GP10 and ground to reverse BGR to RGB.
+- Once everything is working well, you are ready to wrap it up and deploy!
 
 Final Steps
 *****************
@@ -196,5 +198,5 @@ Final Steps
 - Screw screen to lid using 3 M2.3x5mm screws
 - Take out debug jumper that was connecting pin 14 to ground
 - Snap lid into place and screw together using 2 M2.3x10mm screws - push in hard at first to break through plastic, then screw in
-- Deploy to wherever you want
+- Deploy to wherever you want, hanging sensors inside fridge/freezer doors.
 - Once you are satisfied it is working well, make sure to set the sensor to active in the dashboard/_data/config.json file

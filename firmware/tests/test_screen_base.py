@@ -8,7 +8,7 @@ from firmware.screen_base import ScreenBase
 
 
 class TestScreenBase(TestCase):
-    def test_screen_api(self):
+    def test_screen_api(self) -> None:
         s = ScreenBase()
         p1 = (0, 0)
         p2 = (1, 1)

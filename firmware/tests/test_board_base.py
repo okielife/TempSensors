@@ -8,7 +8,7 @@ from firmware.board_base import BoardBase, ResponseBase, PinBase
 
 
 class TestResponseBase(TestCase):
-    def test_response_api(self):
+    def test_response_api(self) -> None:
         r = ResponseBase()
         self.assertIsInstance(r.status_code, int)
         self.assertIsInstance(r.text, str)
@@ -18,7 +18,7 @@ class TestResponseBase(TestCase):
 
 
 class TestPinBase(TestCase):
-    def test_pin_api(self):
+    def test_pin_api(self) -> None:
         p = PinBase(0, 0, 0)
         with self.assertRaises(NotImplementedError):
             p.on()
@@ -31,7 +31,7 @@ class TestPinBase(TestCase):
 
 
 class TestBoardBase(TestCase):
-    def test_board_api(self):
+    def test_board_api(self) -> None:
         b = BoardBase()
         with self.assertRaises(NotImplementedError):
             b.developer_mode()
@@ -68,7 +68,7 @@ class TestBoardBase(TestCase):
         with self.assertRaises(NotImplementedError):
             b.load_json(b'{}')
         with self.assertRaises(NotImplementedError):
-            b.localtime(0)
+            b.localtime()
         with self.assertRaises(NotImplementedError):
             b.ticks_ms()
         with self.assertRaises(NotImplementedError):
