@@ -190,7 +190,7 @@
             const build_time = new Date("{{ site.time }}");
             const d = new Date(Date.UTC(p[0], p[1] - 1, p[2], p[3], p[4], p[5]));
             const ageSeconds = (build_time - d) / 1000;
-            const sixHoursInSeconds = 2 * 3600;
+            const sixHoursInSeconds = 6 * 3600;
             el.textContent = d.toLocaleDateString() + "  " + d.toLocaleTimeString();
             if (el.dataset.row === "1" && ageSeconds > sixHoursInSeconds) {
                 el.parentElement.classList.add("table-warning");
