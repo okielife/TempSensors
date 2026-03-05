@@ -26,7 +26,7 @@ Execute this code in that shell, or copy the ``scripts/print_rom.py`` file to th
 This will print the ROMs for all connected devices (assuming the sensors are connected at pin GP28).
 Once these are written down:
 
- - Add it to the dashboard/_data/config.json file in both the rom hex map and the sensor map
+ - Add it to the dashboard/_data/config.json file in both the rom hex map and the sensor map, with an "active" key probably set to false initially
  - Add a new empty file on the sensor_data branch at data/abcRomHexCode-01-DescriptiveSensorName/_
 
 Forking the Project
