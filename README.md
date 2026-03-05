@@ -22,7 +22,7 @@ This repo contains design information, 3D print models, assembly instructions, d
 
 - [Live dashboard](https://okielife.github.io/TempSensors) (updated every 30 minutes or so) 
 - [Sensor configuration](https://github.com/okielife/TempSensors/edit/main/dashboard/_data/config.json) (for easy adjustment as sensors are changed/added) 
-- [Latest Documentation]([ReadTheDocs](https://tempsensors.readthedocs.io/en/latest/)) on ReadTheDocs
+- [Latest Documentation](https://tempsensors.readthedocs.io/en/latest/) on ReadTheDocs
 
 ## Documentation
 
@@ -30,7 +30,15 @@ This repo contains design information, 3D print models, assembly instructions, d
 
 The repository is documented on [ReadTheDocs](https://tempsensors.readthedocs.io/en/latest/) from the source in the repo [docs/](https://github.com/okielife/TempSensors/tree/main/docs) folder.
 The documentation covers details about the project, parts lists, assembly instructions, wiring diagrams, and more.
-The documentation will soon also include module documentation for everything in the [firmware](https://github.com/okielife/TempSensors/tree/main/firmware) directory.
+The documentation also includes module documentation for everything in the [firmware](https://github.com/okielife/TempSensors/tree/main/firmware) directory.
+
+If you have Sphinx installed (and the `sphinx-rtd-theme` package), you can build the docs and the instruction manual if you'd like:
+
+```shell
+cd docs/
+make html       # open docs/_build/html/index.html
+make latexpdf   # open docs/_build/latex/assembly.pdf
+```
 
 ## Repository Structure and More
 
@@ -47,10 +55,9 @@ The code in the repository consists of:
  - `scripts`: Both Python and Bash scripts that are used to support development, both locally and inside GitHub Action instances
 
 The versioning of this project is going to mimic semantic versioning.
-I anticipate a major release of v4.0 soon, after which any small tweaks worth a release will be 4.1, etc.
-More substantial changes for future cases and hardware will trigger a major version bump to 5.0.
-I plan to package up all assets necessary for a build into a single downloadable package when I tag a new release version.
-The roadmap for all these ideas will be tracked on the [milestones](https://github.com/okielife/TempSensors/milestones) page.
+I anticipate a major release of v3.7 soon, after which I will pivot to v4.0 major version to accommodate more significant changes.
+All assets necessary for a build are posted with each release, including the 3D models, instructions, and firmware.
+Ideas for the project are tracked as issues, and the roadmap is to be organized on the [milestones](https://github.com/okielife/TempSensors/milestones) page.
 
 # Development
 
@@ -77,12 +84,20 @@ python3 scripts/refresh_sensor_data.sh
 Then run any script:
 
 ```
-python3 scripts/whatever
+python3 scripts/check_all_temperatures.py
 ```
 
-or build the dashboard
+You can also run the linters:
 
-```angular2html
+```shell
+mypy firmware --disallow-untyped-calls --disallow-untyped-defs --check-untyped-defs
+flake8 firmware/
+```
+
+You can build the dashboard if you have bundler
+
+```shell
 cd dashboard
 bundle exec jekyll serve
 ```
+ 
