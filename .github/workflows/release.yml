@@ -53,20 +53,20 @@ jobs:
       - name: Rename firmware
         run: |
           mkdir output
-          cp micropython/ports/rp2/build-RPI_PICO_W/firmware.uf2 output/pico-w-firmware.uf2
+          cp micropython/ports/rp2/build-RPI_PICO_W/firmware.uf2 output/Sensor_PicoWFirmware.uf2
 
       - name: Upload firmware as Actions artifact
         uses: actions/upload-artifact@v7
         with:
-          name: pico-w-firmware
-          path: output/pico-w-firmware.uf2
+          name: Sensor_PicoWFirmware
+          path: output/Sensor_PicoWFirmware.uf2
           archive: false
 
       - name: Upload firmware to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: output/pico-w-firmware.uf2
+          files: output/Sensor_PicoWFirmware.uf2
 
       - name: Build instruction manual
         working-directory: docs
@@ -92,14 +92,19 @@ jobs:
         with:
           files: output/AssemblyInstructions.pdf
 
+      - name: Zip up 3D models for printing
+        working-directory: model
+        run: zip 3DPrintModels.zip *.stl
+
       - name: Upload 3D models as Actions artifact
         uses: actions/upload-artifact@v7
         with:
           name: 3d-models
-          path: model/*
+          path: model/3DPrintModels.zip
+          archive: false
 
       - name: Upload 3D models to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: model/*
+          files: model/3DPrintModels.zip
