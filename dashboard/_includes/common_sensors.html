@@ -129,12 +129,12 @@
                 },
                 margin: {l: 50, r: 10, t: 0, b: 50},
                 xaxis: {
-                    tickformat: '%b %d',
-                    range: [
-                        new Date(Math.min(...[{{ time_list }}].map(ts => new Date(ts).getTime()))),
-                        new Date()
-                    ],
-                    autorange: false,
+                    tickformat: '%b %d %H:%M',
+                    {% comment %}range: [{% endcomment %}
+                        {% comment %}new Date(Math.min(...[{{ time_list }}].map(ts => new Date(ts).getTime()))),{% endcomment %}
+                        {% comment %}Date.now(){% endcomment %}
+                    {% comment %}],{% endcomment %}
+                    // autorange: false,
                     type: 'date'
                 },
                 yaxis: {title: {text: 'Temperature \u00B0F'}},

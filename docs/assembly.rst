@@ -86,6 +86,7 @@ First Steps
   - Make sure that bot is invited to collaborate in the repo so that it will have write access
   - Log in with that user and generate a new token with public repo write access so that it can post results
   - Save the token text somewhere safe, it will be gone after leaving that page, and you will need it when provisioning the sensor box
+  - You may consider saving it in a local file or something to ensure you can retrieve it from whatever device you are provisioning the box with.  During provisioning, the device in question will not have full internet access.
 
 - Print the 3D models (base and lid)
 - Test fit the screen, breakout board, and pico, checking that the screw holes line up properly
@@ -241,6 +242,10 @@ First System Test
 - The sensor box firmware is now set up and ready to be provisioned.
 
 .. _provisioning:
+
+.. important::
+   Before beginning the provisioning step, make sure to get the GitHub token created above and have it ready to paste in.
+   While connected to the Pico's own network for provisioning, you will not have internet access.
 
 Provisioning the Runtime Configuration
 **************************************
