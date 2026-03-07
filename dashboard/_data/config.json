@@ -62,7 +62,7 @@
       "active": true,
       "short_name": "P_South_Vert_Fridge",
       "nice_name": "Pantry South Room Fridge",
-      "maximum_temp": 42,
+      "maximum_temp": 43,
       "sensor_location": "Pantry"
     },
     "12":  {
