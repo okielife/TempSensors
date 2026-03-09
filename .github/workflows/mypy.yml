@@ -17,5 +17,5 @@ jobs:
     - name: Install Pip Dependencies
       run: pip install mypy pillow
 
-    - name: Run Flake8
+    - name: Run MyPy
       run: mypy firmware --disallow-untyped-calls --disallow-untyped-defs --check-untyped-defs

@@ -41,7 +41,7 @@ all_posts = posts_folder.glob('**/*.html')
 all_posts_list = reversed(sorted(all_posts))  # should put the most recent first
 sensors_handled_already = set()
 failures = []
-sensors_checked = set()
+success = set()
 sensors_ignored = set()
 for post in all_posts_list:
     sensor_rom = post.parts[-2]  # should be the sensor ID subdirectory
@@ -60,26 +60,27 @@ for post in all_posts_list:
     time = datetime.strptime(time_string, '%Y-%m-%d-%H-%M-%S').replace(tzinfo=UTC)
 
     # if we've made it this far, mark down that we checked this one
-    sensors_checked.add(f"{nice_name} ({cable_num}: {sensor_rom}): Latest Update {time} UTC")
     sensors_handled_already.add(sensor_rom)
     active_sensors_checked[sensor_rom] = True
 
     # and if this most recent post was too old, mark it as a failure
     if time < cutoff_date:
         failures.append(
-            f"Sensor Unresponsive; {nice_name} ({cable_num}: {sensor_rom}); Latest Update {time} UTC"
+            f"{nice_name} ({cable_num}: {sensor_rom}); Latest Update {time} UTC"
         )
+    else:
+        success.add(f"{nice_name} ({cable_num}: {sensor_rom}): Latest Update {time} UTC")
 
 for sensor_id in active_sensors_checked:
     if not active_sensors_checked[sensor_id]:
         failures.append(f"{sensor_id} data missing - typo?")
 
 failure_string = ''.join([f"\n{RED} - {f}{ENDC}" for f in failures])
-checked_string = ''.join([f"\n{GREEN} - {s}{ENDC}" for s in sensors_checked])
+success_string = ''.join([f"\n{GREEN} - {s}{ENDC}" for s in success])
 ignored_string = ''.join([f"\n{YELLOW} - {s}{ENDC}" for s in sensors_ignored])
 
 if failures:
-    print(f"At least one active sensor it not responding!\nFailures listed here:{failure_string}\nSensors Checked:{checked_string}\nSensors Ignored:{ignored_string}\nSensors Ignored:{sensors_ignored}")
+    print(f"At least one active sensor it not responding!\nFailures listed here:{failure_string}\nResponsive Sensors:{success_string}\nSensors Ignored:{ignored_string}")
     exit(1)
 else:
-    print(f"{GREEN}Sensors Responding!{ENDC}\nSensors Checked:{checked_string}\nSensors Ignored:{ignored_string}")
+    print(f"{GREEN}Sensors Responding!{ENDC}\nResponsive Sensors:{success_string}\nSensors Ignored:{ignored_string}")
