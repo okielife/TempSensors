@@ -7,7 +7,7 @@
     "readme1": "This is a list of all active sensors, keyed by the label on the wire",
     "01":  {
       "hex": "2887bb81e3813ccd",
-      "active": false,
+      "active": true,
       "short_name": "P_Garage_Freezer",
       "nice_name": "Pantry Garage Freezer",
       "maximum_temp": 13,
