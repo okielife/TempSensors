@@ -42,7 +42,7 @@ Just note that if the dimensions change at all, the 3D print would need to be mo
 +-----------------------------------------+-----------+-----------------------------------------------+
 | Small screws (exact sizes below)        | A few     | https://www.amazon.com/dp/B081DVZMHH          |
 +-----------------------------------------+-----------+-----------------------------------------------+
-| USB Micro cable and block (size approx) | 1         | https://www.amazon.com/dp/B07P5CP5KP          |
+| USB Micro cable and block (size to fit) | 1         | https://www.amazon.com/dp/B07P5CP5KP          |
 +-----------------------------------------+-----------+-----------------------------------------------+
 
 A single case will require these screw sizes and quantities:
@@ -54,15 +54,14 @@ A single case will require these screw sizes and quantities:
 
 Notes:
 
-- Most of the item links about contain a bulk amount of that product, so each purchase would support multiple/many sensor boxes.  For example, the female splitter product has 10, even though each sensor only needs one wire.
-- The cases do need their own USB micro power cable, just pick a length that works for you and include a power brick.
-- I'm still working out the mounting process.  One option is to use magnets like `these <https://www.amazon.com/dp/B072KDBJWC>`__.  Another option would be to use a metal bracket hanging on the door.  In many cases, you may be able to just set the sensor on top of the fridge.
+- Most of the item links above contain a bulk amount of that product, so each purchase would support multiple/many sensor boxes.  For example, the female splitter product has 10, even though each sensor only needs one wire.
+- I'm still working out the mounting process for the sensor box to the fridge.  One option is to use magnets like `these <https://www.amazon.com/dp/B072KDBJWC>`__.  Another option would be to use a metal bracket hanging on the door.  In many cases, you may be able to just set the sensor on top of the fridge.
 
 Assembly Steps
 --------------
 
 .. important::
-    Make sure you use the 3D models, parts list above, code/firmware, and these instructions all from the *same* release.
+    Make sure you choose a release of the project, and use the 3D models, parts list, firmware, and instructions all from that *same* release.
     Failure to do so may result in parts not fitting or incompatible code.
 
 Gathering Materials
@@ -84,21 +83,20 @@ First Steps
 
   - If not already done, create a GitHub user to be the "bot" pushing data to the repo
   - Make sure that bot is invited to collaborate in the repo so that it will have write access
-  - Log in with that user and generate a new token:
-
-    - Go to https://github.com/settings/tokens/new
-    - Choose your preferred expiration time
-    - Choose only ``repo->public_repo`` access so that it can post results
-    - Select ``Generate Token``
-    - Save the token text somewhere safe, preferably a secure local file.  The token will be secret forever after leaving that GitHub page.  During provisioning, the phone or computer connected to the sensor will need that token and will not have internet access.
+  - Make sure the new bot user is currently logged into GitHub
+  - Go to https://github.com/settings/tokens/new
+  - Choose your preferred expiration time
+  - Choose only ``repo->public_repo`` access so that it can post results
+  - Select ``Generate Token``
+  - Save the token text somewhere safe, preferably a secure local file.  The token will be secret forever after leaving that GitHub page.  During provisioning, the phone or computer connected to the sensor will need that token and will not have internet access.
 
 .. _installing_the_pico:
 
 Wiring Details
 **************
 
-A description of the wiring connections, or pinout as I like to call it, is available on the online docs as well as provided as a release asset PDF along with the PDF instruction manual.
-Throughout these instructions, consult the :ref:`pinout <pinout>` for all wiring details.
+A description of the wiring connections, or "pinout", is available on the online docs as well as provided as a release asset PDF along with the PDF instruction manual.
+Throughout these instructions, consult this :ref:`pinout <pinout>` for all wiring details.
 It may be helpful to open it in a new tab, or even better, in split view, next to these instructions.
 
 Flashing the Pico
@@ -106,18 +104,24 @@ Flashing the Pico
 
 - This is easier to do before mounting the Pico.  If you did already mount the Pico, you can use a small hole in the box to access the BOOTSEL button.
 - There is a custom MicroPython firmware build available as a sensor release asset, with all sensor code pre-frozen into the firmware.
-- The preferred approach would be to flash that directly onto the Pico, as no other steps or programs are necessary with a computer.
-- To flash the Pico, hold the BOOTSEL button while plugging it into the computer with a data-transfer-capable USB micro cable and it will mount a drive on the system.  Drag the .uf2 firmware file on there, and once copied, it will reboot the Pico; all done.
+- The preferred approach is to flash that directly onto the Pico, as no other steps or programs are necessary with a computer.
+- Hold the BOOTSEL button on the Pico while plugging it into the computer with a data-transfer-capable USB micro cable and it will mount a drive on the system.  
+- Copy the .uf2 firmware file onto the new mounted RPI-RP2 drive.
+- Once copied, the process is complete and the Pico will reboot.
 
 .. important::
-   Flashing the Pico with MicroPython does **not** erase the filesystem portion of the Flash drive.  So previous files may or may not exist.
-   If you are using a Pico which has been through multiple applications, you may want to consider wiping the flash entirely.
-   You can find methods to reset the board's filesystem online.  This may not even be an issue with the custom firmware we create, and this is definitely not an issue for new Pico boards.
-
+   The Pico storage is actually broken into a bootloader region, which does not change, a firmware section, which we are updating here, and a filesystem section that may contain other files from previous work with your Pico.
+   Flashing the Pico with the custom MicroPython firmware here does **not** erase the filesystem section, which could leave files lying around.
+   If you are using a Pico which has been through multiple applications, you may want to consider wiping the flash entirely, both firmware and filesystem..
+   You can find methods to reset the board's filesystem section online.  
+   
 Temperature Sensor(s)
 *********************
 
-The temperature sensor system will work with either one or two temperature sensors connected through the same breakout board and GPIO pin.
+DS18x20 temperature sensors work on a one-wire design, where multiple sensors can communicate through a single data wire.
+This temperature sensor projects will work with either one or two of these temperature sensors connected through a single breakout board and a single GPIO pin.
+Brand new sensor wires may be pre-stripped and ready to go, but if not, you will need to strip the protective rubber sleeve and wire covering to expose the wires.
+Here are some tips:
 
 - Use the wire strippers on the temperature sensor(s) to trim back the black covering
 - Strip the wires using a 22 gauge slot to about a quarter inch of exposed wire to give a good amount to hold in the sensor
@@ -125,6 +129,14 @@ The temperature sensor system will work with either one or two temperature senso
   - You do *not* want too much wire exposed, as accidental short circuits here will cause a warm box and a risk.
   - It seems finicky at first, but it is very possible to get a clean wire strip and end up with nice terminated ends to put in the screw terminals.
   - Also it would be ideal to get all three wires stripped very close to the same position next to each other, so there is no unnecessary stress on each wire pulling or pushing on the other ends.
+
+This step is **by far** the most finicky and difficult part of the whole build.
+The wires will **not** want to get into the screw terminals, and even if they do, they will not want to stay.
+Take enough tries and time to get the wires in firmly, without any excess exposed wire that could cause a short circuit.
+The screw terminals should be screwed down sufficiently tight, as these screws not only provide the electrical connection, but also the mechanical connection to hold the wires in place.
+
+.. todo::
+   Get a picture showing the wires either just before or just after screwing them into the terminals.
 
 - Unscrew the breakout board terminal screws to open the ports, then screw the sensor(s) wires into the sensor breakout board tightly
 
