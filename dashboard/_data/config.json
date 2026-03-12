@@ -35,7 +35,11 @@
     },
     "06":  {
       "hex": "282e6246d45e2ed0",
-      "active": false
+      "active": false,
+      "short_name": "P_Dining_East_Frig",
+      "nice_name": "Pantry Dining Room East Fridge",
+      "maximum_temp": 42,
+      "sensor_location": "Pantry"
     },
     "07":  {
       "hex": "28280a46d4db00a1",
@@ -43,7 +47,11 @@
     },
     "08":  {
       "hex": "28f15346d41d7b53",
-      "active": false
+      "active": false,
+      "short_name": "P_Dining_East_Frzr",
+      "nice_name": "Pantry Dining Room East Freezer",
+      "maximum_temp": 13,
+      "sensor_location": "Pantry"
     },
     "09": {
       "hex": "28249b46d44b1d05",
@@ -127,18 +135,6 @@
     "286c045704c53c29": "18"
   },
   "unassigned_location_info": [
-    {
-      "short_name": "P_Dining_East_Frig",
-      "nice_name": "Pantry Dining Room East Fridge",
-      "maximum_temp": 42,
-      "sensor_location": "Pantry"
-    },
-    {
-      "short_name": "P_Dining_East_Frzr",
-      "nice_name": "Pantry Dining Room East Freezer",
-      "maximum_temp": 13,
-      "sensor_location": "Pantry"
-    },
     {
       "short_name": "P_Dining_East_Freeze",
       "nice_name": "Pantry Dining Room East Standing Freezer",
