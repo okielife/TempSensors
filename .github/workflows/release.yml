@@ -18,10 +18,17 @@ jobs:
       - name: Checkout your repository
         uses: actions/checkout@v4
 
+      # DEPENDENCY SECTION
+
+      - name: Install Sphinx
+        run: pip install sphinx
+
       - name: Install ARM toolchain
         run: |
           sudo apt update
           sudo apt install -y gcc-arm-none-eabi build-essential cmake python3 python3-pip texlive-latex-recommended texlive-fonts-extra latexmk
+
+      # FIRMWARE SECTION
 
       - name: Clone MicroPython
         run: |
@@ -68,22 +75,20 @@ jobs:
         with:
           files: output/Sensor_PicoWFirmware.uf2
 
+      # INSTRUCTION MANUAL SECTION
+
       - name: Build instruction manual
         working-directory: docs
-        run: |
-          pip install sphinx
-          make latexpdf
+        run: make latexpdf
 
       - name: Package instruction manual
-        run: |
-          mkdir -p output
-          cp docs/_build/latex/assembly.pdf output/AssemblyInstructions.pdf
+        run: cp docs/_build/latex/assembly.pdf docs/_build/latex/AssemblyInstructions.pdf
 
       - name: Upload instruction manual as Actions artifact
         uses: actions/upload-artifact@v7
         with:
           name: instruction-manual
-          path: output/AssemblyInstructions.pdf
+          path: docs/_build/latex/AssemblyInstructions.pdf
           archive: false
 
       - name: Upload instructions to release
@@ -91,6 +96,32 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: output/AssemblyInstructions.pdf
+
+      # PINOUT DIAGRAM SECTION
+
+      - name: Build pinout diagram
+        working-directory: docs
+        run: make latexpdf
+        env:
+          BUILD_PINOUT: "YES"
+
+      - name: Package pinout diagram
+        run: cp docs/_build/latex/pinout.pdf docs/_build/latex/Pinout.pdf
+
+      - name: Upload pinout diagram as Actions artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: instruction-manual
+          path: docs/_build/latex/Pinout.pdf
+          archive: false
+
+      - name: Upload pinout diagram to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: docs/_build/latex/Pinout.pdf
+
+      # 3D MODELS SECTION
 
       - name: Zip up 3D models for printing
         working-directory: model

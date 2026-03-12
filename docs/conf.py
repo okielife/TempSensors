@@ -60,9 +60,20 @@ html_theme = 'sphinx_rtd_theme'
 
 html_static_path = ['_static']
 
-latex_documents = [
-    ('assembly', 'assembly.tex', 'Temperature Sensor Assembly Instructions', 'Edwin Lee', 'manual'),
-]
-latex_elements = {
-    'extraclassoptions': 'openany'
-}
+build_pinout = environ.get("BUILD_PINOUT", "") != ""
+if build_pinout:  # build the pinout specially with xelatex
+    latex_engine = 'xelatex'
+    latex_documents = [
+        ('pinout', 'pinout.tex', 'Temperature Sensor Pinout Diagram', 'Edwin Lee', 'manual'),
+    ]
+    latex_elements = {
+        'extraclassoptions': 'openany,landscape'
+    }
+else:  # normal operation build the main assembly instructions with latex
+    latex_engine = 'pdflatex'
+    latex_documents = [
+        ('assembly', 'assembly.tex', 'Temperature Sensor Assembly Instructions', 'Edwin Lee', 'manual'),
+    ]
+    latex_elements = {
+        'extraclassoptions': 'openany'
+    }

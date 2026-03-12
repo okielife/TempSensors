@@ -4,7 +4,7 @@ Building Your Own
 This covers the assembly of one of these temperature sensors
 
 .. important::
-    There are a few tools which will be needed to construct this.
+    There are a few tools and items which will be needed to construct this.
 
     - The primary one is the 3D printer itself.
       I am getting by with a very small hobby 3D printer that I got off of Amazon `here <https://www.amazon.com/dp/B0CMHM6XQG>`__.
@@ -12,6 +12,7 @@ This covers the assembly of one of these temperature sensors
     - You will need some very small screw drivers, both flat and phillips, and both in the 1-3mm range.
       A set like `this <https://www.amazon.com/Screwdriver-Flathead-Phillips-Screwdrivers-Computer/dp/B0BMWQNMPS/>`__ is great.
     - You will also want some wire strippers for small wires.  I found `this one <https://www.amazon.com/dp/B07D25N45F>`__ to work pretty well.
+    - You will need one data-transfer-enabled USB micro cable to upload the firmware to the Pico.  One example is this: https://www.amazon.com/dp/B074VM7SMM.  If the cable is a power-only cable, it will not connect to the computer properly.  While it's not a 100% guarantee, the general consensus is that if the micro port has the USB trident logo on it, it should be a data cable.  Charge-only cables rarely have this.
 
 Parts List
 ----------
@@ -43,8 +44,6 @@ Just note that if the dimensions change at all, the 3D print would need to be mo
 +-----------------------------------------+-----------+-----------------------------------------------+
 | USB Micro cable and block (size approx) | 1         | https://www.amazon.com/dp/B07P5CP5KP          |
 +-----------------------------------------+-----------+-----------------------------------------------+
-| USB Micro Data Transfer cable (for dev) | 1         | https://www.amazon.com/dp/B074VM7SMM          |
-+-----------------------------------------+-----------+-----------------------------------------------+
 
 A single case will require these screw sizes and quantities:
 
@@ -55,8 +54,7 @@ A single case will require these screw sizes and quantities:
 
 Notes:
 
-- Most of these items listed come as a large amount of that product.  For example, the female splitter product has 10, even though each sensor only needs one wire.
-- You only need one USB micro data transfer cable to do development, each case does not need their own.
+- Most of the item links about contain a bulk amount of that product, so each purchase would support multiple/many sensor boxes.  For example, the female splitter product has 10, even though each sensor only needs one wire.
 - The cases do need their own USB micro power cable, just pick a length that works for you and include a power brick.
 - I'm still working out the mounting process.  One option is to use magnets like `these <https://www.amazon.com/dp/B072KDBJWC>`__.  Another option would be to use a metal bracket hanging on the door.  In many cases, you may be able to just set the sensor on top of the fridge.
 
@@ -64,13 +62,13 @@ Assembly Steps
 --------------
 
 .. important::
-    Make sure you use the 3D models, parts list above, code/firmware, and these instructions all from the same release.
+    Make sure you use the 3D models, parts list above, code/firmware, and these instructions all from the *same* release.
     Failure to do so may result in parts not fitting or incompatible code.
 
 Gathering Materials
 *******************
 
-- Select a specific release of the sensor repo, which will eventually be `here <https://github.com/okielife/TempSensors/releases>`__.
+- Select a specific release of the sensor repo from `here <https://github.com/okielife/TempSensors/releases>`__.
 - The releases will have all necessary files: 3D models, assembly instructions, and firmware.
 - Order any needed parts from the parts list above.
 
@@ -79,42 +77,42 @@ Gathering Materials
 First Steps
 ***********
 
+- Print the 3D models provided in the release asset using your 3D printer workflow, or perhaps even order a print from online
+- Test fit the screen, breakout board, and Pico, checking that the screw holes line up properly
 - Generate a serial number for this box.  Maybe use the same labels as for the wires.  This list is currently started in the `dashboard config file <https://github.com/okielife/TempSensors/blob/main/dashboard/_data/config.json>`__.
 - Generate AND SAVE a new token named after the box serial number
 
   - If not already done, create a GitHub user to be the "bot" pushing data to the repo
   - Make sure that bot is invited to collaborate in the repo so that it will have write access
-  - Log in with that user and generate a new token with public repo write access so that it can post results
-  - Save the token text somewhere safe, it will be gone after leaving that page, and you will need it when provisioning the sensor box
-  - You may consider saving it in a local file or something to ensure you can retrieve it from whatever device you are provisioning the box with.  During provisioning, the device in question will not have full internet access.
+  - Log in with that user and generate a new token:
 
-- Print the 3D models (base and lid)
-- Test fit the screen, breakout board, and pico, checking that the screw holes line up properly
+    - Go to https://github.com/settings/tokens/new
+    - Choose your preferred expiration time
+    - Choose only ``repo->public_repo`` access so that it can post results
+    - Select ``Generate Token``
+    - Save the token text somewhere safe, preferably a secure local file.  The token will be secret forever after leaving that GitHub page.  During provisioning, the phone or computer connected to the sensor will need that token and will not have internet access.
 
 .. _installing_the_pico:
 
 Wiring Details
 **************
 
+A description of the wiring connections, or pinout as I like to call it, is available on the online docs as well as provided as a release asset PDF along with the PDF instruction manual.
 Throughout these instructions, consult the :ref:`pinout <pinout>` for all wiring details.
 It may be helpful to open it in a new tab, or even better, in split view, next to these instructions.
 
 Flashing the Pico
 *****************
 
-- This is easier to do before mounting the Pico.  There is a small hole to access the BOOTSEL button once installed, but it's easier to do this before installing the Pico.
-- There is now a custom MicroPython build available with sensor releases, with all sensor code pre-frozen into the firmware.
-- The preferred approach would be to flash that directly onto the Pico, as no other steps are necessary with a computer.
-- If that isn't working for any reason, continue with just plain MicroPython and copy files manually.
-- Either way, to flash the Pico, just hold the BOOTSEL button while plugging it into the computer and it will mount a drive on the system.  Drag the .uf2 firmware file on there, and once copied, it will be done and reboot the Pico.
+- This is easier to do before mounting the Pico.  If you did already mount the Pico, you can use a small hole in the box to access the BOOTSEL button.
+- There is a custom MicroPython firmware build available as a sensor release asset, with all sensor code pre-frozen into the firmware.
+- The preferred approach would be to flash that directly onto the Pico, as no other steps or programs are necessary with a computer.
+- To flash the Pico, hold the BOOTSEL button while plugging it into the computer with a data-transfer-capable USB micro cable and it will mount a drive on the system.  Drag the .uf2 firmware file on there, and once copied, it will reboot the Pico; all done.
 
 .. important::
    Flashing the Pico with MicroPython does **not** erase the filesystem portion of the Flash drive.  So previous files may or may not exist.
    If you are using a Pico which has been through multiple applications, you may want to consider wiping the flash entirely.
-
-.. important::
-   Make sure your USB cable is a data cable.  Some (many?) micro USB cables are power only, so there will not be any data transfer.
-   The computer will not mount the Pico in this scenario, and it can be very frustrating.  While it's not a 100% guarantee, the general consensus is that if the micro port has the USB trident logo on it, it should be a data cable.  Charge-only cables rarely have this.
+   You can find methods to reset the board's filesystem online.  This may not even be an issue with the custom firmware we create, and this is definitely not an issue for new Pico boards.
 
 Temperature Sensor(s)
 *********************
