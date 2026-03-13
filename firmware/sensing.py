@@ -136,7 +136,7 @@ class SensorBox:
 
         # final report and leave
         self.screen.text((0, y_booting), "BOOTING UP!", self.screen.WHITE, 2)
-        self.board.sleep(3)
+        self.board.sleep(2)
         self.board.feed_watchdog()
 
     def run(self) -> None:

@@ -1,7 +1,23 @@
 Building Your Own
 =================
 
-This covers the assembly of one of these temperature sensors
+.. todo::
+   Better cover page picture -- it is declared in the conf.py in the `latex_additional_files` and `latex_elements['maketitle']` sections
+
+I am happy to share this little temperature sensor project with anyone interesting in using or learning about microcontrollers, 3D printing, MicroPython, GitHub, or any of the other aspects of this project.
+Lots more information can be found on the projects `documentation <https://tempsensors.readthedocs.io/en/latest/>`__ and the `GitHub repo <https://github.com/okielife/TempSensors>`__ itself.
+
+This document covers the assembly of one of these temperature sensors.  The basic steps include:
+
+- Select a specific release of the sensor repo from `here <https://github.com/okielife/TempSensors/releases>`__.
+- The releases will have all necessary files: 3D models, assembly instructions, and firmware; so download all of them.
+- Order any needed parts from the parts list.
+- Build your sensor box according to the instructions below.
+- Deploy and watch the temperature sensor work.
+
+.. important::
+    Make sure you choose a single release of the project, and use the 3D models, parts list, firmware, and instructions all from that *same* release.
+    Failure to do so may result in parts not fitting or incompatible code.
 
 Required Tools
 **************
@@ -63,17 +79,6 @@ Notes:
   Another option would be to use a metal bracket hanging on the door.
   In many cases, you may be able to just set the sensor on top of the fridge.
 
-.. important::
-    Make sure you choose a single release of the project, and use the 3D models, parts list, firmware, and instructions all from that *same* release.
-    Failure to do so may result in parts not fitting or incompatible code.
-
-Gathering Materials
-*******************
-
-- Select a specific release of the sensor repo from `here <https://github.com/okielife/TempSensors/releases>`__.
-- The releases will have all necessary files: 3D models, assembly instructions, and firmware; so download all of them.
-- Order any needed parts from the parts list above.
-
 .. _first_steps:
 
 First Steps
@@ -103,7 +108,8 @@ First Steps
   - Choose your preferred expiration time
   - Choose only ``repo->public_repo`` access so that it can post results
   - Select ``Generate Token``
-  - Save the token text somewhere safe, preferably a secure local file.  The token will be secret forever after leaving that GitHub page.  During provisioning, the phone or computer connected to the sensor will need that token and will not have internet access.
+  - Save the token text somewhere safe, preferably a secure local file.  The token will be secret *forever* after leaving that GitHub page.  During provisioning, the phone or computer connected to the sensor will need that token and will not have internet access.
+  - In the future, if you ever need to change Wi-Fi settings by factory resetting the sensor, you will need to re-enter the token.  If you have lost this token in that time, you can always regenerate a new one.
 
 .. _installing_the_pico:
 
@@ -337,7 +343,7 @@ A jumper can be placed to reverse the order if it is backwards.
    :scale: 50
 
 Final Steps
-*****************
+***********
 
 - Screw screen to lid using 3 M2.3x5mm screws
 - Take out debug jumper that was connecting pin 14 to ground
@@ -347,3 +353,45 @@ Final Steps
 
 .. todo::
    Image of deployed sensor box with wires in the fridge/freezer
+
+Normal Operation
+****************
+
+Once the sensor box is running, it will follow these steps:
+
+- Refresh the sensor temperature and screen every 10 seconds or so
+- Regularly check for active Wi-Fi connections, and try to connect if needed
+- Immediately at boot, and then once every hour, it will push results up to the GitHub repo
+
+Screen Details
+**************
+
+During the various modes of operation, the screen will show current status and helpful messages.
+At boot, a series of self-checks are performed and presented to the user.
+
+.. todo::
+   Add another POST capture
+
+During normal mode, the screen shows version, temperature, config, Wi-Fi, and latest read/push information.
+
+.. todo::
+   Show a normal screen with arrows pointing to each entry, pointing out the UTC time aspect
+
+When a significant error occurs, the screen will show the message as error text.
+
+.. todo::
+   Add a picture of an error
+
+Depending on the type of error, the system may continue after a pause, reboot, or hang on that error indefinitely.
+If it hangs indefinitely, it will result in an unresponsive temperature on GitHub, which will yield a failing Action, and an email alert.
+
+FAQ
+***
+
+- Why are the timestamps wrong?
+
+  - They are in UTC because I am not sure which time zone this will be in, and whether daylight savings is active.  UTC is a constant.  For reference, during Winter, when DST is off, you can get central (standard) time by subtracting 6 hours from the UTC time.  During summer, when DST is on, you can get central (daylight) time by subtracting 5 hours from the UTC time.
+
+- When it boots up, it says Wi-Fi error, but it seems to work.
+
+  - When the Pico is deployed to a new Wi-Fi network, it often takes a bit longer to initiate the connection.  Sometimes this delay is long enough that the Wi-Fi step actually reports failure.  The devices are expected to behave reasonably without internet access, as we can never rely on a stable connection.  So the device will continually check for network status and try to connect regularly.  If you notice it never connecting to Wi-Fi, it's possible there is a typo in the network fields.  You may need to factory reset the device and re-enter the Wi-Fi and GitHub credentials.

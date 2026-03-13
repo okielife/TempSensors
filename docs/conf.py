@@ -74,6 +74,19 @@ else:  # normal operation build the main assembly instructions with latex
     latex_documents = [
         ('assembly', 'assembly.tex', 'Temperature Sensor Assembly Instructions', 'Edwin Lee', 'manual'),
     ]
+    latex_additional_files = ['images/sensor_run.jpg']
     latex_elements = {
-        'extraclassoptions': 'openany'
+        'extraclassoptions': 'openany',
+        'preamble': r'\usepackage{graphicx}',
+        'maketitle': r'''
+            \begin{titlepage}
+                \centering
+                \vspace*{2cm}
+                {\includegraphics[width=0.6\textwidth]{sensor_run.jpg}\\[1cm]}
+                {\huge\bfseries Temperature Sensor Assembly Instructions\\[1cm]}
+                {\Large Edwin Lee\\[0.5cm]}
+                {\Large \today\\[2cm]}
+                \vfill
+            \end{titlepage}        
+        ''',
     }
