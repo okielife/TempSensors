@@ -1,6 +1,12 @@
 Pinout Diagram
 ==============
 
+.. todo::
+   Update pinout title in the conf.py just like the assembly instructions document
+
+.. todo::
+   Add actual images of these same devices next to the diagrams
+
 .. _pinout:
 
 Pico
