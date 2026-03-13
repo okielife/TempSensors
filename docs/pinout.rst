@@ -1,6 +1,12 @@
 Pinout Diagram
 ==============
 
+.. todo::
+   Update pinout title in the conf.py just like the assembly instructions document
+
+.. todo::
+   Add actual images of these same devices next to the diagrams
+
 .. _pinout:
 
 Pico
@@ -60,3 +66,23 @@ Looking at the TFT screen from below, where you can see the SD card slot.
    │                                                          │ VCC   - SPLITTER FROM PICO 3V3
    │                                                          │ GND   - PICO GND
    └──────────────────────────────────────────────────────────┘
+
+Temperature Sensor Breakout Board
+---------------------------------
+
+Looking at the breakout board with the screw terminals on the left.
+
+.. code-block::
+
+                        ┌─────────────────────────────┐
+                        │                             │
+                        │     ┌───────┐               │
+   SENSOR YELLOW(s) ─── │ DAT │       │        ┌─┐    │
+                        │     │───────│    DAT │ │────┼──── PICO GP20
+      SENSOR RED(s) ─── │ VCC │       │    VCC │ │────┼──── 3V3OUT SPLITTER
+                        │     │───────│    GND │ │────┼──── PICO GP19
+    SENSOR BLACK(s) ─── │ GND │       │        └─┘    │
+                        │     └───────┘               │
+                        │                             │
+                        └─────────────────────────────┘
+

@@ -2,6 +2,7 @@ config.py
 .idea/
 __pycache__
 docs/_build
+.vscode/
 
 dashboard/Gemfile.lock
 dashboard/_site
