@@ -2,10 +2,352 @@
 title: Temperature Sensor Dashboard
 ---
 
-{% include common_head.html %}
+<head>
+    <title>Temperature Sensor Dashboard</title>
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu:400,700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+          integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    <style>
+        .filter-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .filter-btn {
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            padding: 6px 14px;
+            margin-right: 10px;
+            z-index: 2;
+        }
+
+        .filter-pill {
+            position: absolute;
+            height: 36px;
+            background: #0d6efd;
+            border-radius: 10px;
+            transition: all 0.25s ease;
+            z-index: 1;
+        }
+
+        .filter-btn.active {
+            color: white !important;
+        }
+
+        .summary-card {
+            padding-top: 0;
+        }
+    </style>
+</head>
 <body class="container-fluid" style="font-family: Ubuntu,serif">
-{% include nav_bar.html %}
-{% assign page_locations = site.data.config.locations %}
-{% include common_sensors.html %}
-{% include common_scripts.html %}
+<script src='https://cdn.plot.ly/plotly-3.3.0.min.js'></script>
+
+{% assign active_sensors = "" | split: '/' %}
+{% for s in site.data.config.sensors %}
+    {% assign sensor = s[1] %}
+    {% if sensor.active %}
+        {% assign active_sensors = active_sensors | push: sensor %}
+    {% endif %}
+{% endfor %}
+
+<nav class="navbar navbar-light bg-light px-3 filter-navbar" style="font-size: 1.5rem;">
+    <ul class="navbar-nav flex-row me-4">
+        <li class="nav-item px-3">
+            <a class="nav-link active" href="{{ '/' | relative_url }}">Temperature Sensor Dashboard</a>
+        </li>
+    </ul>
+    <ul class="navbar-nav flex-row me-auto filter-group" id="sensorFilters">
+        <div class="filter-pill"></div>
+        <li class="nav-item px-1">
+            <a class="nav-link filter-btn active" role="button" onclick="filterSensors('all', this)">All</a>
+        </li>
+        {% for loc in site.data.config.locations %}
+            <li class="nav-item px-1">
+                <a class="nav-link filter-btn" role="button" onclick="filterSensors('{{ loc }}', this)">
+                    {{ loc }}
+                </a>
+            </li>
+        {% endfor %}
+
+        {% comment %}<div class="form-check form-switch nav-item mt-2">{% endcomment %}
+            {% comment %}<input class="form-check-input" type="checkbox" id="sensorToggle" checked>{% endcomment %}
+            {% comment %}<label class="form-check-label text-light" for="sensorToggle">Show Summary</label>{% endcomment %}
+        {% comment %}</div>{% endcomment %}
+
+    </ul>
+    <ul class="navbar-nav flex-row">
+        <li class="nav-item">
+            <a class="nav-link active" href="https://github.com/okielife/TempSensors">GitHub</a>
+        </li>
+    </ul>
+</nav>
+
+<script>
+    const isSmallScreen = window.matchMedia("(max-width: 1500px)").matches;
+    const plotLineWidth = isSmallScreen ? 6 : 4;
+</script>
+
+<div class="container-fluid mb-4" id="summaryContainer">
+    <div class="row g-3">
+        {% for sensor in active_sensors %}
+            {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.hex | slice: 0, 3 %}
+            {% assign count = recent_sensor_posts | size %}
+            {% assign sum = 0 %}
+            {% for p in recent_sensor_posts %}
+                {% assign sum = sum | plus: p.temperature %}
+            {% endfor %}
+            {% if count > 0 %}
+                {% assign avg_temp = sum | divided_by: count %}
+            {% endif %}
+            {% assign last_post = recent_sensor_posts[0] %}
+            <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                <div class="card shadow-sm summary-card" data-time="{{ last_post.measurement_time }}" data-temp="{{ avg_temp }}" data-maxtemp="{{ sensor.maximum_temp }}">
+                    <div class="card-body" style="padding: 10px;">
+                        <div style="font-weight:600">{{ sensor.nice_name }}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <div class="avg-temperature" style="font-size:1.6rem">calculating...</div>
+                            <div class="text-muted last-update">calculating...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% assign active_sensors = active_sensors | sort: "sensor_location" %}
+{% for sensor in active_sensors %}
+    {% assign full_sensor_history = site.posts | where: "sensor_id", sensor.hex | slice: 0, 100 | reverse %}
+    {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.hex | slice: 0, 5 %}
+    {% assign caution_temp = sensor.maximum_temp | plus: 2 %}
+
+    <div class="container-fluid sensor-card mb-4" data-location="{{ sensor.sensor_location }}">
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="card h-100 card border-1 border-secondary shadow-sm">
+                    <h2 class="card-header d-flex justify-content-center align-items-center">{{ sensor.nice_name }}</h2>
+                    <div class="card-body">
+                        <div class="row g-3 align-items-stretch">
+                            <div class="col-12 col-md-6 col-lg-4 d-flex">
+                                <div class="w-100">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered" style="font-size: 1.5rem;">
+                                            <thead>
+                                            <tr>
+                                                <th colspan=2 style="text-align: center;">Latest Temperature Readings
+                                                </th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for post in recent_sensor_posts %}
+                                                {% assign temp_fahrenheit = post.temperature | round: 1 %}
+                                                <tr style="text-align: center">
+                                                    <td>
+                                                        <span class="ts-timestamp" {% if forloop.first %} data-row="1" {% endif %} data-ts="{{ post.measurement_time }}"></span>
+                                                    </td>
+                                                    {% if post.temperature <= sensor.maximum_temp %}
+                                                        <td class="table-success">{{ temp_fahrenheit }} &degF</td>
+                                                    {% elsif post.temperature < caution_temp %}
+                                                        <td class="table-warning">{{ temp_fahrenheit }} &degF</td>
+                                                    {% else %}
+                                                        <td class="table-danger">{{ temp_fahrenheit }} &degF</td>
+                                                    {% endif %}
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-8 d-flex">
+                                {% assign temp_list = "" %}
+                                {% assign time_list = "" %}
+                                {% for post in full_sensor_history %}
+                                    {% assign temp_fahrenheit = post.temperature | round: 4 %}
+                                    {% assign temp_list = temp_list | append: temp_fahrenheit | append: "," %}
+                                    {% assign parts = post.measurement_time | split: "-" %}
+                                    {% assign nice_time_stamp = '"' | append: parts[0] | append: "-" | append: parts[1] | append: "-" | append: parts[2] | append: " " | append: parts[3] | append: ":" | append: parts[4] | append: ":" | append: parts[5] | append: '"' %}
+                                    {% assign time_list = time_list | append: nice_time_stamp | append: "," %}
+                                {% endfor %}
+                                <div id="plot {{ sensor.hex }}" class="w-100 flex-fill"
+                                     style="width:100%;height:100%;min-height:300px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--suppress JSUnresolvedReference -->
+    <script>
+        Plotly.newPlot(
+            'plot {{ sensor.hex }}',
+            [ // data
+                {
+                    x: [{{ time_list }}].map(ts => new Date(ts)),
+                    y: [{{ temp_list }}],
+                    mode: 'lines+markers',
+                    type: 'scatter',
+                    line: {color: 'rgb(50, 50, 50)', width: 4},
+                    name: "Sensed Temperature"
+                }
+            ],
+            { // layout
+                font: {
+                    family: 'Ubuntu, sans-serif',
+                    size: 18,
+                    color: '#000000'
+                },
+                margin: {l: 50, r: 10, t: 0, b: 0},
+                xaxis: {type: 'date', tickformat: '%b %d %H:%M', tickangle: -45, automargin: true},
+                yaxis: {title: {text: 'Temperature \u00B0F'}},
+                shapes: [
+                    {
+                        type: 'line',
+                        xref: 'paper',
+                        x0: 0,
+                        y0: 32.0,
+                        x1: 1,
+                        y1: 32.0,
+                        line: {color: 'rgb(0, 0, 150)', width: plotLineWidth, dash: 'dot'},
+                        name: "Freezing Line",
+                    },
+                    {
+                        type: 'line',
+                        xref: 'paper',
+                        x0: 0,
+                        y0: Number("{{ sensor.maximum_temp | default: 0 | jsonify }}"),
+                        x1: 1,
+                        y1: Number("{{ sensor.maximum_temp | default: 0 | jsonify }}"),
+                        line: {color: 'rgb(150, 0, 0)', width: plotLineWidth, dash: 'dot'},
+                        name: "Sensor Max Temp",
+                    }
+                ]
+            },
+            { // config
+                staticPlot: window.matchMedia("(max-width: 1500px)").matches,
+                displayModeBar: !window.matchMedia("(max-width: 1500px)").matches,
+                scrollZoom: false, //!window.matchMedia("(max-width: 1500px)").matches,
+                responsive: true
+            }
+        );
+    </script>
+{% endfor %}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body text-center">
+                    Built at {{ site.time | date: "%Y-%m-%d %H:%M:%S %Z" }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function parseSensorTime(str) {
+        const p = str.split('-').map(Number);
+        return new Date(Date.UTC(
+            p[0],
+            p[1] - 1,
+            p[2],
+            p[3],
+            p[4],
+            p[5]
+        ));
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".ts-timestamp").forEach(el => {
+            const build_time = new Date("{{ site.time }}");
+            const d = parseSensorTime(el.dataset.ts);
+            const ageSeconds = (build_time - d) / 1000;
+            const sixHoursInSeconds = 6 * 3600;
+            el.textContent = d.toLocaleDateString() + "  " + d.toLocaleTimeString();
+            if (el.dataset.row === "1" && ageSeconds > sixHoursInSeconds) {
+                el.parentElement.classList.add("table-warning");
+            }
+        });
+    })
+
+    function filterSensors(location, el) {
+        document.querySelectorAll('.sensor-card').forEach(card => {
+            if (location === 'all' || card.dataset.location === location) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        el.classList.add('active');
+        moveFilterPill(el);
+    }
+
+    function moveFilterPill(el) {
+        const pill = document.querySelector('.filter-pill');
+        const rect = el.getBoundingClientRect();
+        const parentRect = el.parentElement.parentElement.getBoundingClientRect();
+        const extraPadding = 8;
+        pill.style.width = (rect.width + extraPadding) + 'px';
+        pill.style.left = (rect.left - parentRect.left - extraPadding / 2) + 'px';
+    }
+
+    function timeAgo(date) {
+        const seconds = Math.floor((Date.now() - date) / 1000);
+        if (seconds < 60) return seconds + "s ago";
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return minutes + "m ago";
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return hours + "h ago";
+        const days = Math.floor(hours / 24);
+        return days + "d ago";
+    }
+
+    function updateSensorSummary() {
+        document.querySelectorAll('.summary-card').forEach(card => {
+            const raw = card.dataset.time;
+            const avg_temp = Number(card.dataset.temp);
+            const max_temp = Number(card.dataset.maxtemp);
+            const d = parseSensorTime(raw);
+            const rounded_temp = avg_temp.toFixed(1) + "°F";
+            card.querySelector('.last-update').textContent = timeAgo(d);
+            card.querySelector('.avg-temperature').textContent = rounded_temp;
+            const ageMinutes = (Date.now() - d) / 60000;
+            if (ageMinutes > 240 || avg_temp > max_temp) {
+                card.classList.add('border-danger');
+            }
+        });
+    }
+    updateSensorSummary();
+
+    // position pill on page load
+    window.addEventListener('load', () => {
+        const active = document.querySelector('.filter-btn.active');
+        if (active) moveFilterPill(active);
+    });
+    document.getElementById('sensorToggle').addEventListener('change', function() {
+        const container = document.getElementById('summaryContainer');
+        if (this.checked) {
+            container.classList.remove('d-none');
+        } else {
+            container.classList.add('d-none');
+        }
+    });
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"
+        integrity="sha384-+sLIOodYLS7CIrQpBjl+C7nPvqq+FbNUBDunl/OZv93DB7Ln/533i8e/mZXLi/P+"
+        crossorigin="anonymous"></script>
 </body>
