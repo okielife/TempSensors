@@ -35,7 +35,7 @@
     },
     "06":  {
       "hex": "282e6246d45e2ed0",
-      "active": false,
+      "active": true,
       "short_name": "P_Dining_East_Frig",
       "nice_name": "Pantry Dining Room East Fridge",
       "maximum_temp": 42,
@@ -47,7 +47,7 @@
     },
     "08":  {
       "hex": "28f15346d41d7b53",
-      "active": false,
+      "active": true,
       "short_name": "P_Dining_East_Frzr",
       "nice_name": "Pantry Dining Room East Freezer",
       "maximum_temp": 13,
