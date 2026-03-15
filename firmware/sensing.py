@@ -315,7 +315,6 @@ class SensorBox:
 
         :return: Nothing
         """
-        # TODO: Fix this display, also maybe move it to the board class itself or the screen class??
         self.developer_mode = True
         self.screen.fill(self.screen.BLACK)
         self.screen.text((7, 5), "*DEV MODE*", self.screen.YELLOW, 2)

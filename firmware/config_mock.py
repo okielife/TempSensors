@@ -1,5 +1,5 @@
 from firmware.config_base import ConfigBase
-from firmware.config_data import DEFAULT_WIFI_NETWORKS, default_token
+from firmware.config_data import DEFAULT_WIFI_NETWORKS
 from firmware.screen_base import ScreenBase
 
 
@@ -14,7 +14,7 @@ class ConfigMock(ConfigBase):
         Constructs a mock configuration class, storing defaults as class members
         """
         self.networks = DEFAULT_WIFI_NETWORKS
-        self.token = default_token()
+        self.token = "abc123def456"
 
     def wifi_networks(self) -> dict:
         """

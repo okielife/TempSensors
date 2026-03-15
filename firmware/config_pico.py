@@ -11,7 +11,7 @@ from machine import unique_id, reset, Pin
 from network import WLAN, AP_IF
 
 from firmware.config_base import ConfigBase
-from firmware.config_data import html_form, html_reboot, QR_CODE_192_168_4_1, DEFAULT_WIFI_NETWORKS, default_token
+from firmware.config_data import html_form, html_reboot, QR_CODE_192_168_4_1, DEFAULT_WIFI_NETWORKS
 from firmware.screen_tft import ScreenTFT, ScreenBase
 
 
@@ -35,7 +35,7 @@ class ConfigPico(ConfigBase):
         self.device_id = hexlify(unique_id()).decode()
         self.device_id_short = self.device_id[0:4]
         self.ap_wifi_name = f"Sensor_{self.device_id_short}"
-        self.token = default_token()
+        self.token = ""
         self.additional_wifi_network: dict = {}
         self.ready_to_reset = False
         factory_reset_pin = Pin(ConfigPico.PIN_FACTORY_RESET, Pin.IN, Pin.PULL_UP)

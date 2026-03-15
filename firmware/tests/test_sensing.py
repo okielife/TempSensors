@@ -162,4 +162,5 @@ class TestSensing(TestCase):
         self.assertIn("PUT Error", s.board.printed_messages_for_testing)
 
     # TODO: Think about turning these unit tests into operational issues:
-    # def test_wifi_is_down(self):
+    # def test_wifi_is_down_at_boot(self):
+    # def test_wifi_goes_down_after_normal_run(self):
