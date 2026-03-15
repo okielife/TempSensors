@@ -1,7 +1,6 @@
 #: Defines a set of known network SSID/PW key/value pairs
 DEFAULT_WIFI_NETWORKS = {
     "MiFi8000-C1DE": "9df7061f",
-    "EmeraldWiFi": "rejoice27"
 }
 
 #: Defines the bits of a 29x29 QR code image that maps to http://192.168.4.1
@@ -219,18 +218,3 @@ def html_reboot() -> str:
     </body>
     </html>
     """
-
-
-def default_token() -> str:
-    """
-    Provides a default GH token, useful for testing.
-
-    :return: A token
-    """
-    return ''.join(reversed([
-        'i', '7', 'X', 'M', 't', '0', 'C', 'r',
-        'k', 'R', 'n', 'j', '8', 'h', 'D', 'D',
-        'N', 'a', 'J', '1', 's', 'o', 'A', 'V',
-        'V', 'o', 'f', 'e', 'l', 'p', 'w', 'I',
-        '8', 'r', '1', '9', '_', 'p', 'h', 'g'
-    ]))

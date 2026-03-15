@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from firmware.config_data import DEFAULT_WIFI_NETWORKS, QR_CODE_192_168_4_1, html_form, html_reboot, default_token
+from firmware.config_data import DEFAULT_WIFI_NETWORKS, QR_CODE_192_168_4_1, html_form, html_reboot
 
 
 class TestConfigData(TestCase):
@@ -9,4 +9,3 @@ class TestConfigData(TestCase):
         self.assertIsInstance(QR_CODE_192_168_4_1, list)
         self.assertIsInstance(html_form("id", "token", {'ssid': 'pw'}), str)
         self.assertIsInstance(html_reboot(), str)
-        self.assertIsInstance(default_token(), str)
