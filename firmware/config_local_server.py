@@ -2,11 +2,11 @@ import http.server
 import socketserver
 import webbrowser
 
-from firmware.config_data import html_form, html_reboot, default_token, DEFAULT_WIFI_NETWORKS
+from firmware.config_data import html_form, html_reboot, DEFAULT_WIFI_NETWORKS
 from firmware.config_base import ConfigBase
 from firmware.screen_tk import ScreenBase
 
-_local_token: str = default_token()
+_local_token: str = ""
 _additional_network: dict = {}
 _ready: bool = False
 
