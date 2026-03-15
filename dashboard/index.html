@@ -40,6 +40,64 @@ title: Temperature Sensor Dashboard
         .summary-card {
             padding-top: 0;
         }
+
+        .bg-danger-soft {
+            background-color: #f8d7da;
+        }
+
+        #summaryContainer {
+            transition: all 0.25s ease;
+        }
+
+        .summary-switch {
+            position: relative;
+            display: inline-block;
+            width: 150px;
+            height: 36px;
+        }
+
+        .summary-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .summary-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: #adb5bd;
+            border-radius: 30px;
+            transition: 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* sliding knob */
+        .summary-slider::before {
+            content: "";
+            position: absolute;
+            height: 28px;
+            width: 28px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.25s;
+        }
+
+        /* ON state */
+        .summary-switch input:checked + .summary-slider {
+            background-color: #0d6efd;
+        }
+
+        .summary-switch input:checked + .summary-slider::before {
+            transform: translateX(114px);
+        }
     </style>
 </head>
 <body class="container-fluid" style="font-family: Ubuntu,serif">
@@ -55,8 +113,11 @@ title: Temperature Sensor Dashboard
 
 <nav class="navbar navbar-light bg-light px-3 filter-navbar" style="font-size: 1.5rem;">
     <ul class="navbar-nav flex-row me-4">
-        <li class="nav-item px-3">
-            <a class="nav-link active" href="{{ '/' | relative_url }}">Temperature Sensor Dashboard</a>
+        <li class="nav-item px-3 d-flex align-items-center">
+            <label class="summary-switch">
+                <input type="checkbox" id="summaryToggle" checked>
+                <span class="summary-slider">Summary</span>
+            </label>
         </li>
     </ul>
     <ul class="navbar-nav flex-row me-auto filter-group" id="sensorFilters">
@@ -71,12 +132,6 @@ title: Temperature Sensor Dashboard
                 </a>
             </li>
         {% endfor %}
-
-        {% comment %}<div class="form-check form-switch nav-item mt-2">{% endcomment %}
-            {% comment %}<input class="form-check-input" type="checkbox" id="sensorToggle" checked>{% endcomment %}
-            {% comment %}<label class="form-check-label text-light" for="sensorToggle">Show Summary</label>{% endcomment %}
-        {% comment %}</div>{% endcomment %}
-
     </ul>
     <ul class="navbar-nav flex-row">
         <li class="nav-item">
@@ -103,8 +158,9 @@ title: Temperature Sensor Dashboard
                 {% assign avg_temp = sum | divided_by: count %}
             {% endif %}
             {% assign last_post = recent_sensor_posts[0] %}
-            <div class="col-12 col-md-6 col-lg-4 col-xl-3">
-                <div class="card shadow-sm summary-card" data-time="{{ last_post.measurement_time }}" data-temp="{{ avg_temp }}" data-maxtemp="{{ sensor.maximum_temp }}">
+            <div class="col-12 col-md-6 col-lg-4 col-xl-3 sensor-card" data-location="{{ sensor.sensor_location }}">
+                <div class="card shadow-sm summary-card" data-time="{{ last_post.measurement_time }}"
+                     data-temp="{{ avg_temp }}" data-maxtemp="{{ sensor.maximum_temp }}">
                     <div class="card-body" style="padding: 10px;">
                         <div style="font-weight:600">{{ sensor.nice_name }}</div>
                         <div style="display: flex; justify-content: space-between; align-items: baseline;">
@@ -251,6 +307,7 @@ title: Temperature Sensor Dashboard
 </div>
 
 <script>
+    // multi purpose utility functions
     function parseSensorTime(str) {
         const p = str.split('-').map(Number);
         return new Date(Date.UTC(
@@ -263,19 +320,36 @@ title: Temperature Sensor Dashboard
         ));
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        document.querySelectorAll(".ts-timestamp").forEach(el => {
-            const build_time = new Date("{{ site.time }}");
-            const d = parseSensorTime(el.dataset.ts);
-            const ageSeconds = (build_time - d) / 1000;
-            const sixHoursInSeconds = 6 * 3600;
-            el.textContent = d.toLocaleDateString() + "  " + d.toLocaleTimeString();
-            if (el.dataset.row === "1" && ageSeconds > sixHoursInSeconds) {
-                el.parentElement.classList.add("table-warning");
+    function timeAgo(date) {
+        const seconds = Math.floor((Date.now() - date) / 1000);
+        if (seconds < 60) return seconds + "s ago";
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 120) return minutes + "m ago";
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return hours + "h ago";
+        const days = Math.floor(hours / 24);
+        return days + "d ago";
+    }
+
+    // building out the sensor summary and such
+    function updateSensorSummary() {
+        document.querySelectorAll('.summary-card').forEach(card => {
+            const raw = card.dataset.time;
+            const avg_temp = Number(card.dataset.temp);
+            const max_temp = Number(card.dataset.maxtemp);
+            const d = parseSensorTime(raw);
+            const rounded_temp = avg_temp.toFixed(1) + "°F";
+            card.querySelector('.last-update').textContent = timeAgo(d);
+            card.querySelector('.avg-temperature').textContent = rounded_temp;
+            const ageMinutes = (Date.now() - d) / 60000;
+            if (ageMinutes > 240 || avg_temp > max_temp) {
+                card.classList.add('border-danger');
+                card.classList.add('bg-danger-soft');
             }
         });
-    })
+    }
 
+    // handling the sensor filtering
     function filterSensors(location, el) {
         document.querySelectorAll('.sensor-card').forEach(card => {
             if (location === 'all' || card.dataset.location === location) {
@@ -298,46 +372,45 @@ title: Temperature Sensor Dashboard
         pill.style.left = (rect.left - parentRect.left - extraPadding / 2) + 'px';
     }
 
-    function timeAgo(date) {
-        const seconds = Math.floor((Date.now() - date) / 1000);
-        if (seconds < 60) return seconds + "s ago";
-        const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return minutes + "m ago";
-        const hours = Math.floor(minutes / 60);
-        if (hours < 24) return hours + "h ago";
-        const days = Math.floor(hours / 24);
-        return days + "d ago";
+    // handling the summary section toggling
+    const toggle = document.getElementById("summaryToggle");
+    const summary = document.getElementById("summaryContainer");
+
+    function updateSummaryVisibility() {
+        summary.style.display = toggle.checked ? "" : "none";
     }
 
-    function updateSensorSummary() {
-        document.querySelectorAll('.summary-card').forEach(card => {
-            const raw = card.dataset.time;
-            const avg_temp = Number(card.dataset.temp);
-            const max_temp = Number(card.dataset.maxtemp);
-            const d = parseSensorTime(raw);
-            const rounded_temp = avg_temp.toFixed(1) + "°F";
-            card.querySelector('.last-update').textContent = timeAgo(d);
-            card.querySelector('.avg-temperature').textContent = rounded_temp;
-            const ageMinutes = (Date.now() - d) / 60000;
-            if (ageMinutes > 240 || avg_temp > max_temp) {
-                card.classList.add('border-danger');
+    toggle.addEventListener("change", () => {
+        updateSummaryVisibility();
+        localStorage.setItem("showSummary", toggle.checked);
+    });
+
+    // window load types of events
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".ts-timestamp").forEach(el => {
+            const build_time = new Date("{{ site.time }}");
+            const d = parseSensorTime(el.dataset.ts);
+            const ageSeconds = (build_time - d) / 1000;
+            const sixHoursInSeconds = 6 * 3600;
+            el.textContent = d.toLocaleDateString() + "  " + d.toLocaleTimeString();
+            if (el.dataset.row === "1" && ageSeconds > sixHoursInSeconds) {
+                el.parentElement.classList.add("table-warning");
             }
         });
-    }
-    updateSensorSummary();
-
-    // position pill on page load
+    })
     window.addEventListener('load', () => {
+        // flesh out the summary section
+        updateSensorSummary();
+
+        // read saved summary state and show or hide it
+        const saved = localStorage.getItem("showSummary");
+        if (saved !== null) {
+            toggle.checked = saved === "true";
+        }
+        updateSummaryVisibility();
+        // adjust the active filter
         const active = document.querySelector('.filter-btn.active');
         if (active) moveFilterPill(active);
-    });
-    document.getElementById('sensorToggle').addEventListener('change', function() {
-        const container = document.getElementById('summaryContainer');
-        if (this.checked) {
-            container.classList.remove('d-none');
-        } else {
-            container.classList.add('d-none');
-        }
     });
 
 </script>
