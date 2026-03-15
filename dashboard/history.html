@@ -1,0 +1,143 @@
+---
+title: Temperature Sensor Dashboard
+---
+<html style="scroll-behavior:smooth" lang="en">
+<head>
+    <title>Temperature Sensor Dashboard</title>
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu:400,700&amp;display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Style for dates that have JSON data */
+        .has-data {
+            background: #e3f2fd !important;
+            border-color: #2196f3 !important;
+            font-weight: bold;
+            color: #1565c0 !important;
+        }
+
+        .flatpickr-calendar {
+            width: 100%; /* Expands the main calendar container */
+        }
+
+        .dayContainer {
+            width: 100%;
+            min-width: 100%;
+            max-width: 100%;
+        }
+
+        .flatpickr-days {
+            width: 100%;
+        }
+
+        .flatpickr-day {
+            /* Optional: Adjusts the maximum width of individual day elements */
+            max-width: calc(100% / 7);
+        }
+    </style>
+</head>
+<body class="container-fluid" style="font-family: Ubuntu,serif">
+
+
+<nav class="navbar navbar-light bg-light px-3 filter-navbar" style="font-size: 1.5rem;">
+    <ul class="navbar-nav flex-row ms-auto">
+        <li class="nav-item" style="padding-right:20px;">
+            <a class="nav-link active" href="/">Dashboard</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" href="https://github.com/okielife/TempSensors">GitHub</a>
+        </li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div class="row">
+        <!-- Div 1 -->
+        <div class="col-12 col-lg-4">
+            <div class="p-3 border bg-light">
+                <div id="calendar-anchor"></div>
+            </div>
+        </div>
+        <!-- Div 2 -->
+        <div class="col-12 col-lg-8">
+            <div class="p-3 border">
+                <div id="data-display" style="margin-top: 20px;">
+                    <h3 id="selected-date-header">Select a date</h3>
+                    <div class="table-responsive">
+                        <table id="temp-table" class="table table-striped table-bordered" style="font-size: 1.5rem;">
+                            <thead>
+                            <tr>
+                                <th>Location</th>
+                                <th>Avg Temp (°F)</th>
+                            </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% assign sensor_history = site.data.history %}
+<script>console.log({{ sensor_history | jsonify }})</script>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body text-center">
+                    Built at {{ site.time | date: "%Y-%m-%d %H:%M:%S %Z" }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    // Assuming Jekyll data is here
+    const historyData = {{ site.data.history | jsonify }};
+
+    flatpickr("#calendar-anchor", {
+        inline: true, // This makes it a static calendar instead of a popup
+        monthSelectorType: "static",
+
+        // 1. Highlight dates that exist in your JSON
+        onDayCreate: (dObj, dStr, fp, dayElem) => {
+            const dateKey = fp.formatDate(dayElem.dateObj, "Y-m-d");
+            if (historyData[dateKey]) {
+                dayElem.classList.add("has-data");
+            }
+        },
+
+        // 2. Handle the click event
+        onChange: (selectedDates, dateStr) => {
+            const readings = historyData[dateStr];
+            const tbody = document.querySelector("#temp-table tbody");
+            const header = document.getElementById("selected-date-header");
+
+            // Clear previous data
+            tbody.innerHTML = "";
+            header.innerText = `Details for ${dateStr}`;
+
+            if (readings) {
+                const sortedReadings = Object.entries(readings).sort((a, b) => a[0].localeCompare(b[0]));
+                for (const [location, temp] of sortedReadings) {
+                    const row = `<tr><td>${location}</td><td>${temp.toFixed(2)}°</td></tr>`;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                }
+            } else {
+                tbody.innerHTML = "<tr><td colspan='2'>No data for this date</td></tr>";
+            }
+        }
+    });
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
