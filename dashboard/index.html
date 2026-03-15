@@ -46,6 +46,18 @@ title: Temperature Sensor Dashboard
         }
 
         #summaryContainer {
+            overflow: hidden;
+            max-height: 500px;      /* something larger than the content height */
+            opacity: 1;
+            transition: max-height 0.35s ease, opacity 0.25s ease;
+        }
+
+        #summaryContainer.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        #summaryContainer {
             transition: all 0.25s ease;
         }
 
@@ -374,15 +386,8 @@ title: Temperature Sensor Dashboard
 
     // handling the summary section toggling
     const toggle = document.getElementById("summaryToggle");
-    const summary = document.getElementById("summaryContainer");
-
-    function updateSummaryVisibility() {
-        summary.style.display = toggle.checked ? "" : "none";
-    }
-
     toggle.addEventListener("change", () => {
-        updateSummaryVisibility();
-        localStorage.setItem("showSummary", toggle.checked);
+        document.getElementById("summaryContainer").classList.toggle("collapsed");
     });
 
     // window load types of events
@@ -401,13 +406,6 @@ title: Temperature Sensor Dashboard
     window.addEventListener('load', () => {
         // flesh out the summary section
         updateSensorSummary();
-
-        // read saved summary state and show or hide it
-        const saved = localStorage.getItem("showSummary");
-        if (saved !== null) {
-            toggle.checked = saved === "true";
-        }
-        updateSummaryVisibility();
         // adjust the active filter
         const active = document.querySelector('.filter-btn.active');
         if (active) moveFilterPill(active);
