@@ -10,7 +10,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  cleanup:
+  append_to_history:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -22,7 +22,7 @@ jobs:
           ref: sensor_data
           path: sensor_data
       - name: Configure git
-        working-directory: sensor_data
+        working-directory: main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
