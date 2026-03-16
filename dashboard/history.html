@@ -19,6 +19,7 @@ title: Temperature Sensor Dashboard
 
         .flatpickr-calendar {
             width: 100%; /* Expands the main calendar container */
+            font-size: 18px; /* Adjust this value as needed */
         }
 
         .dayContainer {
@@ -68,8 +69,8 @@ title: Temperature Sensor Dashboard
                         <table id="temp-table" class="table table-striped table-bordered" style="font-size: 1.5rem;">
                             <thead>
                             <tr>
-                                <th>Location</th>
-                                <th>Avg Temp (°F)</th>
+                                <th class="text-center">Location</th>
+                                <th class="text-center">Avg Temp (°F)</th>
                             </tr>
                             </thead>
                             <tbody></tbody>
@@ -80,9 +81,6 @@ title: Temperature Sensor Dashboard
         </div>
     </div>
 </div>
-
-{% assign sensor_history = site.data.history %}
-<script>console.log({{ sensor_history | jsonify }})</script>
 
 <div class="container mt-4">
     <div class="row">
@@ -118,15 +116,12 @@ title: Temperature Sensor Dashboard
             const readings = historyData[dateStr];
             const tbody = document.querySelector("#temp-table tbody");
             const header = document.getElementById("selected-date-header");
-
-            // Clear previous data
             tbody.innerHTML = "";
-            header.innerText = `Details for ${dateStr}`;
-
+            header.innerText = `Average Temperatures for ${dateStr}`;
             if (readings) {
                 const sortedReadings = Object.entries(readings).sort((a, b) => a[0].localeCompare(b[0]));
                 for (const [location, temp] of sortedReadings) {
-                    const row = `<tr><td>${location}</td><td>${temp.toFixed(2)}°</td></tr>`;
+                    const row = `<tr><td>${location}</td><td class="text-center">${temp.toFixed(2)}°</td></tr>`;
                     tbody.insertAdjacentHTML('beforeend', row);
                 }
             } else {
