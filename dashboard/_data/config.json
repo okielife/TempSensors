@@ -27,7 +27,11 @@
     },
     "04":  {
       "hex": "28890946d40d332a",
-      "active": false
+      "active": false,
+      "short_name": "P_Dining_Deep_Freeze",
+      "nice_name": "Pantry Dining Room Deep Freezer",
+      "maximum_temp": 13,
+      "sensor_location": "Pantry"
     },
     "05":  {
       "hex": "28b22346d41723ec",
@@ -142,12 +146,6 @@
       "sensor_location": "Pantry"
     },
     {
-      "short_name": "P_Dining_West_Freeze",
-      "nice_name": "Pantry Dining Room West Standing Freezer",
-      "maximum_temp": 42,
-      "sensor_location": "Pantry"
-    },
-    {
       "short_name": "P_South_Deep_Freeze",
       "nice_name": "Pantry South Chest Freezer",
       "maximum_temp": 13,
@@ -199,6 +197,7 @@
   "latest_box_data": {
     "25": "Pantry NW Deep Freeze, sensor 15",
     "26": "Pantry South Room Fridge/Freezer, sensors 9 and 11",
-    "27": "Pantry Dining East Fridge/Freezer, sensors 6 and 8"
+    "27": "Pantry Dining East Fridge/Freezer, sensors 6 and 8",
+    "28": "Pantry Dining Deep Freeze, I think, sensor 04"
   }
 }
