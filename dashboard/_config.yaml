@@ -1,3 +1,4 @@
 markdown: kramdown
 exclude: [.idea, vendor]
 future: true
+include: [.well-known]
