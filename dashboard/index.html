@@ -299,8 +299,8 @@ title: Temperature Sensor Dashboard
     <div class="row">
         <div class="col">
             <div class="card">
-                <div class="card-body text-center">
-                    Built at {{ site.time | date: "%Y-%m-%d %H:%M:%S %Z" }}
+                <div id="buildTime" class="card-body text-center" data-time="{{ site.time }}">
+                    Built at
                 </div>
             </div>
         </div>
@@ -384,6 +384,10 @@ title: Temperature Sensor Dashboard
                 el.parentElement.classList.add("table-warning");
             }
         });
+        const buildDate = document.querySelector("#buildTime");
+        const timeStamp = buildDate.dataset.time;
+        const timeStampObject = new Date(timeStamp);
+        buildDate.textContent = "Built at " + timeStampObject.toLocaleString();
     })
     window.addEventListener('load', () => {
         // flesh out the summary section

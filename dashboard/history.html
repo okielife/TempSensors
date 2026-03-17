@@ -145,13 +145,22 @@ title: Temperature Sensor Dashboard
     <div class="row">
         <div class="col">
             <div class="card">
-                <div class="card-body text-center">
+                <div id="buildTime" class="card-body text-center" data-time="{{ site.time }}">
                     Built at {{ site.time | date: "%Y-%m-%d %H:%M:%S %Z" }}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const buildDate = document.querySelector("#buildTime");
+        const timeStamp = buildDate.dataset.time;
+        const timeStampObject = new Date(timeStamp);
+        buildDate.textContent = "Built at " + timeStampObject.toLocaleString();
+    })
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
