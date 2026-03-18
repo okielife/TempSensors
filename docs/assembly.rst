@@ -39,6 +39,11 @@ The parts list is updated with each release of the sensor.
 This table shows Amazon links, but definitely please source them as you see fit.
 Just note that if the dimensions change at all, the 3D print might need to be modified.
 
+.. image:: images/Photos/20260315_182615.png
+   :alt: Parts laid out on a board
+   :width: 85%
+   :align: center
+
 +-----------------------------------------+-----------+-----------------------------------------------+
 | Item                                    | Quantity  | Link                                          |
 +=========================================+===========+===============================================+
@@ -86,18 +91,24 @@ First Steps
 
 - Print the 3D models provided in the release asset using your 3D printer workflow, or perhaps even order a print from online
 
-.. todo::
-   Add a picture of the 3D printed boxes alone
+.. image:: images/Photos/20260315_182735.png
+   :alt: Empty 3D Printed Boxes
+   :width: 65%
+   :align: center
 
 - Test fit the screen, breakout board, and Pico, checking that the screw holes line up properly
 
-.. todo::
-   Add a picture of the pico, sensor board, and screen all test fitted into the box
+.. image:: images/Photos/20260315_182855.png
+   :alt: Boxes with Parts Test Fitted
+   :width: 65%
+   :align: center
 
 - Generate a serial number for this box.  Either use permanent marker or use a sticker to mark it on the box.  A list of known serial numbers is currently stored in the `dashboard config file <https://github.com/okielife/TempSensors/blob/main/dashboard/_data/config.json>`__.
 
-.. todo::
-   Add a picture of the serial number sticker on the box
+.. image:: images/Photos/20260315_183535.png
+   :alt: Serial number shown on case
+   :width: 65%
+   :align: center
 
 - Generate AND SAVE a new token named after the box serial number
 
@@ -125,8 +136,10 @@ Flashing the Pico
 
 - This is easier to do before mounting the Pico.  If you did already mount the Pico, you can use a small hole in the box to access the BOOTSEL button.
 
-.. todo::
-   Add picture showing the hole in the box for flashing access
+.. image:: images/Photos/20260315_183752.png
+   :alt: BOOTSEL access hole on back of box
+   :width: 65%
+   :align: center
 
 - There is a custom MicroPython firmware build available as a sensor release asset, with all sensor code pre-frozen into the firmware.
 - The preferred approach is to flash that directly onto the Pico, as no other steps or programs are necessary with a computer.
@@ -153,24 +166,17 @@ As of version 3:5 of the case, I feel OK about it, but I look forward to polishi
 
 The button is on the back, as seen here from the back external view and the top internal view:
 
-.. todo::
-   Get better pictures for sure.
-
-..  .. image:: images/reset_button_external.jpg
-..  :alt: External view of the factory reset button
-..  :width: 45%
-
-.. image:: images/reset_button_internal.jpg
-   :alt: Internal view of the factory reset button
+.. image:: images/Photos/20260315_184012.png
+   :alt: Factory Reset button, hanging out
    :width: 41%
    :align: center
 
 Basically just take the switch and try to pivot it side to side while pushing until it seats itself in the slot.
 A close up view may help:
 
-.. image:: images/reset_button_closeup.jpg
-   :alt: Closeup view of the factory reset button
-   :width: 80%
+.. image:: images/Photos/20260315_184038.png
+   :alt: Factory Reset button, inside view
+   :width: 65%
    :align: center
 
 But for that picture to help, it would require better photography skills. :)
@@ -178,8 +184,10 @@ But for that picture to help, it would require better photography skills. :)
 Temperature Sensor(s)
 *********************
 
-.. todo::
-   Add picture of the temperature sensors themselves, maybe showing the sensor and the terminated wires
+.. image:: images/Photos/20260315_184145.png
+   :alt: Temperature Sensor Cable
+   :width: 65%
+   :align: center
 
 DS18x20 temperature sensors work on a one-wire design, where multiple sensors can communicate through a single data wire.
 This temperature sensor project will work with either one or two of these temperature sensors connected through a single breakout board and a single GPIO pin.
@@ -202,8 +210,10 @@ Here are some tips:
 
 You are looking for the terminals to look something like this image:
 
-.. todo::
-   Get a picture showing the wires just after screwing them into the terminals.
+.. image:: images/Photos/20260315_184513.png
+   :alt: Temperature Sensor Connected to Breakout Board
+   :width: 65%
+   :align: center
 
 - Unscrew the breakout board terminal screws to open the ports, then screw the sensor(s) wires into the sensor breakout board tightly
 
@@ -211,8 +221,10 @@ You are looking for the terminals to look something like this image:
   - Yellow to DAT, red to VCC, and black to GND
   - It may be helpful to use a desktop stand that has alligator clips to hold the wires together as you insert them and screw the terminals in.
 
-.. todo::
-   Get a picture of the breakout board with the wires attached
+.. image:: images/Photos/20260315_184654.png
+   :alt: Temperature Sensor Fully Connected
+   :width: 65%
+   :align: center
 
 - Add jumper cables to the sensor breakout board pins:
 
@@ -233,36 +245,34 @@ Installing the Pico
 
 At this point, the Pico should look something like this:
 
-.. todo::
-   Update the picture here to show it without the reset switch wires.
-
-.. image:: images/pico_with_wires.jpg
-   :alt: Quick snapshot of a Pico with wires connected
+.. image:: images/Photos/20260315_184912.png
+   :alt: Pico Wired Up
+   :width: 65%
+   :align: center
 
 - Place the Pico pins up with the USB port facing the power cable access hole in the case
 - Screw in Pico with 3 M2x6mm screws
 
-.. todo::
-   Now get a picture with it actually mounted.  Maybe show the USB port through the hole.
+.. image:: images/Photos/20260315_185257.png
+   :alt: Pico Mounted
+   :width: 65%
+   :align: center
 
 Installing the Sensor Breakout Board
 ************************************
 
 - Feed sensor wires from inside through to the outside
 
-.. todo::
-   Maybe a diagram showing the wires being fed through the hole in the box.
+.. image:: images/Photos/20260315_185402.png
+   :alt: Sensor Wires Through Box Hole
+   :width: 65%
+   :align: center
 
 - Screw board into place with 2 M3x5mm screws
 
-.. todo::
-   Fix this next picture
-
-This image needs to be replaced, but it basically shows the sensor breakout board wiring.  (It shows the board installed without the Pico under it and it's unfocused)
-
-.. image:: images/sensor_breakout.jpg
-   :alt: An image of the breakout board with sensor and jumpers attached.
-   :width: 75%
+.. image:: images/Photos/20260315_185549.png
+   :alt: Sensor Mounted
+   :width: 65%
    :align: center
 
 If any holes are not aligned, you may have received an incompatible part or ordered the wrong materials for this case design.
@@ -327,8 +337,10 @@ RGB Check
 Some of the screens I have purchased have the RGB switched, even with the same code and apparent hardware.
 A jumper can be placed to reverse the order if it is backwards.
 
-.. todo::
-   Image of jumper for RGB
+.. image:: images/Photos/20260315_185953.png
+   :alt: Nearly Assembled with Jumper
+   :width: 65%
+   :align: center
 
 - When booting up the device, take note of the POST screen as shown in :ref:`the figure below <tk-post>`.  The SCREEN section shows RGB, with R in red, G in green, and B in blue.
 - If those are reversed, then place a jumper between GP10 and ground.
