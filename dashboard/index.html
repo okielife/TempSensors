@@ -7,13 +7,8 @@ title: Temperature Sensor Dashboard
     <link rel="icon" type="image/png" href="favicon.png"/>
     <link href="https://fonts.googleapis.com/css?family=Ubuntu:400,700&amp;display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
-
-        .offcanvas .form-check-label,
-        .offcanvas .form-select,
-        .offcanvas .list-group-item {
-            font-size: 1.2rem;
-        }
 
         #summaryContainer {
             overflow: hidden;
@@ -31,7 +26,79 @@ title: Temperature Sensor Dashboard
             transition: all 0.25s ease;
         }
 
-        @media (max-width: 1020px) {
+        .chevron {
+            display: inline-block; /* required for transform */
+            transition: transform 0.2s ease;
+        }
+
+        /* When expanded (Bootstrap removes .collapsed) */
+        .card-header:not(.collapsed) .chevron {
+            transform: rotate(90deg);
+        }
+
+        /* Style for dates that have JSON data */
+        .has-data {
+            background: #e3f2fd !important;
+            border-color: #2196f3 !important;
+            font-weight: bold;
+            color: #1565c0 !important;
+        }
+
+        /* === FORCE CALENDAR TO FILL CONTAINER === */
+        .flatpickr-calendar.inline {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+        }
+
+        /* Prevent weird inline-block shrink behavior */
+        .flatpickr-calendar {
+            display: block !important;
+            font-size: 20px !important;
+        }
+
+        /* === FIX INNER CONTAINERS === */
+        .flatpickr-rContainer {
+            width: 100% !important;
+            display: block !important;
+            box-sizing: border-box;
+        }
+
+        /* === DAYS WRAPPER === */
+        .flatpickr-days {
+            width: 100% !important;
+            box-sizing: border-box;
+        }
+
+        /* === GRID LAYOUT FOR DAYS === */
+        .dayContainer {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr);
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+        }
+
+        /* === INDIVIDUAL DAY CELLS === */
+        .flatpickr-day {
+            width: 100% !important;
+            max-width: none !important;
+            flex: none !important;
+            box-sizing: border-box;
+            margin: 1px;
+        }
+
+        .flatpickr-current-month {
+            padding-top: 0 !important;
+        }
+
+        .flatpickr-months {
+            margin: 4px;
+            padding: 4px;
+        }
+
+        @media (max-width: 1000px) {
             .navbar {
                 font-size: 1.4rem;
             }
@@ -41,41 +108,43 @@ title: Temperature Sensor Dashboard
                 padding: 0.5rem 0.75rem;
             }
 
-            .offcanvas {
-                font-size: 1.4rem;
+            .flatpickr-calendar {
+                font-size: 24px !important;
             }
 
-            .offcanvas .form-check-input {
-                transform: scale(1.4);
-                margin-right: 10px;
+            /* Month + year header */
+            .flatpickr-current-month {
+                font-size: 1.2em;
             }
 
-            .offcanvas .form-select {
-                font-size: 1.4rem;
-                padding: 0.6rem;
+            .flatpickr-monthDropdown-months {
+                font-size: 1.1em;
             }
 
-            .offcanvas .list-group-item {
-                padding: 0.9rem 1rem;
+            /* Actual day numbers */
+            .flatpickr-day {
+                line-height: 2.8rem !important;
+                height: auto !important;
+                padding-top: 6px;
+                padding-bottom: 6px;
+            }
+
+            /* Navigation arrows */
+            .flatpickr-prev-month, .flatpickr-next-month {
+                transform: scale(1.5);
             }
         }
+
     </style>
 </head>
 <body class="container-fluid" style="font-family: Ubuntu,serif">
 <script src='https://cdn.plot.ly/plotly-3.3.0.min.js'></script>
 
 {% assign active_sensors = site.data.config.sensors | where_exp: "sensor", "sensor.active" %}
-
 <nav class="navbar navbar-light bg-light px-3">
-    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
-        ☰
-    </button>
     <span class="navbar-brand ms-2">Sensors</span>
+    {% comment %}Add filters back in for site.data.config.locations{% endcomment %}
     <div class="d-flex align-items-center ms-auto">
-        <a class="nav-link px-2"
-           href="{{ site.baseurl }}{% link history.html %}">
-            History
-        </a>
         <a class="nav-link px-2"
            href="https://github.com/okielife/TempSensors">
             GitHub
@@ -83,86 +152,95 @@ title: Temperature Sensor Dashboard
     </div>
 </nav>
 
-<div class="offcanvas offcanvas-start" tabindex="-1" id="sidebar">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title">Controls</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
+{% assign active_sensors = active_sensors | sort: "sensor_location" %}
 
-    <div class="offcanvas-body">
-
-        <!-- Summary Toggle -->
-        <div class="form-check form-switch mb-4">
-            <input class="form-check-input" type="checkbox" id="summaryToggle" checked>
-            <label class="form-check-label" for="summaryToggle">
-                Show Summary
-            </label>
+<div class="container-fluid mb-4">
+    <div class="card mb-3">
+        <div class="card-header collapsed d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
+             data-bs-target="#section1" style="cursor: pointer;">
+            <span class="fs-5">Historical Data Lookup</span>
+            <span class="chevron">▶</span>
         </div>
-
-        <!-- Filter -->
-        <label class="form-label">Filter Sensors</label>
-        <select class="form-select mb-4" onchange="filterSensors(this.value, this)">
-            <option value="all">All</option>
-            {% for loc in site.data.config.locations %}
-                <option value="{{ loc }}">{{ loc }}</option>
-            {% endfor %}
-        </select>
-
-        <!-- Links -->
-        <div class="list-group">
-            <a class="list-group-item list-group-item-action"
-               href="{{ site.baseurl }}{% link history.html %}">
-                History
-            </a>
-            <a class="list-group-item list-group-item-action"
-               href="https://github.com/okielife/TempSensors">
-                GitHub
-            </a>
-        </div>
-
-    </div>
-</div>
-
-<script>
-    const isSmallScreen = window.matchMedia("(max-width: 1500px)").matches;
-    const plotLineWidth = isSmallScreen ? 6 : 4;
-</script>
-
-<div class="container-fluid mb-4" id="summaryContainer">
-    <div class="row g-3">
-        {% for sensor in active_sensors %}
-            {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.hex | slice: 0, 3 %}
-            {% assign count = recent_sensor_posts | size %}
-            {% assign sum = 0 %}
-            {% for p in recent_sensor_posts %}
-                {% assign sum = sum | plus: p.temperature %}
-            {% endfor %}
-            {% if count > 0 %}
-                {% assign avg_temp = sum | divided_by: count %}
-            {% endif %}
-            {% assign last_post = recent_sensor_posts[0] %}
-            <div class="col-12 col-md-6 col-lg-4 col-xl-3 sensor-card" data-location="{{ sensor.sensor_location }}">
-                <div class="card shadow-sm summary-card" style="padding-top: 0;"
-                     data-time="{{ last_post.measurement_time }}"
-                     data-temp="{{ avg_temp }}" data-maxtemp="{{ sensor.maximum_temp }}">
-                    <div class="card-body" style="padding: 10px;">
-                        <div style="font-weight:600">
-                            <a href="#sensor-{{ sensor.hex }}" style="color: inherit;text-decoration: none;">
-                                {{ sensor.nice_name }}
-                            </a>
+        <div id="section1" class="collapse">
+            <div class="card-body">
+                <div class="container-fluid px-2 px-lg-3">
+                    <div class="row">
+                        <div id="calendar-anchor" class="col-12 col-lg-4">
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                            <div class="avg-temperature" style="font-size:1.6rem">calculating...</div>
-                            <div class="text-muted last-update">calculating...</div>
+                        <div class="col-12 col-lg-8">
+                            <div class="p-2 p-lg-3 border">
+                                <div id="data-display">
+                                    <h3 id="selected-date-header" style="text-align:center">Select a date</h3>
+                                    <div class="table-responsive">
+                                        <table id="temp-table" class="table table-striped table-bordered"
+                                               style="font-size: 1.5rem;">
+                                            <thead>
+                                            <tr>
+                                                <th class="text-center">Location</th>
+                                                <th class="text-center">Avg Temp (°F)</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        {% endfor %}
+        </div>
     </div>
 </div>
 
-{% assign active_sensors = active_sensors | sort: "sensor_location" %}
+<div class="container-fluid mb-3">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
+             data-bs-target="#section2" style="cursor: pointer;">
+            <span class="fs-5">Sensor Summary</span>
+            <span class="chevron">▶</span>
+        </div>
+        <div id="section2" class="">
+            <div class="container-fluid mb-3 mt-3" id="summaryContainer">
+                <div class="row g-3">
+                    {% for sensor in active_sensors %}
+                        {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.hex | slice: 0, 3 %}
+                        {% assign count = recent_sensor_posts | size %}
+                        {% assign sum = 0 %}
+                        {% for p in recent_sensor_posts %}
+                            {% assign sum = sum | plus: p.temperature %}
+                        {% endfor %}
+                        {% if count > 0 %}
+                            {% assign avg_temp = sum | divided_by: count %}
+                        {% endif %}
+                        {% assign last_post = recent_sensor_posts[0] %}
+                        <div class="col-12 col-md-6 col-lg-4 col-xl-3 sensor-card"
+                             data-location="{{ sensor.sensor_location }}">
+                            <div class="card shadow-sm summary-card" style="padding-top: 0;"
+                                 data-time="{{ last_post.measurement_time }}"
+                                 data-temp="{{ avg_temp }}" data-maxtemp="{{ sensor.maximum_temp }}">
+                                <div class="card-body" style="padding: 10px;">
+                                    <div style="font-weight:600">
+                                        <a href="#sensor-{{ sensor.hex }}"
+                                           style="color: inherit;text-decoration: none;">
+                                            {{ sensor.nice_name }}
+                                        </a>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                                        <div class="avg-temperature" style="font-size:1.6rem">calculating...</div>
+                                        <div class="text-muted last-update">calculating...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 {% for sensor in active_sensors %}
     {% assign full_sensor_history = site.posts | where: "sensor_id", sensor.hex | slice: 0, 100 | reverse %}
     {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.hex | slice: 0, 5 %}
@@ -258,7 +336,11 @@ title: Temperature Sensor Dashboard
                         y0: 32.0,
                         x1: 1,
                         y1: 32.0,
-                        line: {color: 'rgb(0, 0, 150)', width: plotLineWidth, dash: 'dot'},
+                        line: {
+                            color: 'rgb(0, 0, 150)',
+                            width: window.matchMedia("(max-width: 1500px)").matches ? 6 : 4,
+                            dash: 'dot'
+                        },
                         name: "Freezing Line",
                     },
                     {
@@ -268,7 +350,11 @@ title: Temperature Sensor Dashboard
                         y0: Number("{{ sensor.maximum_temp | default: 0 | jsonify }}"),
                         x1: 1,
                         y1: Number("{{ sensor.maximum_temp | default: 0 | jsonify }}"),
-                        line: {color: 'rgb(150, 0, 0)', width: plotLineWidth, dash: 'dot'},
+                        line: {
+                            color: 'rgb(150, 0, 0)',
+                            width: window.matchMedia("(max-width: 1500px)").matches ? 6 : 4,
+                            dash: 'dot'
+                        },
                         name: "Sensor Max Temp",
                     }
                 ]
@@ -295,8 +381,11 @@ title: Temperature Sensor Dashboard
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
     const sidebar = document.getElementById('sidebar');
+    const historyData = {{ site.data.history | jsonify }};
 
     // multi purpose utility functions
     function parseSensorTime(str) {
@@ -351,10 +440,35 @@ title: Temperature Sensor Dashboard
         if (offcanvas) offcanvas.hide();
     }
 
-    // handling the summary section toggling
-    const toggle = document.getElementById("summaryToggle");
-    toggle.addEventListener("change", () => {
-        document.getElementById("summaryContainer").classList.toggle("collapsed");
+    flatpickr("#calendar-anchor", {
+        inline: true, // This makes it a static calendar instead of a popup
+        monthSelectorType: "static",
+
+        // 1. Highlight dates that exist in your JSON
+        onDayCreate: (dObj, dStr, fp, dayElem) => {
+            const dateKey = fp.formatDate(dayElem.dateObj, "Y-m-d");
+            if (historyData[dateKey]) {
+                dayElem.classList.add("has-data");
+            }
+        },
+
+        // 2. Handle the click event
+        onChange: (selectedDates, dateStr) => {
+            const readings = historyData[dateStr];
+            const tbody = document.querySelector("#temp-table tbody");
+            const header = document.getElementById("selected-date-header");
+            tbody.innerHTML = "";
+            header.innerText = `Average Temperatures for ${dateStr}`;
+            if (readings) {
+                const sortedReadings = Object.entries(readings).sort((a, b) => a[0].localeCompare(b[0]));
+                for (const [location, temp] of sortedReadings) {
+                    const row = `<tr><td>${location}</td><td class="text-center">${temp.toFixed(2)}°</td></tr>`;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                }
+            } else {
+                tbody.innerHTML = "<tr><td colspan='2'>No data for this date</td></tr>";
+            }
+        }
     });
 
     // window load types of events
@@ -381,6 +495,5 @@ title: Temperature Sensor Dashboard
 
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
