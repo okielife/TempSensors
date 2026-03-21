@@ -87,7 +87,11 @@
     },
     "12":  {
       "hex": "28767446d4f06336",
-      "active": false
+      "active": false,
+      "short_name": "P_South_Deep_Freeze",
+      "nice_name": "Pantry South Chest Freezer",
+      "maximum_temp": 13,
+      "sensor_location": "Pantry"
     },
     "13": {
       "hex": "28a70f46d438683a",
@@ -148,27 +152,9 @@
   },
   "unassigned_location_info": [
     {
-      "short_name": "P_Dining_East_Freeze",
-      "nice_name": "Pantry Dining Room East Standing Freezer",
-      "maximum_temp": 13,
-      "sensor_location": "Pantry"
-    },
-    {
-      "short_name": "P_South_Deep_Freeze",
-      "nice_name": "Pantry South Chest Freezer",
-      "maximum_temp": 13,
-      "sensor_location": "Pantry"
-    },
-    {
       "short_name": "P_Entry_East_Fridge",
       "nice_name": "Pantry Entry East Unit Fridge",
       "maximum_temp": 42,
-      "sensor_location": "Pantry"
-    },
-    {
-      "short_name": "P_Entry_East_Freezer",
-      "nice_name": "Pantry Entry East Unit Freezer",
-      "maximum_temp": 13,
       "sensor_location": "Pantry"
     },
     {
@@ -192,9 +178,10 @@
   ],
   "latest_box_data": {
     "25": "Pantry NW Deep Freeze, sensor 15",
-    "26": "Pantry South Room Fridge/Freezer, sensors 9 and 11",
-    "27": "Pantry Dining East Fridge/Freezer, sensors 6 and 8",
-    "28": "Pantry Dining Deep Freeze, I think, sensor 04",
-    "29": "Pantry Entry West Fridge/Freezer, sensors 5 and 7"
+    "26": "Pantry South Room Fridge/Freezer, sensors 09 and 11",
+    "27": "Pantry Dining East Fridge/Freezer, sensors 06 and 08",
+    "28": "Pantry Dining Deep Freeze, sensor 04",
+    "29": "Pantry Entry West Fridge/Freezer, sensors 05 and 07",
+    "30": "Pantry South Deep Freezer, sensor 12"
   }
 }
