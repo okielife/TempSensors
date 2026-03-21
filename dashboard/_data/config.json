@@ -27,7 +27,7 @@
     },
     "04":  {
       "hex": "28890946d40d332a",
-      "active": false,
+      "active": true,
       "short_name": "P_Dining_Deep_Freeze",
       "nice_name": "Pantry Dining Room Deep Freezer",
       "maximum_temp": 13,
@@ -35,7 +35,7 @@
     },
     "05":  {
       "hex": "28b22346d41723ec",
-      "active": false,
+      "active": true,
       "short_name": "P_Entry_West_Fridge",
       "nice_name": "Pantry Entry West Unit Fridge",
       "maximum_temp": 42,
@@ -51,7 +51,7 @@
     },
     "07":  {
       "hex": "28280a46d4db00a1",
-      "active": false,
+      "active": true,
       "short_name": "P_Entry_West_Freezer",
       "nice_name": "Pantry Entry West Unit Freezer",
       "maximum_temp": 13,
