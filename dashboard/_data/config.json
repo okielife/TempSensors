@@ -87,7 +87,7 @@
     },
     "12":  {
       "hex": "28767446d4f06336",
-      "active": false,
+      "active": true,
       "short_name": "P_South_Deep_Freeze",
       "nice_name": "Pantry South Chest Freezer",
       "maximum_temp": 13,
@@ -119,7 +119,11 @@
     },
     "17":  {
       "hex": "28821d0e0000001f",
-      "active": false
+      "active": false,
+      "short_name": "P_Dining_Vert_Freezer",
+      "nice_name": "Pantry Dining West Standing Freezer",
+      "maximum_temp": 13,
+      "sensor_location": "Pantry"
     },
     "18": {
       "hex": "286c045704c53c29",
@@ -158,12 +162,6 @@
       "sensor_location": "Pantry"
     },
     {
-      "short_name": "P_West_Vert_Freezer",
-      "nice_name": "Pantry West Standing Freezer",
-      "maximum_temp": 13,
-      "sensor_location": "Pantry"
-    },
-    {
       "short_name": "Emerald_Kit_Freeze",
       "nice_name": "Emerald Kitchen Freezer",
       "maximum_temp": 13,
@@ -182,6 +180,7 @@
     "27": "Pantry Dining East Fridge/Freezer, sensors 06 and 08",
     "28": "Pantry Dining Deep Freeze, sensor 04",
     "29": "Pantry Entry West Fridge/Freezer, sensors 05 and 07",
-    "30": "Pantry South Deep Freezer, sensor 12"
+    "30": "Pantry South Deep Freezer, sensor 12",
+    "31": "Pantry Dining West Standing Freezer, sensor 17"
   }
 }

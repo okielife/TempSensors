@@ -59,14 +59,15 @@ title: Temperature Sensor Dashboard
                                 aria-label=".form-select-lg example"
                                 onchange="changeDate(this.value)">
                             <option selected>Select a Date</option>
-                            {% for h in site.data.history %}
-                                <option value="{{ h[0] }}">{{ h[0] }}</option>
+                            {% assign sorted_history = site.data.history %}
+                            {% for h in sorted_history reversed %}
+                            <option value="{{ h[0] }}">{{ h[0] }}</option>
                             {% endfor %}
                         </select>
                         <div id="data-display" class="text-center">
                             <h3 id="selected-date-header"></h3>
                             <div class="table-responsive">
-                                <table id="temp-table" class="table table-striped table-bordered fs-5">
+                                <table id="temp-table" class="table table-striped table-bordered fs-4">
                                     <thead>
                                     <tr>
                                         <th class="text-center">Sensor Name</th>
@@ -345,7 +346,7 @@ title: Temperature Sensor Dashboard
             header.innerText = `Recorded Temperatures for ${dateStr}`;
             const sortedReadings = Object.entries(readings).sort((a, b) => a[0].localeCompare(b[0]));
             for (const [location, temp] of sortedReadings) {
-                const row = `<tr><td>${location}</td><td class="text-center">${temp.toFixed(2)}°</td></tr>`;
+                const row = `<tr><td>${location}</td><td class="text-center">${temp.toFixed(1)}°</td></tr>`;
                 tbody.insertAdjacentHTML('beforeend', row);
             }
         } else {
