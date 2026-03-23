@@ -476,16 +476,23 @@ title: Temperature Sensor Dashboard
     const historyData = JSON.parse('{{ site.data.history | jsonify }}');
     const radios = document.querySelectorAll('input[name="filter"]');
 
+    function applyFilter(value) {
+        document.querySelectorAll('.sensor-card').forEach(card => {
+            if (value === 'all' || value === card.dataset.location) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
     radios.forEach(radio => {
         radio.addEventListener('change', function () {
             if (this.checked) {
-                document.querySelectorAll('.sensor-card').forEach(card => {
-                    if (this.value === 'all' || this.value === card.dataset.location) {
-                        card.style.display = '';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+                applyFilter(this.value);
+                const url = new URL(window.location);
+                url.searchParams.set("filter", this.value);
+                window.history.replaceState({}, "", url);
             }
         });
     });
@@ -542,6 +549,11 @@ title: Temperature Sensor Dashboard
         }
     }
 
+    function getQueryParam(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+    }
+
     // window load types of events
     document.addEventListener("DOMContentLoaded", () => {
         updateSensorSummary();
@@ -564,6 +576,15 @@ title: Temperature Sensor Dashboard
             toggle: false // Prevents automatic toggling if a trigger is clicked
         });
         collapse.show();
+        // handle the filter query parameter, if it exists
+        const filter = getQueryParam("filter");
+        if (filter) {
+            const radio = document.querySelector(`input[name="filter"][value="${filter}"]`);
+            if (radio) {
+                radio.checked = true;
+                applyFilter(filter);
+            }
+        }
     })
 
 </script>
