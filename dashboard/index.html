@@ -11,6 +11,40 @@ title: Temperature Sensor Dashboard
         .card-header:not(.collapsed) .chevron {
             transform: rotate(90deg);
         }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .animate {
+            animation: pulse 2s infinite;
+        }
+
+        .floorplan {
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .floorplan {
+                max-width: 700px;
+            }
+        }
+
+        .sensor-card rect {
+            transition: transform 0.15s ease;
+        }
+
+        .sensor-card a:hover rect {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body class="container-fluid" style="font-family: Ubuntu,serif">
@@ -47,6 +81,160 @@ title: Temperature Sensor Dashboard
 <div class="container-fluid mb-3">
     <div class="card mb-3">
         <div class="card-header collapsed d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
+             data-bs-target="#section0" style="cursor: pointer;">
+            <span class="fs-2">Visual Status</span>
+            <span class="chevron" style="display: inline-block;transition: transform 0.2s ease;">▶</span>
+        </div>
+        <div id="section0" class="collapse">
+            <div class="card-body">
+                <div class="row justify-content-center g-3">
+                    <div class="col-12 col-md-6 floorplan sensor-card" data-location="Pantry">
+
+                        <svg viewBox="-5 -5 160 80" class="w-100 border">
+                            <!-- House outline -->
+                            <text x="82" y="7" style="font:bold 10px sans-serif;">Pantry</text>
+                            <polygon points="0,10 50,10 50,0 80,0 80,10 150,10 150,70 0,70" fill="none"
+                                     stroke="black"></polygon>
+
+                            <!-- Basic internal layout -->
+                            <line x1="1" y1="40" x2="80" y2="40" stroke="#CCCCCC"></line>
+                            <line x1="80" y1="40" x2="80" y2="69" stroke="#CCCCCC"></line>
+                            <line x1="30" y1="11" x2="30" y2="40" stroke="#CCCCCC"></line>
+                            <line x1="30" y1="30" x2="50" y2="30" stroke="#CCCCCC"></line>
+                            <line x1="50" y1="30" x2="50" y2="11" stroke="#CCCCCC"></line>
+                            <line x1="80" y1="11" x2="80" y2="25" stroke="#CCCCCC"></line>
+                            <line x1="120" y1="11" x2="120" y2="69" stroke="#CCCCCC"></line>
+
+                            <!-- Now the fridge/freezer units -->
+                            {% for s in site.data.config.sensors %}
+                                {% assign id = s[0] %}
+                                {% assign sensor = s[1] %}
+                                {% if sensor.sensor_location == "Pantry" %}
+                                    {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.hex | slice: 0, 3 %}
+                                    {% assign last_post = recent_sensor_posts[0] %}
+                                    {% assign count = recent_sensor_posts | size %}
+                                    {% assign sum = 0 %}
+                                    {% for p in recent_sensor_posts %}
+                                        {% assign sum = sum | plus: p.temperature %}
+                                    {% endfor %}
+                                    {% if count > 0 %}
+                                        {% assign avg_temp = sum | divided_by: count %}
+                                    {% else %}
+                                        {% assign avg_temp = "No Data" %}
+                                    {% endif %}
+                                    {% assign alert_flag = "" %}
+                                    {% assign fill_color = "#db5700" %}
+                                    {% if sensor.active %}
+                                        {% if avg_temp > sensor.maximum_temp %}
+                                            {% assign alert_flag = "animate" %}
+                                            {% assign fill_color = "red" %}
+                                        {% elsif sensor.type == "freezer" %}
+                                            {% assign fill_color = "#97C1E6" %}
+                                        {% elsif sensor.type == "fridge" %}
+                                            {% assign fill_color = "#0d6efd" %}
+                                        {% endif %}
+                                    {% else %}
+                                        {% assign fill_color = "#888888" %}
+                                    {% endif %}
+                                    <a href="#sensor-{{ sensor.hex }}">
+                                        {% assign width_by_2 = sensor.svg_width | divided_by: 2 %}
+                                        {% assign height_by_2 = sensor.svg_height | divided_by: 2 %}
+                                        {% assign x_center = sensor.svg_x | plus: width_by_2 %}
+                                        {% assign y_center = sensor.svg_y | plus: height_by_2 %}
+                                        <g>
+                                            <rect x="{{ sensor.svg_x }}" y="{{ sensor.svg_y }}"
+                                                  width="{{ sensor.svg_width }}"
+                                                  height="{{ sensor.svg_height }}" class="{{ alert_flag }}"
+                                                  style="fill:{{ fill_color }}"
+                                                  transform-origin="{{ x_center }} {{ y_center }}">
+                                                {% if sensor.active %}
+                                                    <title>{{ sensor.nice_name | escape }} &#10 Average
+                                                        Temp: {{ avg_temp | round: 1 }} &#10 Latest
+                                                        Temp: {{ last_post.temperature | round: 1 }}</title>
+                                                {% else %}
+                                                    <title>{{ sensor.nice_name | escape }} &#10 Inactive</title>
+                                                {% endif %}
+                                            </rect>
+                                        </g>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+
+                        </svg>
+                    </div>
+
+                    <div class="col-12 col-md-6 floorplan sensor-card" data-location="Emerald">
+                        <svg viewBox="-5 -5 160 80" class="w-100 border">
+                            <!-- House outline -->
+                            <text x="54" y="10" style="font:bold 10px sans-serif;">Emerald</text>
+                            <polygon points="0,0 0,70 150,70 150,0" fill="none" stroke="black"></polygon>
+
+                            <!-- Now the fridge/freezer units -->
+                            {% for s in site.data.config.sensors %}
+                                {% assign id = s[0] %}
+                                {% assign sensor = s[1] %}
+                                {% if sensor.sensor_location == "Emerald" %}
+                                    {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.hex | slice: 0, 3 %}
+                                    {% assign last_post = recent_sensor_posts[0] %}
+                                    {% assign count = recent_sensor_posts | size %}
+                                    {% assign sum = 0 %}
+                                    {% for p in recent_sensor_posts %}
+                                        {% assign sum = sum | plus: p.temperature %}
+                                    {% endfor %}
+                                    {% if count > 0 %}
+                                        {% assign avg_temp = sum | divided_by: count %}
+                                    {% else %}
+                                        {% assign avg_temp = "No Data" %}
+                                    {% endif %}
+                                    {% assign alert_flag = "" %}
+                                    {% assign fill_color = "#db5700" %}
+                                    {% if sensor.active %}
+                                        {% if avg_temp > sensor.maximum_temp %}
+                                            {% assign alert_flag = "animate" %}
+                                            {% assign fill_color = "red" %}
+                                        {% elsif sensor.type == "freezer" %}
+                                            {% assign fill_color = "#97C1E6" %}
+                                        {% elsif sensor.type == "fridge" %}
+                                            {% assign fill_color = "#0d6efd" %}
+                                        {% endif %}
+                                    {% else %}
+                                        {% assign fill_color = "#888888" %}
+                                    {% endif %}
+                                    <a href="#sensor-{{ sensor.hex }}">
+                                        {% assign width_by_2 = sensor.svg_width | divided_by: 2 %}
+                                        {% assign height_by_2 = sensor.svg_height | divided_by: 2 %}
+                                        {% assign x_center = sensor.svg_x | plus: width_by_2 %}
+                                        {% assign y_center = sensor.svg_y | plus: height_by_2 %}
+                                        <g>
+                                            <rect x="{{ sensor.svg_x }}" y="{{ sensor.svg_y }}"
+                                                  width="{{ sensor.svg_width }}"
+                                                  height="{{ sensor.svg_height }}" class="{{ alert_flag }}"
+                                                  style="fill:{{ fill_color }}"
+                                                  transform-origin="{{ x_center }} {{ y_center }}">
+                                                {% if sensor.active %}
+                                                    <title>{{ sensor.nice_name | escape }} &#10 Average
+                                                        Temp: {{ avg_temp | round: 1 }} &#10 Latest
+                                                        Temp: {{ last_post.temperature | round: 1 }}</title>
+                                                {% else %}
+                                                    <title>{{ sensor.nice_name | escape }} &#10 Inactive</title>
+                                                {% endif %}
+                                            </rect>
+                                        </g>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid mb-3">
+    <div class="card mb-3">
+        <div class="card-header collapsed d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
              data-bs-target="#section1" style="cursor: pointer;">
             <span class="fs-2">Historical Data Lookup</span>
             <span class="chevron" style="display: inline-block;transition: transform 0.2s ease;">▶</span>
@@ -61,7 +249,7 @@ title: Temperature Sensor Dashboard
                             <option selected>Select a Date</option>
                             {% assign sorted_history = site.data.history %}
                             {% for h in sorted_history reversed %}
-                            <option value="{{ h[0] }}">{{ h[0] }}</option>
+                                <option value="{{ h[0] }}">{{ h[0] }}</option>
                             {% endfor %}
                         </select>
                         <div id="data-display" class="text-center">
@@ -302,7 +490,6 @@ title: Temperature Sensor Dashboard
         });
     });
 
-    // multi purpose utility functions
     function parseSensorTime(str) {
         const p = str.split('-').map(Number);
         return new Date(Date.UTC(p[0], p[1] - 1, p[2], p[3], p[4], p[5]));
