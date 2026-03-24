@@ -3,9 +3,41 @@
     "Pantry",
     "Emerald"
   ],
+  "rendering": [
+    {
+      "name": "Pantry",
+      "label": "Pantry",
+      "viewBox": "-5 -5 160 80",
+      "title": {
+        "x": 82,
+        "y": 7
+      },
+      "outline": "0,10 50,10 50,0 80,0 80,10 150,10 150,70 0,70",
+      "lines": [
+        "1,40,80,40",
+        "80,40,80,69",
+        "30,11,30,40",
+        "30,30,50,30",
+        "50,30,50,11",
+        "80,11,80,25",
+        "120,11,120,69"
+      ]
+    },
+    {
+      "name": "Emerald",
+      "label": "Emerald",
+      "viewBox": "-5 -5 160 80",
+      "title": {
+        "x": 54,
+        "y": 10
+      },
+      "outline": "0,0 0,70 150,70 150,0",
+      "lines": []
+    }
+  ],
   "sensors": {
     "readme1": "This is a list of all active sensors, keyed by the label on the wire",
-    "01":  {
+    "01": {
       "hex": "2887bb81e3813ccd",
       "active": true,
       "short_name": "P_Garage_Freezer",
@@ -18,7 +50,7 @@
       "svg_height": 10,
       "type": "freezer"
     },
-    "02":  {
+    "02": {
       "hex": "286ea75e00000061",
       "active": false,
       "short_name": "P_Entry_East_Fridge",
@@ -44,7 +76,7 @@
       "svg_height": 20,
       "type": "fridge"
     },
-    "04":  {
+    "04": {
       "hex": "28890946d40d332a",
       "active": true,
       "short_name": "P_Dining_Deep_Freeze",
@@ -57,7 +89,7 @@
       "svg_height": 22,
       "type": "freezer"
     },
-    "05":  {
+    "05": {
       "hex": "28b22346d41723ec",
       "active": true,
       "short_name": "P_Entry_West_Fridge",
@@ -70,7 +102,7 @@
       "svg_height": 10,
       "type": "fridge"
     },
-    "06":  {
+    "06": {
       "hex": "282e6246d45e2ed0",
       "active": true,
       "short_name": "P_Dining_East_Frig",
@@ -83,7 +115,7 @@
       "svg_height": 10,
       "type": "fridge"
     },
-    "07":  {
+    "07": {
       "hex": "28280a46d4db00a1",
       "active": true,
       "short_name": "P_Entry_West_Freezer",
@@ -96,7 +128,7 @@
       "svg_height": 10,
       "type": "freezer"
     },
-    "08":  {
+    "08": {
       "hex": "28f15346d41d7b53",
       "active": true,
       "short_name": "P_Dining_East_Frzr",
@@ -122,7 +154,7 @@
       "svg_height": 10,
       "type": "freezer"
     },
-    "10":  {
+    "10": {
       "hex": "28ad5846d4587455",
       "active": false
     },
@@ -139,7 +171,7 @@
       "svg_height": 10,
       "type": "fridge"
     },
-    "12":  {
+    "12": {
       "hex": "28767446d4f06336",
       "active": true,
       "short_name": "P_South_Deep_Freeze",
@@ -165,7 +197,7 @@
       "svg_height": 20,
       "type": "freezer"
     },
-    "14":  {
+    "14": {
       "hex": "28031280e3e13cee",
       "active": false
     },
@@ -182,11 +214,11 @@
       "svg_height": 25,
       "type": "freezer"
     },
-    "16":  {
+    "16": {
       "hex": "282d670e000000b7",
       "active": false
     },
-    "17":  {
+    "17": {
       "hex": "28821d0e0000001f",
       "active": false,
       "short_name": "P_Dining_Vert_Freezer",
