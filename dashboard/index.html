@@ -494,8 +494,10 @@ title: Temperature Sensor Dashboard
         document.querySelectorAll('.sensor-card').forEach(card => {
             if (value === 'all' || value === card.dataset.location) {
                 card.style.display = '';
+                card.classList.remove("d-none");
             } else {
                 card.style.display = 'none';
+                card.classList.add("d-none");
             }
         });
     }
