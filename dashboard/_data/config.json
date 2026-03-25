@@ -220,7 +220,7 @@
     },
     "17": {
       "hex": "28821d0e0000001f",
-      "active": false,
+      "active": true,
       "short_name": "P_Dining_Vert_Freezer",
       "nice_name": "Pantry Dining West Standing Freezer",
       "maximum_temp": 13,
