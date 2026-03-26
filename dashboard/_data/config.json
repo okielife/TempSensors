@@ -55,7 +55,7 @@
       "active": true,
       "short_name": "P_Entry_East_Fridge",
       "nice_name": "Pantry Entry East Fridge",
-      "maximum_temp": 42,
+      "maximum_temp": 43,
       "sensor_location": "Pantry",
       "svg_x": 67,
       "svg_y": 29,
