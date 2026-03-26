@@ -52,7 +52,7 @@
     },
     "02": {
       "hex": "286ea75e00000061",
-      "active": false,
+      "active": true,
       "short_name": "P_Entry_East_Fridge",
       "nice_name": "Pantry Entry East Fridge",
       "maximum_temp": 42,
