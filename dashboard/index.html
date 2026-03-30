@@ -76,8 +76,7 @@ title: Temperature Sensor Dashboard
     </div>
 </nav>
 
-{% assign active_sensors = site.data.config.sensors | where_exp: "sensor", "sensor.active" %}
-{% assign active_sensors = active_sensors | sort: "sensor_location" %}
+{% assign active_sensors = site.data.config.sensors | where_exp: "sensor", "sensor.active" | sort: "nice_name"%}
 
 <div class="container-fluid mb-3 text-center">
     <div class="btn-group btn-group-lg" role="group" aria-label="Filter Button Group">
