@@ -7,6 +7,7 @@ title: Temperature Sensor Dashboard
     <link rel="icon" type="image/png" href="favicon.png"/>
     <link href="https://fonts.googleapis.com/css?family=Ubuntu:400,700&amp;display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!--suppress CssUnusedSymbol -->
     <style>
         .card-header:not(.collapsed) .chevron {
             transform: rotate(90deg);
@@ -63,7 +64,6 @@ title: Temperature Sensor Dashboard
 <body class="container-fluid" style="font-family: Ubuntu,serif">
 <script src='https://cdn.plot.ly/plotly-3.3.0.min.js'></script>
 
-{% assign active_sensors = site.data.config.sensors | where_exp: "sensor", "sensor.active" %}
 <nav class="navbar navbar-light bg-light px-3">
     <span class="navbar-brand ms-2 fs-3">Temperature Sensor Dashboard</span>
     <div class="d-flex align-items-center ms-auto">
@@ -76,6 +76,7 @@ title: Temperature Sensor Dashboard
     </div>
 </nav>
 
+{% assign active_sensors = site.data.config.sensors | where_exp: "sensor", "sensor.active" %}
 {% assign active_sensors = active_sensors | sort: "sensor_location" %}
 
 <div class="container-fluid mb-3 text-center">
@@ -314,7 +315,10 @@ title: Temperature Sensor Dashboard
                                  data-location="{{ sensor.sensor_location }}">
                                 <div class="card shadow-sm summary-card" style="padding-top: 0;"
                                      data-time="{{ last_post.measurement_time }}"
-                                     data-temp="{{ avg_temp }}" data-maxtemp="{{ sensor.maximum_temp }}">
+                                     data-temp="{{ avg_temp }}"
+                                     data-maxtemp="{{ sensor.maximum_temp }}"
+                                     data-lasttemp="{{ last_post.temperature }}"
+                                >
                                     <div class="card-body" style="padding: 10px;">
                                         <div style="font-weight:600">
                                             <a href="#sensor-{{ sensor.hex }}"
@@ -486,7 +490,6 @@ title: Temperature Sensor Dashboard
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const sidebar = document.getElementById('sidebar');
     const historyData = JSON.parse('{{ site.data.history | jsonify }}');
     const radios = document.querySelectorAll('input[name="filter"]');
 
@@ -524,12 +527,15 @@ title: Temperature Sensor Dashboard
             const raw = card.dataset.time;
             const avg_temp = Number(card.dataset.temp);
             const max_temp = Number(card.dataset.maxtemp);
+            const last_temp = Number(card.dataset.lasttemp);
             const d = parseSensorTime(raw);
             const rounded_temp = avg_temp.toFixed(1) + "°F";
             card.querySelector('.last-update').textContent = timeAgo(d);
             card.querySelector('.avg-temperature').textContent = rounded_temp;
             const ageMinutes = (Date.now() - d) / 60000;
-            if (ageMinutes > 240 || avg_temp > max_temp) {
+            const tooOld = ageMinutes > 240;
+            const tooHot = avg_temp > max_temp && last_temp > max_temp;
+            if (tooHot || tooOld) {
                 card.classList.add('border-danger');
                 card.classList.add('bg-danger-subtle');
             }
