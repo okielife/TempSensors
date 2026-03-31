@@ -128,6 +128,7 @@ title: Temperature Sensor Dashboard
                                             <!-- Calculate average temp of last few readings -->
                                             {% assign recent_sensor_posts = site.posts | where: "sensor_id", sensor.hex | slice: 0, 3 %}
                                             {% assign last_post = recent_sensor_posts[0] %}
+                                            {% assign last_temperature = last_post.temperature %}
                                             {% assign count = recent_sensor_posts | size %}
                                             {% assign sum = 0 %}
                                             {% for p in recent_sensor_posts %}
@@ -143,7 +144,7 @@ title: Temperature Sensor Dashboard
                                             {% assign alert_flag = "" %}
                                             {% assign fill_color = "#db5700" %}
                                             {% if sensor.active %}
-                                                {% if avg_temp > sensor.maximum_temp %}
+                                                {% if avg_temp > sensor.maximum_temp and last_temperature > sensor.maximum_temp %}
                                                     {% assign alert_flag = "animate" %}
                                                     {% assign fill_color = "red" %}
                                                 {% elsif sensor.type == "freezer" %}
